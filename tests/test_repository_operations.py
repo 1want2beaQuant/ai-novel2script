@@ -1,4 +1,5 @@
 from pathlib import Path
+import re
 from typing import Any
 
 import yaml
@@ -94,3 +95,14 @@ def test_documented_local_commands_are_cross_shell_safe() -> None:
         "python -m novel2script examples/three_chapters.txt "
         "--format fountain --output outputs/release-smoke.fountain"
     ) in release_checklist
+
+
+def test_readme_local_links_point_to_existing_files() -> None:
+    readme = (ROOT / "README.md").read_text(encoding="utf-8")
+
+    for target in re.findall(r"\[[^\]]+\]\(([^)]+)\)", readme):
+        if target.startswith(("http://", "https://", "#")):
+            continue
+
+        path = target.split("#", 1)[0]
+        assert (ROOT / path).exists(), target
