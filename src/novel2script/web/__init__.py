@@ -5,6 +5,7 @@ from __future__ import annotations
 import argparse
 import json
 import mimetypes
+from ipaddress import ip_address
 from http import HTTPStatus
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from importlib import resources
@@ -21,6 +22,7 @@ from novel2script.yaml_io import draft_to_yaml
 
 MAX_REQUEST_BYTES = 2_000_000
 STATIC_FILES = {"index.html", "app.css", "app.js"}
+LOCAL_HOSTS = {"localhost", "127.0.0.1", "::1"}
 
 
 def convert_payload(payload: dict[str, Any]) -> dict[str, Any]:
@@ -93,12 +95,22 @@ def summarize_script(data: dict[str, Any]) -> dict[str, Any]:
     }
 
 
-def create_server(host: str = "127.0.0.1", port: int = 8765) -> ThreadingHTTPServer:
+def create_server(
+    host: str = "127.0.0.1",
+    port: int = 8765,
+    allow_remote: bool = False,
+) -> ThreadingHTTPServer:
+    _validate_bind_host(host, allow_remote=allow_remote)
     return ThreadingHTTPServer((host, port), Novel2ScriptWebHandler)
 
 
-def serve(host: str = "127.0.0.1", port: int = 8765, open_browser: bool = True) -> None:
-    server = create_server(host, port)
+def serve(
+    host: str = "127.0.0.1",
+    port: int = 8765,
+    open_browser: bool = True,
+    allow_remote: bool = False,
+) -> None:
+    server = create_server(host, port, allow_remote=allow_remote)
     url = f"http://{host}:{server.server_address[1]}"
     print(f"novel2script web UI running at {url}")
     if open_browser:
@@ -119,10 +131,23 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--host", default="127.0.0.1", help="Host interface to bind.")
     parser.add_argument("--port", type=int, default=8765, help="Port to listen on.")
     parser.add_argument("--no-open", action="store_true", help="Do not open a browser tab.")
+    parser.add_argument(
+        "--allow-remote",
+        action="store_true",
+        help="Allow binding the Web UI to a non-loopback host.",
+    )
     parser.add_argument("--version", action="version", version=f"%(prog)s {__version__}")
     args = parser.parse_args(argv)
 
-    serve(host=args.host, port=args.port, open_browser=not args.no_open)
+    try:
+        serve(
+            host=args.host,
+            port=args.port,
+            open_browser=not args.no_open,
+            allow_remote=args.allow_remote,
+        )
+    except ValueError as exc:
+        parser.exit(status=2, message=f"{parser.prog}: error: {exc}\n")
     return 0
 
 
@@ -195,6 +220,7 @@ class Novel2ScriptWebHandler(BaseHTTPRequestHandler):
         self.send_header("Content-Type", f"{content_type}; charset=utf-8")
         self.send_header("Content-Length", str(len(content)))
         self.send_header("Cache-Control", "no-store")
+        self._send_security_headers()
         self.end_headers()
         self.wfile.write(content)
 
@@ -203,8 +229,18 @@ class Novel2ScriptWebHandler(BaseHTTPRequestHandler):
         self.send_response(status)
         self.send_header("Content-Type", "application/json; charset=utf-8")
         self.send_header("Content-Length", str(len(content)))
+        self._send_security_headers()
         self.end_headers()
         self.wfile.write(content)
+
+    def _send_security_headers(self) -> None:
+        self.send_header("X-Content-Type-Options", "nosniff")
+        self.send_header("Referrer-Policy", "no-referrer")
+        self.send_header(
+            "Content-Security-Policy",
+            "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; "
+            "connect-src 'self'; base-uri 'none'; form-action 'none'",
+        )
 
 
 def _required_string(payload: dict[str, Any], key: str) -> str:
@@ -212,3 +248,22 @@ def _required_string(payload: dict[str, Any], key: str) -> str:
     if not isinstance(value, str):
         raise ValueError(f"{key} must be a string.")
     return value
+
+
+def _is_loopback_host(host: str) -> bool:
+    normalized = host.strip().lower().strip("[]")
+    if normalized in LOCAL_HOSTS:
+        return True
+    try:
+        return ip_address(normalized).is_loopback
+    except ValueError:
+        return False
+
+
+def _validate_bind_host(host: str, *, allow_remote: bool) -> None:
+    if allow_remote or _is_loopback_host(host):
+        return
+    raise ValueError(
+        "Refusing to bind the Web UI to a non-loopback host without --allow-remote. "
+        "Use --host 127.0.0.1 for local-only access."
+    )

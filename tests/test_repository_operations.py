@@ -120,3 +120,17 @@ def test_readme_local_links_point_to_existing_files() -> None:
 
         path = target.split("#", 1)[0]
         assert (ROOT / path).exists(), target
+
+
+def test_web_privacy_and_security_docs_cover_local_server_risks() -> None:
+    privacy = (ROOT / "PRIVACY.md").read_text(encoding="utf-8")
+    security = (ROOT / "SECURITY.md").read_text(encoding="utf-8")
+
+    assert "Local Web UI" in privacy
+    assert "local `/api/convert` endpoint" in privacy
+    assert "OpenAI mode follows the remote payload behavior" in privacy
+    assert "--allow-remote" in privacy
+
+    assert "Local Web UI" in security
+    assert "refuses non-loopback hosts unless `--allow-remote` is provided" in security
+    assert "does not implement authentication" in security

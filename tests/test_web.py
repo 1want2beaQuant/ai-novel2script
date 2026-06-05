@@ -46,6 +46,39 @@ def test_web_module_entrypoint_reports_package_version() -> None:
     assert result.stderr == ""
 
 
+def test_web_rejects_remote_bind_without_explicit_allow(
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    with pytest.raises(SystemExit) as exc_info:
+        web_module.main(["--host", "0.0.0.0", "--port", "0", "--no-open"])
+
+    assert exc_info.value.code == 2
+    captured = capsys.readouterr()
+    assert "non-loopback host without --allow-remote" in captured.err
+
+
+def test_create_server_rejects_remote_bind_without_explicit_allow() -> None:
+    with pytest.raises(ValueError, match="non-loopback host without --allow-remote"):
+        create_server(host="0.0.0.0", port=0)
+
+
+def test_create_server_allows_remote_bind_when_explicit() -> None:
+    server = create_server(host="0.0.0.0", port=0, allow_remote=True)
+
+    try:
+        assert server.server_address[1] > 0
+    finally:
+        server.server_close()
+
+
+def test_web_loopback_host_detection() -> None:
+    assert web_module._is_loopback_host("127.0.0.1")
+    assert web_module._is_loopback_host("localhost")
+    assert web_module._is_loopback_host("[::1]")
+    assert not web_module._is_loopback_host("0.0.0.0")
+    assert not web_module._is_loopback_host("192.168.1.10")
+
+
 def test_convert_payload_returns_output_and_summary() -> None:
     result = convert_payload(
         {
@@ -101,6 +134,9 @@ def test_web_server_serves_static_assets_and_conversion_api() -> None:
         response = connection.getresponse()
         body = response.read().decode("utf-8")
         assert response.status == HTTPStatus.OK
+        assert response.getheader("X-Content-Type-Options") == "nosniff"
+        assert response.getheader("Referrer-Policy") == "no-referrer"
+        assert "default-src 'self'" in (response.getheader("Content-Security-Policy") or "")
         assert "novel2script Studio" in body
         assert 'id="fileButton"' in body
 
@@ -114,6 +150,8 @@ def test_web_server_serves_static_assets_and_conversion_api() -> None:
         response = connection.getresponse()
         data = json.loads(response.read().decode("utf-8"))
         assert response.status == HTTPStatus.OK
+        assert response.getheader("X-Content-Type-Options") == "nosniff"
+        assert response.getheader("Referrer-Policy") == "no-referrer"
         assert data["format"] == "fountain"
         assert data["summary"]["scene_count"] == 3
     finally:

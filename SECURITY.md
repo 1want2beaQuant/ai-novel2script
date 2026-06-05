@@ -13,3 +13,13 @@ Use GitHub private vulnerability reporting for this repository if it is availabl
 ## Dependency Security
 
 The project runs `pip-audit` in CI and during the release test gate. Dependabot is configured for Python and GitHub Actions updates.
+
+## Local Web UI
+
+`novel2script-web` is intended as a local workbench for private manuscripts. It binds to
+`127.0.0.1` by default and refuses non-loopback hosts unless `--allow-remote` is provided.
+
+If you intentionally bind to `0.0.0.0` or another network-facing address, treat the server as exposed
+to that network. The Web UI does not implement authentication, so anyone who can reach the bound
+address may be able to submit manuscript text for conversion and view responses. Use remote binding
+only on trusted networks and stop the process when finished.
