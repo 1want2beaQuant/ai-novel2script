@@ -97,6 +97,16 @@ def test_documented_local_commands_are_cross_shell_safe() -> None:
     ) in release_checklist
 
 
+def test_release_checklist_cleans_stale_distribution_artifacts_before_build() -> None:
+    release_checklist = (ROOT / "docs" / "release_checklist.md").read_text(
+        encoding="utf-8"
+    )
+
+    cleanup = "Remove-Item -LiteralPath dist -Recurse -Force -ErrorAction SilentlyContinue"
+    assert cleanup in release_checklist
+    assert release_checklist.index(cleanup) < release_checklist.index("python -m build")
+
+
 def test_readme_local_links_point_to_existing_files() -> None:
     readme = (ROOT / "README.md").read_text(encoding="utf-8")
 
