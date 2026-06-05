@@ -78,7 +78,10 @@ def _parse_response_json(content: str) -> dict[str, Any]:
     if fenced:
         stripped = fenced.group("body").strip()
 
-    loaded = json.loads(stripped)
+    try:
+        loaded = json.loads(stripped)
+    except json.JSONDecodeError as exc:
+        raise ValueError("OpenAI enhancement must return valid JSON.") from exc
     if not isinstance(loaded, dict):
         raise ValueError("OpenAI enhancement must return a JSON object.")
     return loaded

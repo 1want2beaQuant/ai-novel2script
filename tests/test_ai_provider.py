@@ -115,6 +115,11 @@ def test_parse_response_json_rejects_non_object_json() -> None:
         _parse_response_json('[{"title": "Enhanced"}]')
 
 
+def test_parse_response_json_rejects_invalid_json() -> None:
+    with pytest.raises(ValueError, match="valid JSON"):
+        _parse_response_json("not-json")
+
+
 def test_openai_provider_wraps_sdk_failures(monkeypatch: pytest.MonkeyPatch) -> None:
     def fail_enhancement(*args: object, **kwargs: object) -> dict[str, object]:
         raise RuntimeError("upstream unavailable")
