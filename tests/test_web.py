@@ -331,6 +331,9 @@ def test_web_static_assets_include_conversion_status_ui() -> None:
         assert "function importedFileRequestByteLength" in script
         assert "function showFileImportSizeError" in script
         assert "文件过大，未导入" in script
+        assert "function showFileImportReadError" in script
+        assert "文件读取失败，当前手稿已保留" in script
+        assert "setConversionStatus(\"导入失败\"" in script
         assert "elements.file.value = \"\"" in script
         assert "function copyOutput" in script
         assert "navigator.clipboard?.writeText" in script
