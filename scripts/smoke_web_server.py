@@ -122,6 +122,7 @@ def _check_static_app(base_url: str) -> None:
         "maxRequestBytes",
         "isPreviewReady",
         "showPreflightBlockedConversion",
+        "showFileImportSizeError",
     ]
     if status != 200 or not all(marker in body for marker in required):
         raise AssertionError(f"Unexpected app.js response: {status}")

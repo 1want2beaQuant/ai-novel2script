@@ -324,6 +324,10 @@ def test_web_static_assets_include_conversion_status_ui() -> None:
         assert "const maxRequestBytes = 2000000" in script
         assert "new TextEncoder" in script
         assert "function isCurrentRequestTooLarge" in script
+        assert "function importedFileRequestByteLength" in script
+        assert "function showFileImportSizeError" in script
+        assert "文件过大，未导入" in script
+        assert "elements.file.value = \"\"" in script
         assert "function syncConvertAvailability" in script
         assert "手稿过大，请拆分后再预检或转换。" in script
         assert "conversionSummary" in script
