@@ -14,25 +14,26 @@
 - 生成 `coverage_report`，按专业 coverage 思路给出推荐等级、分项评分、强弱项和优先修订动作。
 - 支持 Fountain 剧本文本导出，便于进入专业剧本编辑器继续打磨。
 - 支持 CLI 批处理，适合持续迭代剧本初稿。
+- 提供本地 Web 工作台，可在浏览器中导入手稿、转换 YAML/Fountain、查看改编摘要并下载结果。
 
 ## 安装
-
-发布包：
-
-```powershell
-python -m pip install novel2script
-```
-
-需要 OpenAI 兼容模型增强时安装可选依赖：
-
-```powershell
-python -m pip install "novel2script[ai]"
-```
 
 本地开发：
 
 ```powershell
 python -m pip install -e ".[dev]"
+```
+
+需要 OpenAI 兼容模型增强时安装可选依赖：
+
+```powershell
+python -m pip install -e ".[dev,ai]"
+```
+
+未来发布包可用后，也可以直接安装：
+
+```powershell
+python -m pip install novel2script
 ```
 
 安装后可直接使用 CLI 或模块入口：
@@ -73,6 +74,22 @@ python -m novel2script path\to\novel.txt --output outputs\script.yaml --validate
 python -m novel2script examples\three_chapters.txt --output outputs\fog-city.yaml --validate
 python -m novel2script examples\three_chapters.txt --format fountain --output outputs\fog-city.fountain
 ```
+
+## 本地 Web 工作台
+
+启动浏览器界面：
+
+```powershell
+novel2script-web --host 127.0.0.1 --port 8765
+```
+
+如果当前 shell 找不到 console script，也可以使用模块入口：
+
+```powershell
+python -m novel2script.web --host 127.0.0.1 --port 8765 --no-open
+```
+
+打开 `http://127.0.0.1:8765` 后，可以导入 `.txt` 手稿、选择 YAML 或 Fountain 输出、切换本地或 OpenAI 模式，并在页面底部查看章节、场景、人物、coverage 分数和前几场的场景索引。默认本地模式不会把手稿发送到外部服务；选择 OpenAI 且配置 `OPENAI_API_KEY` 后，行为与 CLI 的 `--provider openai` 相同。
 
 ## 可选 AI 增强
 
@@ -117,4 +134,4 @@ novel2script path\to\novel.txt --provider openai --model gpt-4.1-mini
 - CI 在 PR 和 `main` push 上运行 Python 3.10-3.14 测试、ruff、CLI smoke test、Schema 同步检查、包构建检查、Windows smoke 和依赖安全审计。
 - 发布 workflow 监听 `v*.*.*` 标签，校验标签版本、构建 wheel/sdist、安装 wheel/sdist 做 smoke test，并通过 PyPI Trusted Publishing 发布；PyPI 发布成功后创建 GitHub Release。
 - Dependabot 每周检查 Python 依赖和 GitHub Actions 更新。
-- 首次发布前请先在 PyPI 创建 `novel2script` 的 pending publisher，并绑定 GitHub `pypi` environment。
+- 项目当前优先完善核心功能与前端界面；首次发布前请先在 PyPI 创建 `novel2script` 的 pending publisher，并绑定 GitHub `pypi` environment。

@@ -68,3 +68,28 @@ def test_convert_text_to_script_contains_traceable_scenes() -> None:
     assert coverage["strengths"]
     assert coverage["weaknesses"]
     assert coverage["action_items"][0]["priority"] in {"high", "medium", "low"}
+
+
+def test_convert_text_to_script_keeps_voice_over_blocks() -> None:
+    draft = convert_text_to_script(
+        """
+第 1 章 雨夜
+旁白：雨声盖住了旧宅里的脚步。
+
+第 2 章 空屋
+林晚说：我们不能再等了。
+
+第 3 章 码头
+两人在码头找到最后的线索。
+""",
+        title="雾城来信",
+    )
+
+    blocks = [
+        block
+        for act in draft.to_dict()["acts"]
+        for scene in act["scenes"]
+        for block in scene["blocks"]
+    ]
+
+    assert {"type": "voice_over", "text": "雨声盖住了旧宅里的脚步。"} in blocks

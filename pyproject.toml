@@ -70,12 +70,14 @@ Issues = "https://github.com/1want2beaQuant/ai-novel2script/issues"
 
 [project.scripts]
 novel2script = "novel2script.cli:main"
+novel2script-web = "novel2script.web:main"
 
 [tool.setuptools.packages.find]
 where = ["src"]
 
 [tool.setuptools.package-data]
 novel2script = ["schemas/*.json"]
+"novel2script.web" = ["static/*.html", "static/*.css", "static/*.js"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

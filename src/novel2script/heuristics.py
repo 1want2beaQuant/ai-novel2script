@@ -113,6 +113,9 @@ def _chapter_to_scene(chapter: Chapter) -> Scene:
 
 
 def _paragraph_to_block(paragraph: str) -> ScriptBlock:
+    if paragraph.startswith(("旁白：", "旁白:")):
+        return ScriptBlock(type="voice_over", text=_strip_voice_over_prefix(paragraph))
+
     dialogue = DIALOGUE_RE.match(paragraph)
     if dialogue:
         speaker = _normalize_speaker(dialogue.group("speaker"))
@@ -121,9 +124,6 @@ def _paragraph_to_block(paragraph: str) -> ScriptBlock:
             character=speaker,
             text=_strip_quotes(dialogue.group("line")),
         )
-
-    if paragraph.startswith(("旁白：", "旁白:")):
-        return ScriptBlock(type="voice_over", text=paragraph.split(":", 1)[-1].strip())
 
     return ScriptBlock(type="action", text=_rewrite_action(paragraph))
 
@@ -713,6 +713,10 @@ def _guess_names(text: str, limit: int) -> list[str]:
 
 def _strip_quotes(text: str) -> str:
     return text.strip().strip("“”\"'")
+
+
+def _strip_voice_over_prefix(text: str) -> str:
+    return re.sub(r"^旁白[：:]\s*", "", text, count=1).strip()
 
 
 def _normalize_speaker(text: str) -> str:
