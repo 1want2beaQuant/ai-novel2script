@@ -8,7 +8,7 @@ from threading import Thread
 import pytest
 
 import novel2script
-from novel2script.web import convert_payload, create_server
+from novel2script.web import convert_payload, create_server, preview_payload
 import novel2script.web as web_module
 
 
@@ -146,6 +146,32 @@ def test_convert_payload_rejects_missing_text() -> None:
         raise AssertionError("Expected ValueError")
 
 
+def test_preview_payload_reports_authoritative_chapter_preflight() -> None:
+    two_chapters = """
+第 1 章
+只有一章。
+
+第 2 章
+只有两章。
+"""
+
+    result = preview_payload({"text": two_chapters})
+
+    assert result["ready"] is False
+    assert result["chapter_count"] == 2
+    assert result["chapters"] == [
+        {"index": 1, "title": "第 1 章"},
+        {"index": 2, "title": "第 2 章"},
+    ]
+    assert "至少需要 3 个" in result["message"]
+
+    ready = preview_payload({"text": MANUSCRIPT})
+
+    assert ready["ready"] is True
+    assert ready["chapter_count"] == 3
+    assert ready["chapters"][0]["title"] == "Chapter 1 The Locked Room"
+
+
 def test_web_server_serves_static_assets_and_conversion_api() -> None:
     server = create_server(port=0)
     thread = Thread(target=server.serve_forever, daemon=True)
@@ -171,6 +197,23 @@ def test_web_server_serves_static_assets_and_conversion_api() -> None:
         assert 'id="exportState"' in body
         assert 'id="scoresList"' in body
         assert 'id="actionItems"' in body
+
+        preview_payload_bytes = json.dumps({"text": MANUSCRIPT}).encode("utf-8")
+        connection.request(
+            "POST",
+            "/api/preview",
+            body=preview_payload_bytes,
+            headers={
+                "Content-Type": "application/json",
+                "Origin": f"http://{host}:{port}",
+            },
+        )
+        response = connection.getresponse()
+        preview = json.loads(response.read().decode("utf-8"))
+        assert response.status == HTTPStatus.OK
+        assert preview["ready"] is True
+        assert preview["chapter_count"] == 3
+        assert preview["chapters"][0]["title"] == "Chapter 1 The Locked Room"
 
         payload = json.dumps({"text": MANUSCRIPT, "format": "fountain"}).encode("utf-8")
         connection.request(
@@ -211,7 +254,9 @@ def test_web_static_assets_include_conversion_status_ui() -> None:
         script = response.read().decode("utf-8")
 
         assert response.status == HTTPStatus.OK
-        assert "function estimateChapterCount" in script
+        assert 'fetch("/api/preview"' in script
+        assert "function countCharacters" in script
+        assert "function estimateChapterCount" not in script
         assert "需重新转换" in script
         assert "会按配置调用远程模型。" in script
         assert "conversionSummary" in script
@@ -293,6 +338,21 @@ def test_web_server_rejects_cross_origin_convert_request() -> None:
         connection.request(
             "POST",
             "/api/convert",
+            body=payload,
+            headers={
+                "Content-Type": "application/json",
+                "Origin": "http://example.test",
+            },
+        )
+        response = connection.getresponse()
+        data = json.loads(response.read().decode("utf-8"))
+
+        assert response.status == HTTPStatus.BAD_REQUEST
+        assert data == {"error": "Request Origin must match the local Web UI host."}
+
+        connection.request(
+            "POST",
+            "/api/preview",
             body=payload,
             headers={
                 "Content-Type": "application/json",

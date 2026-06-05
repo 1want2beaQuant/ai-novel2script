@@ -1,6 +1,6 @@
 import pytest
 
-from novel2script.chapter_parser import parse_chapters
+from novel2script.chapter_parser import parse_chapter_candidates, parse_chapters
 
 
 def test_parse_chinese_chapters() -> None:
@@ -108,6 +108,20 @@ def test_requires_at_least_three_body_chapters() -> None:
 只有两章。
 """
         )
+
+
+def test_parse_chapter_candidates_allows_preflight_below_minimum() -> None:
+    chapters = parse_chapter_candidates(
+        """
+第 1 章
+只有一章。
+
+第 2 章
+只有两章。
+"""
+    )
+
+    assert [chapter.title for chapter in chapters] == ["第 1 章", "第 2 章"]
 
 
 def test_missing_heading_error_mentions_supported_flexible_formats() -> None:
