@@ -19,14 +19,15 @@ python -m pip_audit --skip-editable
 python scripts\check_release_tag.py v0.1.0
 python -m build
 python -m twine check dist\*
+python -m novel2script --version
 cmd /c fc /b schemas\script.schema.json src\novel2script\schemas\script.schema.json
 ```
 
 For CLI changes, also run:
 
 ```powershell
-python -m novel2script.cli examples\three_chapters.txt --output outputs\smoke.yaml --validate
-python -m novel2script.cli examples\three_chapters.txt --format fountain --output outputs\smoke.fountain
+python -m novel2script examples\three_chapters.txt --output outputs\smoke.yaml --validate
+python -m novel2script examples\three_chapters.txt --format fountain --output outputs\smoke.fountain
 ```
 
 ## Pull Request Guidelines

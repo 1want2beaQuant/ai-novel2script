@@ -17,33 +17,54 @@
 
 ## 安装
 
+发布包：
+
+```powershell
+python -m pip install novel2script
+```
+
+需要 OpenAI 兼容模型增强时安装可选依赖：
+
+```powershell
+python -m pip install "novel2script[ai]"
+```
+
+本地开发：
+
 ```powershell
 python -m pip install -e .[dev]
 ```
 
-发布包安装后可直接使用 CLI：
+安装后可直接使用 CLI 或模块入口：
 
 ```powershell
 novel2script --version
+python -m novel2script --version
 novel2script examples/three_chapters.txt --output outputs/fog-city.yaml --validate
 ```
 
 ## 使用
 
 ```powershell
-python -m novel2script.cli examples/three_chapters.txt --output outputs/fog-city.yaml
+novel2script examples/three_chapters.txt --output outputs/fog-city.yaml
 ```
 
 也可以直接验证输出是否符合 Schema：
 
 ```powershell
-python -m novel2script.cli examples/three_chapters.txt --output outputs/fog-city.yaml --validate
+novel2script examples/three_chapters.txt --output outputs/fog-city.yaml --validate
 ```
 
 需要导出剧本文本时，可以选择 Fountain：
 
 ```powershell
-python -m novel2script.cli examples/three_chapters.txt --format fountain --output outputs/fog-city.fountain
+novel2script examples/three_chapters.txt --format fountain --output outputs/fog-city.fountain
+```
+
+如果当前 shell 找不到 console script，也可以使用模块入口：
+
+```powershell
+python -m novel2script examples/three_chapters.txt --output outputs/fog-city.yaml --validate
 ```
 
 ## 可选 AI 增强
@@ -51,9 +72,8 @@ python -m novel2script.cli examples/three_chapters.txt --format fountain --outpu
 设置环境变量后启用 OpenAI 兼容模型：
 
 ```powershell
-python -m pip install "novel2script[ai]"
 $env:OPENAI_API_KEY="sk-..."
-python -m novel2script.cli examples/three_chapters.txt --provider openai --model gpt-4.1-mini
+novel2script examples/three_chapters.txt --provider openai --model gpt-4.1-mini
 ```
 
 如果没有配置 Key，工具会自动回退到本地启发式引擎。
@@ -86,7 +106,7 @@ python -m novel2script.cli examples/three_chapters.txt --provider openai --model
 
 ## 工程化状态
 
-- CI 在 PR 和 `main` push 上运行 ruff、pytest、CLI smoke test、Schema 同步检查、包构建检查和依赖安全审计。
-- 发布 workflow 监听 `v*.*.*` 标签，校验标签版本、构建 wheel/sdist、安装 wheel 做 smoke test，并通过 PyPI Trusted Publishing 发布。
+- CI 在 PR 和 `main` push 上运行 ruff、pytest、CLI smoke test、Schema 同步检查、包构建检查、Windows smoke 和依赖安全审计。
+- 发布 workflow 监听 `v*.*.*` 标签，校验标签版本、构建 wheel/sdist、安装 wheel/sdist 做 smoke test，并通过 PyPI Trusted Publishing 发布；PyPI 发布成功后创建 GitHub Release。
 - Dependabot 每周检查 Python 依赖和 GitHub Actions 更新。
 - 发布前请先在 PyPI 配置 `pypi` environment 的 Trusted Publisher。
