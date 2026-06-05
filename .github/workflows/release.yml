@@ -86,6 +86,18 @@ jobs:
           .venv-wheel/bin/novel2script examples/three_chapters.txt --output outputs/wheel-smoke.yaml --validate
           .venv-wheel/bin/novel2script examples/three_chapters.txt --format fountain --output outputs/wheel-smoke.fountain
 
+      - name: Install sdist in clean environment
+        run: |
+          python -m venv .venv-sdist
+          .venv-sdist/bin/python -m pip install --upgrade pip
+          .venv-sdist/bin/python -m pip install dist/*.tar.gz
+
+      - name: Smoke test installed sdist
+        run: |
+          .venv-sdist/bin/novel2script --version
+          .venv-sdist/bin/novel2script examples/three_chapters.txt --output outputs/sdist-smoke.yaml --validate
+          .venv-sdist/bin/novel2script examples/three_chapters.txt --format fountain --output outputs/sdist-smoke.fountain
+
       - name: Upload distributions
         uses: actions/upload-artifact@v7
         with:
