@@ -5,7 +5,7 @@
 ## 顶层结构
 
 ```yaml
-schema_version: 1.2.0
+schema_version: 1.3.0
 title: 雾城来信
 language: zh-CN
 generated_at: 2026-06-05T00:00:00+00:00
@@ -28,6 +28,18 @@ acts:
     title: 开端
     purpose: 建立人物、目标与改编世界。
     scenes: []
+structure_map:
+  model: five_point_screenplay_map
+  beats:
+    - id: opening_image
+      label: 开场意象
+      scene_id: S001
+      source_chapter: 1
+      summary: 林晚在书房里发现一封旧信。
+      purpose: 建立主角处境、基调和世界入口。
+      revision_hint: 强化第一场的视觉动作，减少背景说明。 当前映射到 S001。
+  diagnostics:
+    - 场景数量少于五个，五点结构中的部分节拍会共用场景。
 story_bible:
   characters:
     - name: 林晚
@@ -84,6 +96,7 @@ revision_notes:
 | `themes` | string[] | 主题标签，用于后续润色和检索。 |
 | `characters` | object[] | 人物表，描述角色功能及首次出现场景。 |
 | `acts` | object[] | 幕结构，每幕包含多个场景。 |
+| `structure_map` | object | 五点结构地图，把关键节拍映射到场景并给出结构诊断。 |
 | `story_bible` | object | 改编资料库，整理人物连续性、地点、道具/线索和待解问题。 |
 | `adaptation_report` | object | 改编质检报告，说明章节覆盖、场景映射、结构指标、质量风险和修订清单。 |
 | `revision_notes` | string[] | 自动改编后的修订提醒。 |
@@ -133,6 +146,15 @@ revision_notes:
 - `props` 记录道具或线索、来源章节和戏剧功能，避免关键线索丢失。
 - `open_questions` 汇总需要作者继续回答的改编问题。
 
+## 结构地图
+
+`structure_map` 用于帮助作者检查剧本初稿是否具备基本的结构节拍：
+
+- `model` 当前为 `five_point_screenplay_map`。
+- `beats` 固定包含开场意象、诱发事件、中点转折、高潮和结局。
+- 每个节拍记录 `scene_id`、`source_chapter`、摘要、功能和修订提示。
+- `diagnostics` 自动指出节拍是否过度集中在少数场景，帮助作者扩写或重排章节。
+
 ## 设计原因
 
 1. **面向编辑而不是终稿排版**：YAML 比传统剧本排版更容易被作者、编辑器和 AI 工具继续修改，因此 Schema 保留结构化字段，而不是直接生成固定版式。
@@ -141,4 +163,5 @@ revision_notes:
 4. **允许 AI 与人工协作**：`summary`、`beats`、`revision_notes` 明确标记 AI 生成的中间判断，作者可以选择接受、删除或重写。
 5. **补足改编质检**：`adaptation_report` 让作者知道哪些章节已经被改成场景、哪里还缺对白或具体地点，避免只拿到一个不可追溯的 AI 初稿。
 6. **沉淀改编资产**：`story_bible` 把人物、地点、道具和未解决问题独立出来，便于作者后续扩写、统一设定或进入制片拆解。
-7. **便于程序校验**：字段采用稳定 ID、枚举类型和最小长度约束，可在 CLI 或 CI 中自动检查，避免生成半结构化、难以复用的 YAML。
+7. **检查结构节拍**：`structure_map` 把大纲工具中的 Beat Board/Story Map 思路引入改编初稿，帮助作者判断关键转折是否已经落到具体场景。
+8. **便于程序校验**：字段采用稳定 ID、枚举类型和最小长度约束，可在 CLI 或 CI 中自动检查，避免生成半结构化、难以复用的 YAML。

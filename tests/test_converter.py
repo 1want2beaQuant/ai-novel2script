@@ -31,6 +31,16 @@ def test_convert_text_to_script_contains_traceable_scenes() -> None:
     assert data["characters"][0]["name"] == "林晚"
     assert scenes[0]["location"] == "书房"
     assert any(block["type"] == "dialogue" for scene in scenes for block in scene["blocks"])
+    structure = data["structure_map"]
+    assert structure["model"] == "five_point_screenplay_map"
+    assert [beat["id"] for beat in structure["beats"]] == [
+        "opening_image",
+        "inciting_incident",
+        "midpoint",
+        "climax",
+        "resolution",
+    ]
+    assert structure["diagnostics"]
     bible = data["story_bible"]
     assert bible["characters"][0]["name"] == "林晚"
     assert bible["locations"][0]["scene_ids"] == ["S001"]

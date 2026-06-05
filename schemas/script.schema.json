@@ -13,6 +13,7 @@
     "themes",
     "characters",
     "acts",
+    "structure_map",
     "story_bible",
     "adaptation_report",
     "revision_notes"
@@ -257,6 +258,78 @@
           }
         },
         "revision_checklist": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      }
+    },
+    "structure_map": {
+      "type": "object",
+      "required": ["model", "beats", "diagnostics"],
+      "additionalProperties": false,
+      "properties": {
+        "model": {
+          "type": "string",
+          "const": "five_point_screenplay_map"
+        },
+        "beats": {
+          "type": "array",
+          "minItems": 5,
+          "items": {
+            "type": "object",
+            "required": [
+              "id",
+              "label",
+              "scene_id",
+              "source_chapter",
+              "summary",
+              "purpose",
+              "revision_hint"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "id": {
+                "type": "string",
+                "enum": [
+                  "opening_image",
+                  "inciting_incident",
+                  "midpoint",
+                  "climax",
+                  "resolution"
+                ]
+              },
+              "label": {
+                "type": "string",
+                "minLength": 1
+              },
+              "scene_id": {
+                "type": "string",
+                "pattern": "^S\\d{3}$"
+              },
+              "source_chapter": {
+                "type": "integer",
+                "minimum": 1
+              },
+              "summary": {
+                "type": "string",
+                "minLength": 1
+              },
+              "purpose": {
+                "type": "string",
+                "minLength": 1
+              },
+              "revision_hint": {
+                "type": "string",
+                "minLength": 1
+              }
+            }
+          }
+        },
+        "diagnostics": {
           "type": "array",
           "minItems": 1,
           "items": {
