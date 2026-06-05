@@ -327,6 +327,8 @@ class Novel2ScriptWebHandler(BaseHTTPRequestHandler):
             content_length = int(self.headers.get("Content-Length", "0"))
         except ValueError as exc:
             raise ValueError("Invalid request length.") from exc
+        if content_length < 0:
+            raise ValueError("Invalid request length.")
         if content_length > MAX_REQUEST_BYTES:
             raise RequestTooLargeError("Request body is too large.")
 
@@ -359,6 +361,7 @@ class Novel2ScriptWebHandler(BaseHTTPRequestHandler):
         self.send_response(status)
         self.send_header("Content-Type", "application/json; charset=utf-8")
         self.send_header("Content-Length", str(len(content)))
+        self.send_header("Cache-Control", "no-store")
         self._send_security_headers()
         self.end_headers()
         self.wfile.write(content)
