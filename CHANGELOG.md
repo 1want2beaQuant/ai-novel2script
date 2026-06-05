@@ -18,6 +18,7 @@ Initial release candidate.
 - Local Web adaptation inspector with coverage scores, structure beats, revision actions, risk notes, and scene index panels.
 - Local Web UI refuses non-loopback hosts unless `--allow-remote` is provided and sends basic browser security headers.
 - Local Web conversion API rejects non-JSON and cross-origin browser requests.
+- Local Web conversion API rejects non-string `title` values instead of silently ignoring them.
 - Local Web conversion API rejects non-boolean `validate` values instead of coercing them.
 - Local Web JSON API responses use `Cache-Control: no-store` and reject malformed request lengths.
 - Local Web UI reports readable conversion and preflight errors when API responses are not valid JSON.
