@@ -45,7 +45,8 @@ When using the Web UI:
 - the selected `.txt` manuscript is read by your browser and sent to local endpoints:
   `/api/preview` for chapter preflight and `/api/convert` for conversion;
 - local mode keeps conversion on the same machine and does not call external AI services;
-- OpenAI mode follows the remote payload behavior described above;
+- OpenAI mode follows the remote payload behavior described above, and the Web UI asks for
+  confirmation before starting that remote conversion;
 - generated YAML or Fountain text remains in the browser until you copy or download it.
 
 Binding the Web UI to a non-loopback host requires `--allow-remote`. That can expose manuscript text,
