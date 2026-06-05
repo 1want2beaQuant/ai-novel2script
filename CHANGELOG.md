@@ -24,6 +24,7 @@ Initial release candidate.
 - Local logline generation avoids repeated protagonist phrasing and uses a cleaner one-sentence pitch template.
 - Local Web workbench shows live input size, chapter estimate, provider privacy status, conversion freshness, and export readiness.
 - Local Web workbench preflights chapter detection through the backend parser before conversion.
+- Local Web workbench disables conversion until backend chapter preflight confirms at least 3 chapters.
 - Local Web OpenAI mode asks for confirmation before starting a remote conversion.
 - Local Web OpenAI confirmation is scoped to the current manuscript, title, and model, and model changes mark converted output stale.
 - CLI and Web conversions report the actual provider used, including local fallback when OpenAI is requested without `OPENAI_API_KEY`.

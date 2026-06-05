@@ -116,7 +116,13 @@ def _check_health(base_url: str) -> None:
 
 def _check_static_app(base_url: str) -> None:
     status, body = _request_text(base_url, "GET", "/app.js")
-    required = ["fetch(\"/api/preview\"", "providerStatusSummary", "maxRequestBytes"]
+    required = [
+        "fetch(\"/api/preview\"",
+        "providerStatusSummary",
+        "maxRequestBytes",
+        "isPreviewReady",
+        "showPreflightBlockedConversion",
+    ]
     if status != 200 or not all(marker in body for marker in required):
         raise AssertionError(f"Unexpected app.js response: {status}")
 
