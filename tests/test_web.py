@@ -315,6 +315,10 @@ def test_web_static_assets_include_conversion_status_ui() -> None:
         assert "state.isPreviewPending || !state.isPreviewReady" in script
         assert "未确认远程发送" in script
         assert "需重新转换" in script
+        assert "lastFormat" in script
+        assert "lastValidate" in script
+        assert "输出格式已变更" in script
+        assert "Schema 校验设置已变更" in script
         assert "转换前会按当前手稿、片名和模型确认远程发送。" in script
         assert "OpenAI 模型已变更" in script
         assert "function renderProviderRunStatus" in script
