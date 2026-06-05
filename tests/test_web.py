@@ -391,6 +391,11 @@ def test_web_static_assets_include_conversion_status_ui() -> None:
         assert "浏览器未允许写入剪贴板，请手动选中结果复制。" in script
         assert "function downloadOutput" in script
         assert "downloadLabelTimer" in script
+        assert "function downloadBaseName" in script
+        assert "function safeFilenameSegment" in script
+        assert 'safeTitle || "novel2script-draft"' in script
+        assert ".replace(/[<>:\"/\\\\|?*\\u0000-\\u001f]/g, \"-\")" in script
+        assert "link.download = `${downloadBaseName()}.${extension}`" in script
         assert "下载失败" in script
         assert "浏览器未能启动下载，请复制结果后手动保存。" in script
         assert "function syncConvertAvailability" in script
