@@ -1,0 +1,19 @@
+# Changelog
+
+All notable changes to `novel2script` are recorded here.
+
+## 0.1.0 - 2026-06-05
+
+Initial release candidate.
+
+### Added
+
+- CLI package entry point: `novel2script`.
+- Local heuristic conversion from 3+ chapter manuscripts to screenplay YAML drafts.
+- YAML output validated by bundled JSON Schema.
+- Fountain screenplay export.
+- Structured `structure_map`, `story_bible`, `adaptation_report`, and `coverage_report` sections.
+- Optional OpenAI-compatible enhancement through the `novel2script[ai]` extra.
+- Release workflow for tagged PyPI publishing through Trusted Publishing.
+- CI matrix for Python 3.10, 3.11, and 3.12.
+- Build, wheel smoke, release tag, and dependency security audit guards.

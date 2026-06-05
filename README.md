@@ -74,10 +74,14 @@ python -m novel2script.cli examples/three_chapters.txt --provider openai --model
 - [YAML Schema 设计文档](docs/yaml_schema.md)
 - [竞品调研与改进记录](docs/market_research.md)
 - [发布检查清单](docs/release_checklist.md)
+- [变更日志](CHANGELOG.md)
+- [贡献指南](CONTRIBUTING.md)
+- [安全策略](SECURITY.md)
 - [JSON Schema 文件](schemas/script.schema.json)
 
 ## 工程化状态
 
-- CI 在 PR 和 `main` push 上运行 ruff、pytest、CLI smoke test、Schema 同步检查和包构建检查。
-- 发布 workflow 监听 `v*.*.*` 标签，构建 wheel/sdist，并通过 PyPI Trusted Publishing 发布。
+- CI 在 PR 和 `main` push 上运行 ruff、pytest、CLI smoke test、Schema 同步检查、包构建检查和依赖安全审计。
+- 发布 workflow 监听 `v*.*.*` 标签，校验标签版本、构建 wheel/sdist、安装 wheel 做 smoke test，并通过 PyPI Trusted Publishing 发布。
+- Dependabot 每周检查 Python 依赖和 GitHub Actions 更新。
 - 发布前请先在 PyPI 配置 `pypi` environment 的 Trusted Publisher。
