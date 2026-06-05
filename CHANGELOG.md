@@ -18,6 +18,7 @@ Initial release candidate.
 - Local Web adaptation inspector with coverage scores, structure beats, revision actions, risk notes, and scene index panels.
 - Local Web UI refuses non-loopback hosts unless `--allow-remote` is provided and sends basic browser security headers.
 - Local Web conversion API rejects non-JSON and cross-origin browser requests.
+- Local Web server returns JSON `405 Method Not Allowed` responses with `Allow` and security headers for unsupported HTTP methods.
 - Local Web conversion API rejects non-string `title` values instead of silently ignoring them.
 - Local Web conversion API rejects non-string `format` and `provider` values before checking allowed options.
 - Local Web conversion API validates `model` with the shared non-empty string path.

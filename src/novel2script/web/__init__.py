@@ -24,6 +24,7 @@ from novel2script.yaml_io import draft_to_yaml
 MAX_REQUEST_BYTES = 2_000_000
 STATIC_FILES = {"index.html", "app.css", "app.js"}
 LOCAL_HOSTS = {"localhost", "127.0.0.1", "::1"}
+ALLOWED_METHODS_HEADER = "GET, HEAD, OPTIONS, POST"
 
 
 class RequestTooLargeError(ValueError):
@@ -274,19 +275,30 @@ class Novel2ScriptWebHandler(BaseHTTPRequestHandler):
     server_version = "novel2script-web"
 
     def do_GET(self) -> None:
-        path = self.path.split("?", 1)[0]
-        if path in {"", "/", "/index.html"}:
-            self._send_static("index.html")
-            return
-        if path == "/api/health":
-            self._send_json({"status": "ok"})
-            return
-        if path.startswith("/"):
-            filename = unquote(path.lstrip("/"))
-            if filename in STATIC_FILES:
-                self._send_static(filename)
-                return
-        self._send_json({"error": "Not found."}, status=HTTPStatus.NOT_FOUND)
+        self._handle_get(include_body=True)
+
+    def do_HEAD(self) -> None:
+        self._handle_get(include_body=False)
+
+    def do_OPTIONS(self) -> None:
+        self.send_response(HTTPStatus.NO_CONTENT)
+        self.send_header("Allow", ALLOWED_METHODS_HEADER)
+        self.send_header("Content-Length", "0")
+        self.send_header("Cache-Control", "no-store")
+        self._send_security_headers()
+        self.end_headers()
+
+    def do_PUT(self) -> None:
+        self._send_method_not_allowed()
+
+    def do_PATCH(self) -> None:
+        self._send_method_not_allowed()
+
+    def do_DELETE(self) -> None:
+        self._send_method_not_allowed()
+
+    def do_TRACE(self) -> None:
+        self._send_method_not_allowed()
 
     def do_POST(self) -> None:
         path = self.path.split("?", 1)[0]
@@ -318,8 +330,38 @@ class Novel2ScriptWebHandler(BaseHTTPRequestHandler):
 
         self._send_json(result)
 
+    def send_error(
+        self,
+        code: int,
+        message: str | None = None,
+        explain: str | None = None,
+    ) -> None:
+        if code == HTTPStatus.NOT_IMPLEMENTED:
+            self._send_method_not_allowed()
+            return
+        super().send_error(code, message, explain)
+
     def log_message(self, format: str, *args: object) -> None:
         return
+
+    def _handle_get(self, *, include_body: bool) -> None:
+        path = self.path.split("?", 1)[0]
+        if path in {"", "/", "/index.html"}:
+            self._send_static("index.html", include_body=include_body)
+            return
+        if path == "/api/health":
+            self._send_json({"status": "ok"}, include_body=include_body)
+            return
+        if path.startswith("/"):
+            filename = unquote(path.lstrip("/"))
+            if filename in STATIC_FILES:
+                self._send_static(filename, include_body=include_body)
+                return
+        self._send_json(
+            {"error": "Not found."},
+            status=HTTPStatus.NOT_FOUND,
+            include_body=include_body,
+        )
 
     def _validate_convert_request(self) -> None:
         content_type = self.headers.get("Content-Type", "")
@@ -350,11 +392,15 @@ class Novel2ScriptWebHandler(BaseHTTPRequestHandler):
             raise ValueError("Request body must be a JSON object.")
         return payload
 
-    def _send_static(self, filename: str) -> None:
+    def _send_static(self, filename: str, *, include_body: bool = True) -> None:
         try:
             content = resources.files(__package__).joinpath("static", filename).read_bytes()
         except FileNotFoundError:
-            self._send_json({"error": "Not found."}, status=HTTPStatus.NOT_FOUND)
+            self._send_json(
+                {"error": "Not found."},
+                status=HTTPStatus.NOT_FOUND,
+                include_body=include_body,
+            )
             return
         content_type = mimetypes.guess_type(filename)[0] or "application/octet-stream"
         self.send_response(HTTPStatus.OK)
@@ -363,17 +409,40 @@ class Novel2ScriptWebHandler(BaseHTTPRequestHandler):
         self.send_header("Cache-Control", "no-store")
         self._send_security_headers()
         self.end_headers()
-        self.wfile.write(content)
+        if include_body:
+            self.wfile.write(content)
 
-    def _send_json(self, payload: dict[str, Any], status: HTTPStatus = HTTPStatus.OK) -> None:
+    def _send_json(
+        self,
+        payload: dict[str, Any],
+        status: HTTPStatus = HTTPStatus.OK,
+        *,
+        headers: dict[str, str] | None = None,
+        include_body: bool = True,
+    ) -> None:
         content = json.dumps(payload, ensure_ascii=False).encode("utf-8")
         self.send_response(status)
         self.send_header("Content-Type", "application/json; charset=utf-8")
         self.send_header("Content-Length", str(len(content)))
         self.send_header("Cache-Control", "no-store")
+        if headers:
+            for name, value in headers.items():
+                self.send_header(name, value)
         self._send_security_headers()
         self.end_headers()
-        self.wfile.write(content)
+        if include_body:
+            self.wfile.write(content)
+
+    def _send_method_not_allowed(self) -> None:
+        self.close_connection = True
+        self._send_json(
+            {"error": "Method not allowed."},
+            status=HTTPStatus.METHOD_NOT_ALLOWED,
+            headers={
+                "Allow": ALLOWED_METHODS_HEADER,
+                "Connection": "close",
+            },
+        )
 
     def _send_security_headers(self) -> None:
         self.send_header("X-Content-Type-Options", "nosniff")

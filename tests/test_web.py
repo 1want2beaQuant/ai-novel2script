@@ -447,6 +447,104 @@ def test_web_server_rejects_non_json_convert_request() -> None:
         thread.join(timeout=5)
 
 
+def test_web_server_supports_head_without_body() -> None:
+    server = create_server(port=0)
+    thread = Thread(target=server.serve_forever, daemon=True)
+    thread.start()
+    host, port = server.server_address
+
+    try:
+        connection = HTTPConnection(host, port, timeout=10)
+        connection.request("HEAD", "/api/health")
+        response = connection.getresponse()
+        body = response.read()
+
+        assert response.status == HTTPStatus.OK
+        assert response.getheader("Content-Type") == "application/json; charset=utf-8"
+        assert response.getheader("Content-Length") == str(len(b'{"status": "ok"}'))
+        assert response.getheader("Cache-Control") == "no-store"
+        assert response.getheader("X-Content-Type-Options") == "nosniff"
+        assert body == b""
+    finally:
+        server.shutdown()
+        server.server_close()
+        thread.join(timeout=5)
+
+
+def test_web_server_options_reports_allowed_methods() -> None:
+    server = create_server(port=0)
+    thread = Thread(target=server.serve_forever, daemon=True)
+    thread.start()
+    host, port = server.server_address
+
+    try:
+        connection = HTTPConnection(host, port, timeout=10)
+        connection.request("OPTIONS", "/api/convert")
+        response = connection.getresponse()
+        body = response.read()
+
+        assert response.status == HTTPStatus.NO_CONTENT
+        assert response.getheader("Allow") == web_module.ALLOWED_METHODS_HEADER
+        assert response.getheader("Content-Length") == "0"
+        assert response.getheader("Cache-Control") == "no-store"
+        assert response.getheader("X-Content-Type-Options") == "nosniff"
+        assert body == b""
+    finally:
+        server.shutdown()
+        server.server_close()
+        thread.join(timeout=5)
+
+
+def test_web_server_rejects_unsupported_methods_with_json() -> None:
+    server = create_server(port=0)
+    thread = Thread(target=server.serve_forever, daemon=True)
+    thread.start()
+    host, port = server.server_address
+
+    try:
+        for method in ("PUT", "PATCH", "DELETE", "TRACE"):
+            connection = HTTPConnection(host, port, timeout=10)
+            connection.request(method, "/api/convert")
+            response = connection.getresponse()
+            data = json.loads(response.read().decode("utf-8"))
+
+            assert response.status == HTTPStatus.METHOD_NOT_ALLOWED
+            assert response.getheader("Allow") == web_module.ALLOWED_METHODS_HEADER
+            assert response.getheader("Content-Type") == "application/json; charset=utf-8"
+            assert response.getheader("Cache-Control") == "no-store"
+            assert response.getheader("X-Content-Type-Options") == "nosniff"
+            assert data == {"error": "Method not allowed."}
+            connection.close()
+    finally:
+        server.shutdown()
+        server.server_close()
+        thread.join(timeout=5)
+
+
+def test_web_server_rejects_unknown_methods_with_json() -> None:
+    server = create_server(port=0)
+    thread = Thread(target=server.serve_forever, daemon=True)
+    thread.start()
+    host, port = server.server_address
+
+    try:
+        connection = HTTPConnection(host, port, timeout=10)
+        connection.request("BREW", "/api/convert")
+        response = connection.getresponse()
+        data = json.loads(response.read().decode("utf-8"))
+
+        assert response.status == HTTPStatus.METHOD_NOT_ALLOWED
+        assert response.getheader("Allow") == web_module.ALLOWED_METHODS_HEADER
+        assert response.getheader("Content-Type") == "application/json; charset=utf-8"
+        assert response.getheader("Cache-Control") == "no-store"
+        assert response.getheader("X-Content-Type-Options") == "nosniff"
+        assert data == {"error": "Method not allowed."}
+    finally:
+        server.shutdown()
+        server.server_close()
+        thread.join(timeout=5)
+
+
 def test_web_server_accepts_utf8_bom_json_payload() -> None:
     server = create_server(port=0)
     thread = Thread(target=server.serve_forever, daemon=True)
