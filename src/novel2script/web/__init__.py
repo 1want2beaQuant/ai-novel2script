@@ -66,11 +66,20 @@ def convert_payload(payload: dict[str, Any]) -> dict[str, Any]:
     if _optional_bool(payload, "validate", default=True):
         validate_script(data)
 
-    output = draft_to_fountain(draft) if output_format == "fountain" else draft_to_yaml(draft)
+    summary = summarize_script(data)
+    yaml_output = draft_to_yaml(draft)
+    fountain_output = draft_to_fountain(draft)
+    output = fountain_output if output_format == "fountain" else yaml_output
     return {
         "format": output_format,
         "output": output,
-        "summary": summarize_script(data),
+        "exports": {
+            "yaml": yaml_output,
+            "fountain": fountain_output,
+            "draft_json": json.dumps(data, ensure_ascii=False, indent=2) + "\n",
+            "summary_json": json.dumps(summary, ensure_ascii=False, indent=2) + "\n",
+        },
+        "summary": summary,
         "draft": data,
         "provider_status": conversion.provider_status.to_dict(),
     }
