@@ -10,7 +10,7 @@ from http import HTTPStatus
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from importlib import resources
 from typing import Any
-from urllib.parse import unquote
+from urllib.parse import unquote, urlsplit
 import webbrowser
 
 from novel2script import __version__
@@ -175,6 +175,7 @@ class Novel2ScriptWebHandler(BaseHTTPRequestHandler):
             return
 
         try:
+            self._validate_convert_request()
             payload = self._read_json_payload()
             result = convert_payload(payload)
         except ValueError as exc:
@@ -191,6 +192,16 @@ class Novel2ScriptWebHandler(BaseHTTPRequestHandler):
 
     def log_message(self, format: str, *args: object) -> None:
         return
+
+    def _validate_convert_request(self) -> None:
+        content_type = self.headers.get("Content-Type", "")
+        media_type = content_type.split(";", 1)[0].strip().lower()
+        if media_type != "application/json":
+            raise ValueError("Request Content-Type must be application/json.")
+
+        origin = self.headers.get("Origin")
+        if origin and not _is_same_origin(origin, self.headers.get("Host", "")):
+            raise ValueError("Request Origin must match the local Web UI host.")
 
     def _read_json_payload(self) -> dict[str, Any]:
         try:
@@ -267,3 +278,17 @@ def _validate_bind_host(host: str, *, allow_remote: bool) -> None:
         "Refusing to bind the Web UI to a non-loopback host without --allow-remote. "
         "Use --host 127.0.0.1 for local-only access."
     )
+
+
+def _is_same_origin(origin: str, host_header: str) -> bool:
+    try:
+        parsed = urlsplit(origin)
+    except ValueError:
+        return False
+    if parsed.scheme != "http" or not parsed.netloc:
+        return False
+    return _normalize_host_port(parsed.netloc) == _normalize_host_port(host_header)
+
+
+def _normalize_host_port(value: str) -> str:
+    return value.strip().lower().rstrip(".")

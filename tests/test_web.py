@@ -79,6 +79,13 @@ def test_web_loopback_host_detection() -> None:
     assert not web_module._is_loopback_host("192.168.1.10")
 
 
+def test_web_same_origin_detection() -> None:
+    assert web_module._is_same_origin("http://127.0.0.1:8765", "127.0.0.1:8765")
+    assert web_module._is_same_origin("http://localhost:8765", "localhost:8765")
+    assert not web_module._is_same_origin("https://127.0.0.1:8765", "127.0.0.1:8765")
+    assert not web_module._is_same_origin("http://example.test", "127.0.0.1:8765")
+
+
 def test_convert_payload_returns_output_and_summary() -> None:
     result = convert_payload(
         {
@@ -145,7 +152,10 @@ def test_web_server_serves_static_assets_and_conversion_api() -> None:
             "POST",
             "/api/convert",
             body=payload,
-            headers={"Content-Type": "application/json"},
+            headers={
+                "Content-Type": "application/json",
+                "Origin": f"http://{host}:{port}",
+            },
         )
         response = connection.getresponse()
         data = json.loads(response.read().decode("utf-8"))
@@ -154,6 +164,60 @@ def test_web_server_serves_static_assets_and_conversion_api() -> None:
         assert response.getheader("Referrer-Policy") == "no-referrer"
         assert data["format"] == "fountain"
         assert data["summary"]["scene_count"] == 3
+    finally:
+        server.shutdown()
+        server.server_close()
+        thread.join(timeout=5)
+
+
+def test_web_server_rejects_non_json_convert_request() -> None:
+    server = create_server(port=0)
+    thread = Thread(target=server.serve_forever, daemon=True)
+    thread.start()
+    host, port = server.server_address
+
+    try:
+        connection = HTTPConnection(host, port, timeout=10)
+        connection.request(
+            "POST",
+            "/api/convert",
+            body=b"text=not-json",
+            headers={"Content-Type": "text/plain"},
+        )
+        response = connection.getresponse()
+        data = json.loads(response.read().decode("utf-8"))
+
+        assert response.status == HTTPStatus.BAD_REQUEST
+        assert data == {"error": "Request Content-Type must be application/json."}
+    finally:
+        server.shutdown()
+        server.server_close()
+        thread.join(timeout=5)
+
+
+def test_web_server_rejects_cross_origin_convert_request() -> None:
+    server = create_server(port=0)
+    thread = Thread(target=server.serve_forever, daemon=True)
+    thread.start()
+    host, port = server.server_address
+
+    try:
+        connection = HTTPConnection(host, port, timeout=10)
+        payload = json.dumps({"text": MANUSCRIPT, "format": "yaml"}).encode("utf-8")
+        connection.request(
+            "POST",
+            "/api/convert",
+            body=payload,
+            headers={
+                "Content-Type": "application/json",
+                "Origin": "http://example.test",
+            },
+        )
+        response = connection.getresponse()
+        data = json.loads(response.read().decode("utf-8"))
+
+        assert response.status == HTTPStatus.BAD_REQUEST
+        assert data == {"error": "Request Origin must match the local Web UI host."}
     finally:
         server.shutdown()
         server.server_close()

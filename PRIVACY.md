@@ -51,6 +51,9 @@ Binding the Web UI to a non-loopback host requires `--allow-remote`. That can ex
 generated output, and provider choices to other devices on the network. Use it only on trusted networks
 and close the server when you are finished.
 
+The conversion endpoint accepts JSON requests only. Browser requests that include an `Origin` header
+must match the local Web UI host.
+
 ## Issue Reports and Pull Requests
 
 Do not paste private manuscripts, unpublished plot details, API keys, or proprietary production notes into public issues or pull requests. Use minimal synthetic examples when reporting bugs.
