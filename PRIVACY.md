@@ -54,6 +54,10 @@ When using the Web UI:
   `本地回退` and no remote AI service is called;
 - generated YAML, Fountain, draft JSON, and summary JSON text remains in the browser until you
   clear the workbench, close the page, copy it, download it, or package it into a zip;
+- the browser workbench stores the current manuscript, title, output format, provider, model, and
+  Schema validation setting in browser `localStorage` so a refresh can restore the local draft;
+- generated outputs and remote confirmation state are not restored from that local draft, so a
+  restored manuscript must be converted again before copy, download, or bundle actions are enabled;
 - the Web UI clear action removes the current manuscript, title, generated outputs, diagnostics,
   selected file reference, and pending remote confirmation from the browser workbench state, but it
   cannot remove files you already downloaded or content you already copied elsewhere;

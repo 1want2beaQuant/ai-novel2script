@@ -119,6 +119,7 @@ def _check_static_app(base_url: str) -> None:
     required = [
         "fetch(\"/api/preview\"",
         "providerStatusSummary",
+        "localDraftStorageKey",
         "maxRequestBytes",
         "isPreviewReady",
         "showPreflightBlockedConversion",

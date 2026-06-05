@@ -38,6 +38,7 @@ Initial release candidate.
 - Local Web workbench can package YAML, Fountain, draft JSON, and summary JSON exports into one browser-generated zip.
 - Local Web result pane can switch between YAML, Fountain, draft JSON, and summary JSON views without rerunning conversion.
 - Local Web workbench can clear the current manuscript, generated outputs, diagnostics, selected file, and remote confirmation state.
+- Local Web workbench automatically saves manuscript draft input and conversion settings in browser local storage and restores them after a refresh.
 - Local Web download action reports browser download failures and recovers its button label.
 - Installed Web server smoke validation covers health, static app assets, and preview parsing in CI and release distribution checks.
 - Flexible chapter heading detection for Chinese prologue/epilogue headings and English word, Roman numeral, and abbreviated chapter headings.
