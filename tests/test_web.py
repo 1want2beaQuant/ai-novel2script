@@ -111,7 +111,7 @@ def test_convert_payload_returns_output_and_summary() -> None:
     assert result["provider_status"] == {
         "requested": "local",
         "actual": "local",
-        "model": "gpt-4.1-mini",
+        "model": novel2script.DEFAULT_MODEL,
         "remote": False,
         "reason": "local_selected",
         "message": "Used the local heuristic provider.",
@@ -262,6 +262,7 @@ def test_web_server_serves_static_assets_and_conversion_api() -> None:
         assert response.getheader("Cache-Control") == "no-store"
         assert "default-src 'self'" in (response.getheader("Content-Security-Policy") or "")
         assert "novel2script Studio" in body
+        assert f'id="modelInput" type="text" value="{novel2script.DEFAULT_MODEL}"' in body
         assert 'id="fileButton"' in body
         assert "Adaptation Inspector" in body
         assert 'aria-label="转换状态"' in body
@@ -341,7 +342,7 @@ def test_web_static_assets_include_conversion_status_ui() -> None:
         assert "function confirmRemoteProvider" in script
         assert "function remoteConfirmationKey" in script
         assert "function textFingerprint" in script
-        assert 'const defaultModel = "gpt-4.1-mini"' in script
+        assert f'const defaultModel = "{novel2script.DEFAULT_MODEL}"' in script
         assert "openAiConfirmedFor" in script
         assert "isPreviewPending" in script
         assert "isPreviewReady" in script

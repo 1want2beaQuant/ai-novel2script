@@ -13,7 +13,7 @@ from typing import Any
 from urllib.parse import unquote, urlsplit
 import webbrowser
 
-from novel2script import __version__
+from novel2script import DEFAULT_MODEL, __version__
 from novel2script.ai_provider import convert_with_provider_status
 from novel2script.chapter_parser import parse_chapter_candidates
 from novel2script.fountain import draft_to_fountain
@@ -50,7 +50,7 @@ def convert_payload(payload: dict[str, Any]) -> dict[str, Any]:
     model = _optional_string(
         payload,
         "model",
-        default="gpt-4.1-mini",
+        default=DEFAULT_MODEL,
         allow_blank=False,
         error_message="Model must be a non-empty string.",
     )

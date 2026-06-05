@@ -71,7 +71,7 @@ def test_cli_configures_stdout_and_stderr_as_utf8(monkeypatch: pytest.MonkeyPatc
 
 
 def test_cli_normalizes_blank_model_to_default() -> None:
-    assert cli_module._normalize_model("  ") == cli_module.DEFAULT_MODEL
+    assert cli_module._normalize_model("  ") == novel2script.DEFAULT_MODEL
     assert cli_module._normalize_model(" custom-model ") == "custom-model"
 
 
@@ -111,7 +111,7 @@ def test_cli_sends_normalized_model_to_provider(
     exit_code = main([str(input_path), "--provider", "openai", "--model", "  "])
 
     assert exit_code == 0
-    assert captured == {"model": cli_module.DEFAULT_MODEL, "provider": "openai"}
+    assert captured == {"model": novel2script.DEFAULT_MODEL, "provider": "openai"}
 
 
 def test_cli_writes_validated_yaml_to_nested_output_path(tmp_path: Path) -> None:
