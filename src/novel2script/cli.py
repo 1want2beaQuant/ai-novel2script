@@ -9,6 +9,7 @@ from pathlib import Path
 import yaml
 
 from novel2script.ai_provider import convert_with_optional_ai
+from novel2script.fountain import draft_to_fountain, write_fountain
 from novel2script.schema import validate_script
 from novel2script.yaml_io import draft_to_yaml, write_yaml
 
@@ -19,7 +20,13 @@ def build_parser() -> argparse.ArgumentParser:
         description="Convert a 3+ chapter novel manuscript into structured screenplay YAML.",
     )
     parser.add_argument("input", type=Path, help="UTF-8 novel manuscript path.")
-    parser.add_argument("-o", "--output", type=Path, help="Output YAML path. Defaults to stdout.")
+    parser.add_argument("-o", "--output", type=Path, help="Output path. Defaults to stdout.")
+    parser.add_argument(
+        "--format",
+        choices=["yaml", "fountain"],
+        default="yaml",
+        help="Output format. YAML keeps the structured adaptation package; Fountain exports a screenplay text draft.",
+    )
     parser.add_argument("--title", help="Screenplay title. Defaults to the first chapter title.")
     parser.add_argument(
         "--provider",
@@ -51,10 +58,14 @@ def main(argv: list[str] | None = None) -> int:
         if args.validate:
             validate_script(data)
 
-        if args.output:
+        if args.output and args.format == "yaml":
             write_yaml(draft, args.output)
-        else:
+        elif args.output and args.format == "fountain":
+            write_fountain(draft, args.output)
+        elif args.format == "yaml":
             sys.stdout.write(draft_to_yaml(draft))
+        else:
+            sys.stdout.write(draft_to_fountain(draft))
         return 0
     except (OSError, ValueError, yaml.YAMLError) as exc:
         parser.exit(1, f"novel2script: error: {exc}\n")
