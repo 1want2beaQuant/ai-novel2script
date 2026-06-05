@@ -131,7 +131,9 @@ jobs:
 
   github-release:
     name: Create GitHub release
-    needs: build
+    needs:
+      - build
+      - publish
     runs-on: ubuntu-latest
     permissions:
       contents: write
