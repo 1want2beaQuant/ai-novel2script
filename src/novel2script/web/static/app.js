@@ -14,6 +14,7 @@ const state = {
   previewLabelTimer: 0,
   previewRequestId: 0,
   previewInput: "",
+  openAiConfirmed: false,
   lastConvertedInput: "",
   lastTitle: "",
   lastProvider: "local",
@@ -95,6 +96,10 @@ async function checkServer() {
 }
 
 async function convertManuscript() {
+  if (!confirmRemoteProvider()) {
+    return;
+  }
+
   const startedAt = performance.now();
   setWorking(true);
   setConversionStatus("转换中", "正在生成剧本草稿。", "active");
@@ -368,9 +373,31 @@ function renderPreview(preview) {
 function updateProviderStatus() {
   const isOpenAI = elements.provider.value === "openai";
   elements.providerMode.textContent = isOpenAI ? "OpenAI" : "本地";
-  elements.privacyHint.textContent = isOpenAI ? "会按配置调用远程模型。" : "仅在本机转换。";
+  elements.privacyHint.textContent = isOpenAI
+    ? "转换前会要求确认远程发送。"
+    : "仅在本机转换。";
   setStatusTone(elements.providerMode.parentElement, isOpenAI ? "warn" : "ready");
+  if (!isOpenAI) {
+    state.openAiConfirmed = false;
+  }
   updateConversionFreshness();
+}
+
+function confirmRemoteProvider() {
+  if (elements.provider.value !== "openai" || state.openAiConfirmed) {
+    return true;
+  }
+
+  const confirmed = window.confirm(
+    "OpenAI 模式会把截断后的章节摘要和本地 baseline JSON 发送给配置的远程兼容接口。确认继续？"
+  );
+  if (!confirmed) {
+    setConversionStatus("已取消", "未确认远程发送，转换没有开始。", "warn");
+    return false;
+  }
+
+  state.openAiConfirmed = true;
+  return true;
 }
 
 function updateExportStatus() {

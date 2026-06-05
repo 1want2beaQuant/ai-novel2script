@@ -131,6 +131,7 @@ def test_web_privacy_and_security_docs_cover_local_server_risks() -> None:
     assert "/api/preview" in privacy
     assert "/api/convert" in privacy
     assert "OpenAI mode follows the remote payload behavior" in privacy
+    assert "confirmation before starting that remote conversion" in privacy
     assert "--allow-remote" in privacy
     assert "preflight and conversion endpoints accept JSON requests only" in privacy
     assert "Origin" in privacy
