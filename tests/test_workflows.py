@@ -69,6 +69,14 @@ def test_ci_workflow_smokes_linux_distributions_and_windows_cli() -> None:
     workflow = load_workflow("ci.yml")
     jobs = workflow["jobs"]
 
+    assert jobs["test"]["strategy"]["matrix"]["python-version"] == [
+        "3.10",
+        "3.11",
+        "3.12",
+        "3.13",
+        "3.14",
+    ]
+
     build_job = jobs["build"]
     wheel_smoke = next(step for step in build_job["steps"] if step["name"] == "Smoke test installed wheel")
     assert ".venv-wheel/bin/python -m novel2script --version" in wheel_smoke["run"]

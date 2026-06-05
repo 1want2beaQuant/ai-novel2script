@@ -16,6 +16,6 @@ Initial release candidate.
 - Structured `structure_map`, `story_bible`, `adaptation_report`, and `coverage_report` sections.
 - Optional OpenAI-compatible enhancement through the `novel2script[ai]` extra.
 - Release workflow for tagged PyPI publishing through Trusted Publishing and GitHub Release assets.
-- CI matrix for Python 3.10, 3.11, and 3.12.
+- CI matrix for Python 3.10 through 3.14.
 - Build, wheel/sdist smoke, release tag, workflow configuration, Windows smoke, and dependency security audit guards.
 - Repository governance, contribution, security, privacy, issue, and pull request documentation.
