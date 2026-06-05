@@ -1,4 +1,8 @@
+from importlib import resources
+import json
+
 from novel2script.converter import convert_text_to_script
+import novel2script.schema as schema_module
 from novel2script.schema import validate_script
 
 
@@ -24,3 +28,17 @@ def test_generated_script_matches_schema() -> None:
     assert data["adaptation_report"]["chapter_coverage"]["adapted_chapters"] == 3
     assert data["coverage_report"]["overall_score"] >= 0
     assert len(data["coverage_report"]["scores"]) == 6
+
+
+def test_load_schema_falls_back_to_packaged_resource(tmp_path, monkeypatch) -> None:
+    monkeypatch.setattr(schema_module, "PROJECT_SCHEMA_PATH", tmp_path / "missing.json")
+
+    loaded = schema_module.load_schema()
+    packaged = json.loads(
+        resources.files("novel2script")
+        .joinpath("schemas/script.schema.json")
+        .read_text(encoding="utf-8")
+    )
+
+    assert loaded == packaged
+    assert loaded["$schema"] == "https://json-schema.org/draft/2020-12/schema"
