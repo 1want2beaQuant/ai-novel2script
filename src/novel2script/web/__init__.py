@@ -282,7 +282,7 @@ class Novel2ScriptWebHandler(BaseHTTPRequestHandler):
 
         raw = self.rfile.read(content_length)
         try:
-            payload = json.loads(raw.decode("utf-8"))
+            payload = json.loads(raw.decode("utf-8-sig"))
         except (UnicodeDecodeError, json.JSONDecodeError) as exc:
             raise ValueError("Request body must be valid UTF-8 JSON.") from exc
         if not isinstance(payload, dict):

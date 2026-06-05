@@ -218,6 +218,32 @@ def test_web_server_rejects_non_json_convert_request() -> None:
         thread.join(timeout=5)
 
 
+def test_web_server_accepts_utf8_bom_json_payload() -> None:
+    server = create_server(port=0)
+    thread = Thread(target=server.serve_forever, daemon=True)
+    thread.start()
+    host, port = server.server_address
+
+    try:
+        connection = HTTPConnection(host, port, timeout=10)
+        payload = json.dumps({"text": MANUSCRIPT, "format": "yaml"}).encode("utf-8-sig")
+        connection.request(
+            "POST",
+            "/api/convert",
+            body=payload,
+            headers={"Content-Type": "application/json"},
+        )
+        response = connection.getresponse()
+        data = json.loads(response.read().decode("utf-8"))
+
+        assert response.status == HTTPStatus.OK
+        assert data["summary"]["chapter_count"] == 3
+    finally:
+        server.shutdown()
+        server.server_close()
+        thread.join(timeout=5)
+
+
 def test_web_server_rejects_cross_origin_convert_request() -> None:
     server = create_server(port=0)
     thread = Thread(target=server.serve_forever, daemon=True)

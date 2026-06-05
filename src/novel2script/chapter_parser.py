@@ -7,14 +7,29 @@ import re
 from novel2script.models import Chapter
 
 
+CHINESE_NUMBER = r"[一二三四五六七八九十百千万零〇两\d]+"
+CHINESE_SPECIAL_HEADING = r"(?:序章|序幕|楔子|引子|终章|尾声|后记)"
+ENGLISH_NUMBER = (
+    r"\d+|[ivxlcdm]+|"
+    r"(?:one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve|"
+    r"thirteen|fourteen|fifteen|sixteen|seventeen|eighteen|nineteen|"
+    r"twenty|thirty|forty|fifty|sixty|seventy|eighty|ninety)"
+    r"(?:[-\s](?:one|two|three|four|five|six|seven|eight|nine))?"
+)
+ENGLISH_SPECIAL_HEADING = r"(?:prologue|epilogue)"
+
 CHAPTER_HEADING_RE = re.compile(
-    r"^\s*(?:#{1,3}\s*)?"
-    r"(?P<title>"
-    r"(?:第\s*[一二三四五六七八九十百千万零〇两\d]+\s*[章节回幕卷][^\n]*)"
-    r"|(?:Chapter\s+\d+[^\n]*)"
-    r"|(?:CHAPTER\s+\d+[^\n]*)"
-    r")\s*$",
-    re.MULTILINE,
+    rf"""
+    ^[^\S\n]*(?:\#{{1,6}}[^\S\n]*)?
+    (?P<title>
+        第[^\S\n]*{CHINESE_NUMBER}[^\S\n]*[章节回幕卷][^\n]*
+        |{CHINESE_SPECIAL_HEADING}(?:[：:、.\-—][^\S\n]*.+|[^\S\n]+.+)?
+        |(?:chapter|ch\.)\s+(?:{ENGLISH_NUMBER})(?=$|[\s:.\-—])[^\n]*
+        |{ENGLISH_SPECIAL_HEADING}(?:[:.\-—][^\S\n]*.+)?
+    )
+    [^\S\n]*$
+    """,
+    re.IGNORECASE | re.MULTILINE | re.VERBOSE,
 )
 
 
@@ -26,13 +41,13 @@ def parse_chapters(text: str) -> list[Chapter]:
     traceability unreliable.
     """
 
-    cleaned = text.replace("\r\n", "\n").replace("\r", "\n").strip()
+    cleaned = text.replace("\r\n", "\n").replace("\r", "\n").strip().lstrip("\ufeff")
     if not cleaned:
         raise ValueError("输入文本为空，无法转换。")
 
     matches = list(CHAPTER_HEADING_RE.finditer(cleaned))
     if not matches:
-        raise ValueError("未识别到章节标题，请使用“第 1 章”或“Chapter 1”等格式。")
+        raise ValueError("未识别到章节标题，请使用“第 1 章”“序章”或“Chapter One”等格式。")
 
     chapters: list[Chapter] = []
     for index, match in enumerate(matches, start=1):
