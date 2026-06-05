@@ -22,6 +22,7 @@ Initial release candidate.
 - Local Web conversion and preflight APIs return 413 for oversized requests, and the browser workbench warns before sending manuscripts over the 2 MB request limit.
 - Local Web file import refuses oversized manuscripts before reading them into the workbench.
 - Local Web file import reports local read failures without replacing the current manuscript.
+- Local Web download action reports browser download failures and recovers its button label.
 - Installed Web server smoke validation covers health, static app assets, and preview parsing in CI and release distribution checks.
 - Flexible chapter heading detection for Chinese prologue/epilogue headings and English word, Roman numeral, and abbreviated chapter headings.
 - Local character guessing avoids promoting action/location phrases to character names while preserving dialogue speakers and common Chinese compound surnames.
