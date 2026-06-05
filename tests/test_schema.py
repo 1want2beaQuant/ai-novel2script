@@ -18,6 +18,7 @@ def test_generated_script_matches_schema() -> None:
     data = draft.to_dict()
 
     validate_script(data)
-    assert data["schema_version"] == "1.2.0"
+    assert data["schema_version"] == "1.3.0"
+    assert len(data["structure_map"]["beats"]) == 5
     assert data["story_bible"]["locations"]
     assert data["adaptation_report"]["chapter_coverage"]["adapted_chapters"] == 3

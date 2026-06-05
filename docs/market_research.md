@@ -12,6 +12,7 @@
 | Novelcrafter | 官网强调 Codex、规划模式、协作、自定义提示和多模型接入。 | 强在故事资料管理和长篇创作规划，但公开说明更偏小说项目管理，没有把“原章节覆盖率”和“改编质检报告”作为核心输出。 |
 | Squibler | 官网强调 full-length book generation、full-length screenplay generation、outline、AI Smart Writer、elements 和 visuals。 | 能生成完整书稿或剧本，但公开说明更偏端到端生成和编辑，没有明确提供面向作者校对的章节到场景映射。 |
 | Final Draft | 官方功能页强调专业剧本格式、Beat Board、Outline Editor 和 Structure Lines。 | 强在专业剧本写作、排版和大纲，不是小说改编工具，缺少从小说原文自动生成可追溯 YAML 的工作流。 |
+| Plottr / Dabble / Dramatica 等结构工具 | 同类工具强调可视化大纲、情节网格、故事模板和结构诊断。 | 说明小说改编不应只输出场景列表，还需要把关键节拍映射到具体场景，帮助作者检查三幕结构和转折位置。 |
 | Celtx | 官网强调剧本编辑、制片管理、协作和前期制作流程。 | 强在制片前期管理，适合已有剧本后的生产流程；小说到剧本初稿的章节覆盖和质量检查仍可作为本项目差异化。 |
 | FinalBit / NolanAI | 官网定位为 AI screenwriting、budgeting 与 pre-production 的一体化平台。 | 强在影视生产链路整合，但公开页面重点是编剧、预算和前期制作，没有展示小说章节改编的 YAML Schema 与覆盖报告。 |
 | StudioBinder | 官网强调 script breakdown、shooting schedule、call sheet、shot list 和 storyboard 等制片管理能力。 | 强在已有剧本后的拆解和生产排期，但并不解决小说原文到剧本初稿阶段的人物、地点、道具/线索资料沉淀。 |
@@ -25,6 +26,7 @@
 4. **缺少面向二次打磨的质检清单**：生成初稿后，作者仍需要知道哪里对白太少、地点不明确、场景数量不足。
 5. **缺少改编资产沉淀**：影视改编不只需要剧本文本，还需要人物连续性、地点、美术线索、关键道具和未解决问题的资料库；这类能力通常分散在小说资料库工具或制片拆解工具中。
 6. **缺少格式互操作**：结构化 YAML 适合校验和二次处理，但作者也需要可导入或复制到专业剧本工具的纯文本剧本格式。
+7. **缺少结构节拍地图**：很多大纲工具会帮助作者检查关键转折和情节节拍，但普通 AI 生成稿往往只给场景列表，不说明开场、诱发事件、中点、高潮和结局分别落在哪里。
 
 ## 已落地改进
 
@@ -51,6 +53,12 @@
 - 通过 `--format fountain` 输出剧本文本，包含标题、logline、场景标题、来源章节注释、动作、对白和转场。
 - 让作者可以把初稿带入专业剧本写作工具继续排版、协作和润色。
 
+继续调研大纲和结构工具后，本项目新增 `structure_map`：
+
+- 使用五点结构标记开场意象、诱发事件、中点转折、高潮和结局。
+- 每个节拍都绑定到生成场景和原章节，避免抽象结构建议脱离文本。
+- `diagnostics` 提示节拍是否过度集中在少数场景，帮助作者扩写或重排。
+
 ## 参考来源
 
 - Sudowrite Features: https://docs.sudowrite.com/getting-started/dQph1snuwbfMWG9wRjsNug/features/dq7YUMNy5ZMvKUJiRAisyT
@@ -62,3 +70,6 @@
 - StudioBinder: https://www.studiobinder.com/
 - WriterDuet: https://www.writerduet.com/
 - Arc Studio: https://www.arcstudiopro.com/
+- Plottr: https://plottr.com/
+- Dabble: https://www.dabblewriter.com/
+- Dramatica: https://dramatica.com/

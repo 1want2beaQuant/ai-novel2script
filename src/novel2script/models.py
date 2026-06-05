@@ -100,10 +100,11 @@ class ScriptDraft:
     themes: list[str]
     characters: list[Character]
     acts: list[Act]
+    structure_map: dict[str, Any]
     story_bible: dict[str, Any]
     adaptation_report: dict[str, Any]
     revision_notes: list[str]
-    schema_version: str = "1.2.0"
+    schema_version: str = "1.3.0"
     language: str = "zh-CN"
     generated_at: str = field(default_factory=lambda: datetime.now(UTC).isoformat())
 
@@ -118,6 +119,7 @@ class ScriptDraft:
             "themes": self.themes,
             "characters": [character.to_dict() for character in self.characters],
             "acts": [act.to_dict() for act in self.acts],
+            "structure_map": self.structure_map,
             "story_bible": self.story_bible,
             "adaptation_report": self.adaptation_report,
             "revision_notes": self.revision_notes,

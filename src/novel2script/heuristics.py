@@ -50,11 +50,13 @@ def build_script_from_chapters(chapters: list[Chapter], title: str | None = None
         themes=_infer_themes(chapters),
         characters=characters,
         acts=acts,
+        structure_map=_build_structure_map(scenes),
         story_bible=_build_story_bible(chapters, scenes, characters),
         adaptation_report=_build_adaptation_report(chapters, scenes),
         revision_notes=[
             "本稿由本地启发式改编引擎生成，建议作者重点复核人物动机和对白语气。",
             "每个场景保留 source_chapter，便于回到原小说章节继续打磨。",
+            "structure_map 标记开端、诱发事件、中点、高潮和结局，便于检查三幕结构。",
             "story_bible 汇总人物、地点、道具/线索和待解问题，可作为后续改编资料库。",
             "adaptation_report 汇总章节覆盖、场景映射和质量风险，可作为下一轮修订清单。",
         ],
@@ -171,6 +173,63 @@ def _build_logline(title: str, scenes: list[Scene], character_names: list[str]) 
     first_goal = scenes[0].summary if scenes else "面对新的命运转折"
     last_turn = scenes[-1].summary if scenes else "完成关键选择"
     return f"《{title}》讲述{lead}在{first_goal}后，被迫面对{last_turn}的故事。"
+
+
+def _build_structure_map(scenes: list[Scene]) -> dict[str, object]:
+    beat_specs = [
+        ("opening_image", "开场意象", 0, "建立主角处境、基调和世界入口。"),
+        ("inciting_incident", "诱发事件", 0.25, "确认打破日常秩序的事件是否足够明确。"),
+        ("midpoint", "中点转折", 0.5, "检查冲突是否升级，主角是否获得新认知。"),
+        ("climax", "高潮", 0.8, "确认最终对抗或关键选择是否集中呈现。"),
+        ("resolution", "结局", 1, "检查主要悬念是否回收，并留下可修订余地。"),
+    ]
+    beats = []
+    for beat_id, label, ratio, purpose in beat_specs:
+        scene = _pick_scene_for_ratio(scenes, ratio)
+        beats.append(
+            {
+                "id": beat_id,
+                "label": label,
+                "scene_id": scene.id,
+                "source_chapter": scene.source_chapter,
+                "summary": scene.summary,
+                "purpose": purpose,
+                "revision_hint": _structure_revision_hint(beat_id, scene),
+            }
+        )
+    return {
+        "model": "five_point_screenplay_map",
+        "beats": beats,
+        "diagnostics": _structure_diagnostics(beats, len(scenes)),
+    }
+
+
+def _pick_scene_for_ratio(scenes: list[Scene], ratio: float) -> Scene:
+    if ratio >= 1:
+        return scenes[-1]
+    index = round((len(scenes) - 1) * ratio)
+    return scenes[max(0, min(index, len(scenes) - 1))]
+
+
+def _structure_revision_hint(beat_id: str, scene: Scene) -> str:
+    hints = {
+        "opening_image": "强化第一场的视觉动作，减少背景说明。",
+        "inciting_incident": "让该场明确出现迫使主角行动的变化。",
+        "midpoint": "补足反转、发现或关系变化，避免只是过场。",
+        "climax": "集中主要冲突，让主角做出不可逆选择。",
+        "resolution": "回收关键线索，并标记仍需续写的余味。",
+    }
+    return f"{hints[beat_id]} 当前映射到 {scene.id}。"
+
+
+def _structure_diagnostics(beats: list[dict[str, object]], scene_count: int) -> list[str]:
+    diagnostics = []
+    unique_scene_count = len({beat["scene_id"] for beat in beats})
+    if unique_scene_count < len(beats):
+        diagnostics.append("多个关键节拍落在同一场，建议扩写或重排章节以增强结构层次。")
+    if scene_count < 5:
+        diagnostics.append("场景数量少于五个，五点结构中的部分节拍会共用场景。")
+    return diagnostics or ["关键节拍已分布到不同场景，可继续细化每个节拍的冲突强度。"]
 
 
 def _build_story_bible(
