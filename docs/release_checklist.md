@@ -27,6 +27,7 @@ python -m novel2script.web --help
 python scripts\smoke_web_server.py
 python -m novel2script examples/three_chapters.txt --output outputs/release-smoke.yaml --validate
 python -m novel2script examples/three_chapters.txt --format fountain --output outputs/release-smoke.fountain
+python -m novel2script examples/three_chapters.txt --format markdown --output outputs/release-smoke.revision.md
 cmd /c fc /b schemas\script.schema.json src\novel2script\schemas\script.schema.json
 ```
 

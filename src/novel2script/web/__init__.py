@@ -17,6 +17,7 @@ from novel2script import DEFAULT_MODEL, __version__
 from novel2script.ai_provider import convert_with_provider_status
 from novel2script.chapter_parser import parse_chapter_candidates
 from novel2script.fountain import draft_to_fountain
+from novel2script.markdown import draft_to_markdown
 from novel2script.schema import validate_script
 from novel2script.yaml_io import draft_to_yaml
 
@@ -40,8 +41,8 @@ def convert_payload(payload: dict[str, Any]) -> dict[str, Any]:
     title = title_value.strip() if title_value and title_value.strip() else None
 
     output_format = _optional_string(payload, "format", default="yaml")
-    if output_format not in {"yaml", "fountain"}:
-        raise ValueError("Format must be yaml or fountain.")
+    if output_format not in {"yaml", "fountain", "markdown"}:
+        raise ValueError("Format must be yaml, fountain, or markdown.")
 
     provider = _optional_string(payload, "provider", default="local")
     if provider not in {"local", "openai"}:
@@ -69,13 +70,19 @@ def convert_payload(payload: dict[str, Any]) -> dict[str, Any]:
     summary = summarize_script(data)
     yaml_output = draft_to_yaml(draft)
     fountain_output = draft_to_fountain(draft)
-    output = fountain_output if output_format == "fountain" else yaml_output
+    markdown_output = draft_to_markdown(draft)
+    outputs = {
+        "yaml": yaml_output,
+        "fountain": fountain_output,
+        "markdown": markdown_output,
+    }
     return {
         "format": output_format,
-        "output": output,
+        "output": outputs[output_format],
         "exports": {
             "yaml": yaml_output,
             "fountain": fountain_output,
+            "markdown": markdown_output,
             "draft_json": json.dumps(data, ensure_ascii=False, indent=2) + "\n",
             "summary_json": json.dumps(summary, ensure_ascii=False, indent=2) + "\n",
         },

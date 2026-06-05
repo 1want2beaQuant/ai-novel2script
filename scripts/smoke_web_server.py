@@ -120,6 +120,7 @@ def _check_static_app(base_url: str) -> None:
         "fetch(\"/api/preview\"",
         "providerStatusSummary",
         "localDraftStorageKey",
+        "Revision brief",
         "maxRequestBytes",
         "isPreviewReady",
         "showPreflightBlockedConversion",

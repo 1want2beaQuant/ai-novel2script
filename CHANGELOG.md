@@ -16,6 +16,7 @@ Initial release candidate.
 - Local heuristic conversion from 3+ chapter manuscripts to screenplay YAML drafts.
 - YAML output validated by bundled JSON Schema.
 - Fountain screenplay export.
+- Markdown revision brief export with coverage summary, scorecard, priority actions, structure beats, and scene index.
 - Local browser workbench through `novel2script-web` and `python -m novel2script.web`.
 - Local Web adaptation inspector with coverage scores, structure beats, revision actions, risk notes, and scene index panels.
 - Local Web UI refuses non-loopback hosts unless `--allow-remote` is provided and sends basic browser security headers.
@@ -35,8 +36,8 @@ Initial release candidate.
 - Local Web file import reports local read failures without replacing the current manuscript.
 - Local Web file import resets the picker after a successful import so the same file can be selected again.
 - Local Web downloads use the screenplay title when naming exported YAML or Fountain files.
-- Local Web workbench can package YAML, Fountain, draft JSON, and summary JSON exports into one browser-generated zip.
-- Local Web result pane can switch between YAML, Fountain, draft JSON, and summary JSON views without rerunning conversion.
+- Local Web workbench can package YAML, Fountain, Markdown revision brief, draft JSON, and summary JSON exports into one browser-generated zip.
+- Local Web result pane can switch between YAML, Fountain, Markdown revision brief, draft JSON, and summary JSON views without rerunning conversion.
 - Local Web workbench can clear the current manuscript, generated outputs, diagnostics, selected file, and remote confirmation state.
 - Local Web workbench automatically saves manuscript draft input and conversion settings in browser local storage and restores them after a refresh.
 - Local Web download action reports browser download failures and recovers its button label.
