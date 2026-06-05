@@ -27,12 +27,23 @@ def convert_with_optional_ai(
     if provider != "openai" or not os.environ.get("OPENAI_API_KEY"):
         return local_draft
 
-    enhanced = _enhance_with_openai(text=text, baseline=local_draft.to_dict(), model=model)
+    try:
+        enhanced = _enhance_with_openai(text=text, baseline=local_draft.to_dict(), model=model)
+    except ValueError:
+        raise
+    except Exception as exc:
+        raise ValueError(f"OpenAI enhancement failed: {exc}") from exc
     return _dict_to_draft(enhanced, fallback=local_draft)
 
 
 def _enhance_with_openai(text: str, baseline: dict[str, Any], model: str) -> dict[str, Any]:
-    from openai import OpenAI
+    try:
+        from openai import OpenAI
+    except ModuleNotFoundError as exc:
+        raise ValueError(
+            "OpenAI provider requires the optional AI dependency. "
+            "Install it with: python -m pip install \"novel2script[ai]\""
+        ) from exc
 
     chapters = parse_chapters(text)
     chapter_digest = "\n\n".join(
