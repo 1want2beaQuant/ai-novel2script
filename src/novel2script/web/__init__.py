@@ -65,15 +65,19 @@ def convert_payload(payload: dict[str, Any]) -> dict[str, Any]:
 
 
 def summarize_script(data: dict[str, Any]) -> dict[str, Any]:
-    acts = data.get("acts", [])
+    acts = [act for act in data.get("acts", []) if isinstance(act, dict)]
     scenes = [
-        scene
+        (act, scene)
         for act in acts
         for scene in act.get("scenes", [])
         if isinstance(scene, dict)
     ]
-    coverage = data.get("coverage_report", {})
-    source = data.get("source", {})
+    coverage = _as_dict(data.get("coverage_report"))
+    adaptation = _as_dict(data.get("adaptation_report"))
+    structure = _as_dict(data.get("structure_map"))
+    source = _as_dict(data.get("source"))
+    chapter_coverage = _as_dict(adaptation.get("chapter_coverage"))
+    metrics = _as_dict(adaptation.get("metrics"))
     return {
         "title": data.get("title", ""),
         "logline": data.get("logline", ""),
@@ -83,16 +87,81 @@ def summarize_script(data: dict[str, Any]) -> dict[str, Any]:
         "character_count": len(data.get("characters", [])),
         "coverage_score": coverage.get("overall_score", 0),
         "verdict": coverage.get("verdict", ""),
+        "scores": [
+            {
+                "area": score.get("area", ""),
+                "score": score.get("score", 0),
+                "rationale": score.get("rationale", ""),
+            }
+            for score in _dict_list(coverage.get("scores"))
+        ],
+        "strengths": _string_list(coverage.get("strengths")),
+        "weaknesses": _string_list(coverage.get("weaknesses")),
+        "action_items": [
+            {
+                "priority": item.get("priority", ""),
+                "area": item.get("area", ""),
+                "note": item.get("note", ""),
+            }
+            for item in _dict_list(coverage.get("action_items"))
+        ],
+        "chapter_coverage": {
+            "total_chapters": chapter_coverage.get("total_chapters", 0),
+            "adapted_chapters": chapter_coverage.get("adapted_chapters", 0),
+            "coverage_ratio": chapter_coverage.get("coverage_ratio", 0),
+            "missing_chapters": _number_list(chapter_coverage.get("missing_chapters")),
+        },
+        "adaptation_metrics": {
+            "block_count": metrics.get("block_count", 0),
+            "action_blocks": metrics.get("action_blocks", 0),
+            "dialogue_blocks": metrics.get("dialogue_blocks", 0),
+            "dialogue_ratio": metrics.get("dialogue_ratio", 0),
+        },
+        "quality_flags": _string_list(adaptation.get("quality_flags")),
+        "revision_checklist": _string_list(adaptation.get("revision_checklist")),
+        "structure_beats": [
+            {
+                "id": beat.get("id", ""),
+                "label": beat.get("label", ""),
+                "scene_id": beat.get("scene_id", ""),
+                "source_chapter": beat.get("source_chapter", ""),
+                "summary": beat.get("summary", ""),
+                "purpose": beat.get("purpose", ""),
+                "revision_hint": beat.get("revision_hint", ""),
+            }
+            for beat in _dict_list(structure.get("beats"))
+        ],
+        "structure_diagnostics": _string_list(structure.get("diagnostics")),
         "scenes": [
             {
+                "act_id": act.get("id", ""),
                 "id": scene.get("id", ""),
                 "title": scene.get("title", ""),
                 "location": scene.get("location", ""),
+                "time": scene.get("time", ""),
+                "summary": scene.get("summary", ""),
+                "characters": _string_list(scene.get("characters")),
                 "source_chapter": scene.get("source_chapter", ""),
             }
-            for scene in scenes[:8]
+            for act, scene in scenes[:12]
         ],
     }
+
+
+def _as_dict(value: object) -> dict[str, Any]:
+    return value if isinstance(value, dict) else {}
+
+
+def _dict_list(value: object) -> list[dict[str, Any]]:
+    return [item for item in value if isinstance(item, dict)] if isinstance(value, list) else []
+
+
+def _string_list(value: object) -> list[str]:
+    return [item for item in value if isinstance(item, str)] if isinstance(value, list) else []
+
+
+def _number_list(value: object) -> list[int | float]:
+    return [item for item in value if isinstance(item, int | float)] if isinstance(value, list) else []
 
 
 def create_server(

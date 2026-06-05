@@ -14,7 +14,7 @@
 - 生成 `coverage_report`，按专业 coverage 思路给出推荐等级、分项评分、强弱项和优先修订动作。
 - 支持 Fountain 剧本文本导出，便于进入专业剧本编辑器继续打磨。
 - 支持 CLI 批处理，适合持续迭代剧本初稿。
-- 提供本地 Web 工作台，可在浏览器中导入手稿、转换 YAML/Fountain、查看改编摘要并下载结果。
+- 提供本地 Web 工作台，可在浏览器中导入手稿、转换 YAML/Fountain、查看 coverage 诊断、结构节拍、场景索引和修订动作，并下载结果。
 
 ## 安装
 
@@ -89,7 +89,7 @@ novel2script-web --host 127.0.0.1 --port 8765
 python -m novel2script.web --host 127.0.0.1 --port 8765 --no-open
 ```
 
-打开 `http://127.0.0.1:8765` 后，可以导入 `.txt` 手稿、选择 YAML 或 Fountain 输出、切换本地或 OpenAI 模式，并在页面底部查看章节、场景、人物、coverage 分数和前几场的场景索引。默认本地模式不会把手稿发送到外部服务；选择 OpenAI 且配置 `OPENAI_API_KEY` 后，行为与 CLI 的 `--provider openai` 相同。
+打开 `http://127.0.0.1:8765` 后，可以导入 `.txt` 手稿、选择 YAML 或 Fountain 输出、切换本地或 OpenAI 模式，并在页面底部查看章节覆盖率、coverage 分项评分、结构节拍、优先修订动作、风险提示和场景索引。默认本地模式不会把手稿发送到外部服务；选择 OpenAI 且配置 `OPENAI_API_KEY` 后，行为与 CLI 的 `--provider openai` 相同。
 
 Web 工作台默认只绑定本机 loopback 地址。若确实需要让局域网内其他设备访问，必须同时传入非本机 `--host` 和 `--allow-remote`；这样会把页面和手稿转换 API 暴露给该网络，请只在受信任网络中使用。
 转换 API 只接受 JSON 请求；浏览器请求携带 `Origin` 时必须与当前 Web 工作台同源。

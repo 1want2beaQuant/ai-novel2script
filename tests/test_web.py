@@ -103,6 +103,23 @@ def test_convert_payload_returns_output_and_summary() -> None:
     assert result["summary"]["chapter_count"] == 3
     assert result["summary"]["scene_count"] == 3
     assert result["summary"]["character_count"] >= 1
+    assert result["summary"]["chapter_coverage"]["coverage_ratio"] == 1
+    assert result["summary"]["adaptation_metrics"]["block_count"] >= 3
+    assert [score["area"] for score in result["summary"]["scores"]] == [
+        "premise",
+        "structure",
+        "character",
+        "dialogue",
+        "visuality",
+        "adaptation_fidelity",
+    ]
+    assert result["summary"]["structure_beats"][0]["id"] == "opening_image"
+    assert result["summary"]["action_items"][0]["priority"] in {"high", "medium", "low"}
+    assert result["summary"]["strengths"]
+    assert result["summary"]["weaknesses"]
+    assert result["summary"]["quality_flags"]
+    assert result["summary"]["scenes"][0]["summary"]
+    assert isinstance(result["summary"]["scenes"][0]["characters"], list)
 
 
 def test_convert_payload_supports_fountain_output() -> None:
@@ -146,6 +163,9 @@ def test_web_server_serves_static_assets_and_conversion_api() -> None:
         assert "default-src 'self'" in (response.getheader("Content-Security-Policy") or "")
         assert "novel2script Studio" in body
         assert 'id="fileButton"' in body
+        assert "Adaptation Inspector" in body
+        assert 'id="scoresList"' in body
+        assert 'id="actionItems"' in body
 
         payload = json.dumps({"text": MANUSCRIPT, "format": "fountain"}).encode("utf-8")
         connection.request(
@@ -164,6 +184,9 @@ def test_web_server_serves_static_assets_and_conversion_api() -> None:
         assert response.getheader("Referrer-Policy") == "no-referrer"
         assert data["format"] == "fountain"
         assert data["summary"]["scene_count"] == 3
+        assert data["summary"]["chapter_coverage"]["coverage_ratio"] == 1
+        assert data["summary"]["structure_beats"]
+        assert data["summary"]["action_items"]
     finally:
         server.shutdown()
         server.server_close()

@@ -13,6 +13,7 @@
           <div>
             <p class="eyebrow">novel2script Studio</p>
             <h1>小说改编工作台</h1>
+            <p class="dek">导入手稿，生成剧本初稿，并用 coverage 诊断定位下一轮修订重点。</p>
           </div>
           <div class="status-pill" id="serverStatus">Local</div>
         </header>
@@ -72,7 +73,17 @@
           </div>
         </section>
 
-        <section class="inspector" aria-label="改编摘要">
+        <section class="inspector" aria-label="改编诊断">
+          <div class="inspector-head">
+            <div>
+              <p class="eyebrow">Adaptation Inspector</p>
+              <h2>改编诊断</h2>
+            </div>
+            <div class="coverage-badge">
+              <span>章节覆盖</span>
+              <strong id="coverageRatio">0%</strong>
+            </div>
+          </div>
           <div class="metrics">
             <div class="metric">
               <span>章节</span>
@@ -83,6 +94,14 @@
               <strong id="sceneCount">0</strong>
             </div>
             <div class="metric">
+              <span>剧本块</span>
+              <strong id="blockCount">0</strong>
+            </div>
+            <div class="metric">
+              <span>对白</span>
+              <strong id="dialogueCount">0</strong>
+            </div>
+            <div class="metric">
               <span>人物</span>
               <strong id="characterCount">0</strong>
             </div>
@@ -91,12 +110,61 @@
               <strong id="coverageScore">0</strong>
             </div>
           </div>
-          <div class="summary">
+
+          <div class="summary-strip">
             <div class="logline">
-              <span id="verdict">draft</span>
+              <span>Logline</span>
               <p id="loglineText"></p>
             </div>
-            <ol id="scenesList" class="scenes-list"></ol>
+            <div class="verdict-box">
+              <span>Verdict</span>
+              <strong id="verdict">draft</strong>
+            </div>
+          </div>
+
+          <div class="diagnostic-grid">
+            <section class="diagnostic-panel" aria-label="Coverage 分项评分">
+              <div class="panel-head">
+                <h3>Coverage 分数</h3>
+              </div>
+              <div id="scoresList" class="score-list"></div>
+            </section>
+
+            <section class="diagnostic-panel" aria-label="优先修订动作">
+              <div class="panel-head">
+                <h3>优先修订</h3>
+              </div>
+              <ol id="actionItems" class="action-list"></ol>
+            </section>
+
+            <section class="diagnostic-panel" aria-label="结构节拍">
+              <div class="panel-head">
+                <h3>结构节拍</h3>
+              </div>
+              <ol id="beatsList" class="beats-list"></ol>
+            </section>
+
+            <section class="diagnostic-panel" aria-label="场景索引">
+              <div class="panel-head">
+                <h3>场景索引</h3>
+              </div>
+              <ol id="scenesList" class="scenes-list"></ol>
+            </section>
+          </div>
+
+          <div class="notes-grid">
+            <section aria-label="优势">
+              <h3>优势</h3>
+              <ul id="strengthsList"></ul>
+            </section>
+            <section aria-label="风险">
+              <h3>风险</h3>
+              <ul id="weaknessesList"></ul>
+            </section>
+            <section aria-label="质检提示">
+              <h3>质检提示</h3>
+              <ul id="qualityList"></ul>
+            </section>
           </div>
         </section>
       </section>

@@ -9,7 +9,23 @@ Mara and Jon played the tape together. The hidden name finally connected every c
 
 const state = {
   output: "",
-  format: "yaml"
+  format: "yaml",
+  copyLabelTimer: 0
+};
+
+const scoreLabels = {
+  premise: "前提",
+  structure: "结构",
+  character: "人物",
+  dialogue: "对白",
+  visuality: "可拍摄性",
+  adaptation_fidelity: "改编保真"
+};
+
+const priorityLabels = {
+  high: "高",
+  medium: "中",
+  low: "低"
 };
 
 const elements = {
@@ -27,18 +43,28 @@ const elements = {
   copy: document.querySelector("#copyButton"),
   download: document.querySelector("#downloadButton"),
   serverStatus: document.querySelector("#serverStatus"),
+  coverageRatio: document.querySelector("#coverageRatio"),
   chapterCount: document.querySelector("#chapterCount"),
   sceneCount: document.querySelector("#sceneCount"),
+  blockCount: document.querySelector("#blockCount"),
+  dialogueCount: document.querySelector("#dialogueCount"),
   characterCount: document.querySelector("#characterCount"),
   coverageScore: document.querySelector("#coverageScore"),
   verdict: document.querySelector("#verdict"),
   logline: document.querySelector("#loglineText"),
-  scenesList: document.querySelector("#scenesList")
+  scoresList: document.querySelector("#scoresList"),
+  actionItems: document.querySelector("#actionItems"),
+  beatsList: document.querySelector("#beatsList"),
+  scenesList: document.querySelector("#scenesList"),
+  strengthsList: document.querySelector("#strengthsList"),
+  weaknessesList: document.querySelector("#weaknessesList"),
+  qualityList: document.querySelector("#qualityList")
 };
 
 elements.manuscript.value = sampleText;
 elements.output.textContent = "转换结果会显示在这里。";
 setOutputActions(false);
+renderSummary(null);
 
 async function checkServer() {
   try {
@@ -81,6 +107,7 @@ async function convertManuscript() {
     state.output = "";
     elements.output.classList.add("is-error");
     elements.output.textContent = error instanceof Error ? error.message : String(error);
+    renderSummary(null);
     setOutputActions(false);
   } finally {
     setWorking(false);
@@ -88,20 +115,156 @@ async function convertManuscript() {
 }
 
 function renderSummary(summary) {
-  elements.chapterCount.textContent = summary.chapter_count ?? 0;
-  elements.sceneCount.textContent = summary.scene_count ?? 0;
-  elements.characterCount.textContent = summary.character_count ?? 0;
-  elements.coverageScore.textContent = summary.coverage_score ?? 0;
-  elements.verdict.textContent = summary.verdict || "draft";
-  elements.logline.textContent = summary.logline || "";
+  const metrics = summary?.adaptation_metrics || {};
+  const chapterCoverage = summary?.chapter_coverage || {};
+  const coverageRatio = Number(chapterCoverage.coverage_ratio || 0);
 
-  elements.scenesList.replaceChildren(
-    ...(summary.scenes || []).map((scene) => {
-      const item = document.createElement("li");
-      item.textContent = `${scene.id} · ${scene.title} · ${scene.location}`;
+  elements.chapterCount.textContent = summary?.chapter_count ?? 0;
+  elements.sceneCount.textContent = summary?.scene_count ?? 0;
+  elements.blockCount.textContent = metrics.block_count ?? 0;
+  elements.dialogueCount.textContent = metrics.dialogue_blocks ?? 0;
+  elements.characterCount.textContent = summary?.character_count ?? 0;
+  elements.coverageScore.textContent = summary?.coverage_score ?? 0;
+  elements.coverageRatio.textContent = `${Math.round(coverageRatio * 100)}%`;
+  elements.verdict.textContent = summary?.verdict || "draft";
+  elements.logline.textContent = summary?.logline || "完成转换后，这里会显示一句话故事、coverage 分数和下一轮修订入口。";
+
+  renderScores(summary?.scores || []);
+  renderActionItems(summary?.action_items || summary?.revision_checklist || []);
+  renderBeats(summary?.structure_beats || []);
+  renderScenes(summary?.scenes || []);
+  renderTextList(elements.strengthsList, summary?.strengths || []);
+  renderTextList(
+    elements.weaknessesList,
+    [...(summary?.weaknesses || []), ...(summary?.structure_diagnostics || [])]
+  );
+  renderTextList(elements.qualityList, summary?.quality_flags || summary?.revision_checklist || []);
+}
+
+function renderScores(scores) {
+  elements.scoresList.replaceChildren(
+    ...withEmpty(scores, "转换后显示 premise、structure、character 等分项评分。").map((score) => {
+      if (typeof score === "string") {
+        return emptyItem(score);
+      }
+
+      const item = document.createElement("div");
+      item.className = "score-item";
+
+      const head = document.createElement("div");
+      head.className = "score-head";
+
+      const label = document.createElement("span");
+      label.textContent = scoreLabels[score.area] || score.area || "未命名";
+
+      const value = document.createElement("strong");
+      value.textContent = score.score ?? 0;
+
+      const bar = document.createElement("span");
+      bar.className = "score-bar";
+      bar.style.setProperty("--score", `${Math.max(0, Math.min(Number(score.score || 0), 100))}%`);
+
+      const note = document.createElement("p");
+      note.textContent = score.rationale || "";
+
+      head.append(label, value);
+      item.append(head, bar, note);
       return item;
     })
   );
+}
+
+function renderActionItems(items) {
+  elements.actionItems.replaceChildren(
+    ...withEmpty(items, "转换后显示按优先级排序的修订动作。").map((item) => {
+      const listItem = document.createElement("li");
+      if (typeof item === "string") {
+        listItem.className = "empty";
+        listItem.textContent = item;
+        return listItem;
+      }
+
+      const badge = document.createElement("span");
+      badge.className = `priority priority-${item.priority || "medium"}`;
+      badge.textContent = priorityLabels[item.priority] || item.priority || "中";
+
+      const content = document.createElement("p");
+      content.textContent = item.note || "";
+
+      listItem.append(badge, content);
+      return listItem;
+    })
+  );
+}
+
+function renderBeats(beats) {
+  elements.beatsList.replaceChildren(
+    ...withEmpty(beats, "转换后显示开场、诱发事件、中点、高潮和结局映射。").map((beat) => {
+      const item = document.createElement("li");
+      if (typeof beat === "string") {
+        item.className = "empty";
+        item.textContent = beat;
+        return item;
+      }
+
+      const title = document.createElement("strong");
+      title.textContent = `${beat.label || beat.id} · ${beat.scene_id || "未映射"}`;
+
+      const summary = document.createElement("p");
+      summary.textContent = beat.revision_hint || beat.summary || "";
+
+      item.append(title, summary);
+      return item;
+    })
+  );
+}
+
+function renderScenes(scenes) {
+  elements.scenesList.replaceChildren(
+    ...withEmpty(scenes, "转换后显示前 12 场的章节来源、地点和人物。").map((scene) => {
+      const item = document.createElement("li");
+      if (typeof scene === "string") {
+        item.className = "empty";
+        item.textContent = scene;
+        return item;
+      }
+
+      const title = document.createElement("strong");
+      title.textContent = `${scene.id} · ${scene.title || "未命名场景"}`;
+
+      const meta = document.createElement("span");
+      const characters = (scene.characters || []).join("、") || "人物待补充";
+      meta.textContent = `第 ${scene.source_chapter || "?"} 章 · ${scene.location || "待定场景"} · ${characters}`;
+
+      const summary = document.createElement("p");
+      summary.textContent = scene.summary || "";
+
+      item.append(title, meta, summary);
+      return item;
+    })
+  );
+}
+
+function renderTextList(target, items) {
+  target.replaceChildren(
+    ...withEmpty(items, "转换后显示诊断内容。").map((text) => {
+      const item = document.createElement("li");
+      item.className = typeof text === "string" && text.startsWith("转换后") ? "empty" : "";
+      item.textContent = text;
+      return item;
+    })
+  );
+}
+
+function withEmpty(items, message) {
+  return Array.isArray(items) && items.length ? items : [message];
+}
+
+function emptyItem(text) {
+  const item = document.createElement("div");
+  item.className = "empty";
+  item.textContent = text;
+  return item;
 }
 
 async function loadFile() {
@@ -120,6 +283,11 @@ async function copyOutput() {
     return;
   }
   await navigator.clipboard.writeText(state.output);
+  elements.copy.textContent = "已复制";
+  clearTimeout(state.copyLabelTimer);
+  state.copyLabelTimer = window.setTimeout(() => {
+    elements.copy.textContent = "复制";
+  }, 1400);
 }
 
 function downloadOutput() {
