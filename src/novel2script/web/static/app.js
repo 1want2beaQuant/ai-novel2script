@@ -23,6 +23,8 @@ const state = {
   openAiConfirmedFor: "",
   lastConvertedInput: "",
   lastTitle: "",
+  lastFormat: "yaml",
+  lastValidate: true,
   lastProvider: "local",
   lastModel: "",
   lastProviderStatus: null,
@@ -147,6 +149,8 @@ async function convertManuscript() {
     state.format = payload.format;
     state.lastConvertedInput = elements.manuscript.value;
     state.lastTitle = elements.title.value;
+    state.lastFormat = elements.format.value;
+    state.lastValidate = elements.validate.checked;
     state.lastProvider = elements.provider.value;
     state.lastModel = normalizedModel();
     state.lastProviderStatus = payload.provider_status || null;
@@ -641,6 +645,16 @@ function updateConversionFreshness() {
     return;
   }
 
+  if (elements.format.value !== state.lastFormat) {
+    setConversionStatus("需重新转换", "输出格式已变更，重新转换后生成当前格式。", "warn");
+    return;
+  }
+
+  if (elements.validate.checked !== state.lastValidate) {
+    setConversionStatus("需重新转换", "Schema 校验设置已变更，重新转换后生效。", "warn");
+    return;
+  }
+
   if (elements.provider.value === "openai" && normalizedModel() !== state.lastModel) {
     setConversionStatus("需重新转换", "OpenAI 模型已变更，重新转换后生效。", "warn");
     return;
@@ -814,10 +828,12 @@ elements.model.addEventListener("input", () => {
 elements.format.addEventListener("change", () => {
   syncConvertAvailability();
   updateExportStatus();
+  updateConversionFreshness();
 });
 elements.validate.addEventListener("change", () => {
   syncConvertAvailability();
   updateExportStatus();
+  updateConversionFreshness();
 });
 elements.convert.addEventListener("click", convertManuscript);
 elements.copy.addEventListener("click", copyOutput);

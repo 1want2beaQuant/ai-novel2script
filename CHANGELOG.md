@@ -30,6 +30,7 @@ Initial release candidate.
 - Local Web workbench preflights chapter detection through the backend parser before conversion.
 - Local Web workbench disables conversion until backend chapter preflight confirms at least 3 chapters.
 - Local Web workbench reports preview/preflight failures with visible error details.
+- Local Web workbench marks existing output stale when format or Schema validation settings change.
 - Local Web OpenAI mode asks for confirmation before starting a remote conversion.
 - Local Web OpenAI confirmation is scoped to the current manuscript, title, and model, and model changes mark converted output stale.
 - CLI and Web conversions report the actual provider used, including local fallback when OpenAI is requested without `OPENAI_API_KEY`.
