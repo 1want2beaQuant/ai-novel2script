@@ -77,6 +77,6 @@ python -m novel2script.cli examples/three_chapters.txt --provider openai --model
 
 ## 工程化状态
 
-- CI 在 PR 和 `main` push 上运行 ruff、pytest、CLI smoke test 和 Schema 同步检查。
+- CI 在 PR 和 `main` push 上运行 ruff、pytest、CLI smoke test、Schema 同步检查和包构建检查。
 - 发布 workflow 监听 `v*.*.*` 标签，构建 wheel/sdist，并通过 PyPI Trusted Publishing 发布。
 - 发布前请先在 PyPI 配置 `pypi` environment 的 Trusted Publisher。

@@ -9,9 +9,11 @@
 3. 本地执行：
 
 ```powershell
+python -m pip install -e .[dev,release]
 python -m pytest
 python -m ruff check .
 python -m build
+python -m twine check dist\*
 python -m novel2script.cli examples/three_chapters.txt --output outputs/release-smoke.yaml --validate
 python -m novel2script.cli examples/three_chapters.txt --format fountain --output outputs/release-smoke.fountain
 cmd /c fc /b schemas\script.schema.json src\novel2script\schemas\script.schema.json
