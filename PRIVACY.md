@@ -59,7 +59,8 @@ and close the server when you are finished.
 
 The preflight and conversion endpoints accept JSON requests only. Requests must be UTF-8 JSON, and JSON files
 with a UTF-8 BOM are accepted. Browser requests that include an `Origin` header must match the
-local Web UI host.
+local Web UI host. A single Web request is limited to 2 MB; split larger manuscripts before
+preflight or conversion.
 
 ## Issue Reports and Pull Requests
 

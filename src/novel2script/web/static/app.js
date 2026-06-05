@@ -7,9 +7,13 @@ Jon arrived before dawn and saw fresh footprints crossing the hall.
 Chapter 3 The Last Tape
 Mara and Jon played the tape together. The hidden name finally connected every clue.`;
 
+const maxRequestBytes = 2000000;
+const textEncoder = new TextEncoder();
+
 const state = {
   output: "",
   format: "yaml",
+  isWorking: false,
   copyLabelTimer: 0,
   previewLabelTimer: 0,
   previewRequestId: 0,
@@ -98,6 +102,12 @@ async function checkServer() {
 }
 
 async function convertManuscript() {
+  if (isCurrentRequestTooLarge()) {
+    showRequestSizeError();
+    syncConvertAvailability();
+    return;
+  }
+
   if (!confirmRemoteProvider()) {
     return;
   }
@@ -310,16 +320,26 @@ function renderTextList(target, items) {
 
 function updateInputStatus() {
   resetProviderRunStatus();
+  syncConvertAvailability();
   const text = elements.manuscript.value;
   const characterCount = countCharacters(text);
   elements.inputSize.textContent = `${formatNumber(characterCount)} 字 / 预检中`;
 
   clearTimeout(state.previewLabelTimer);
+  if (isCurrentRequestTooLarge()) {
+    state.previewInput = "";
+    state.previewRequestId += 1;
+    showRequestSizeError();
+    updateConversionFreshness();
+    return;
+  }
+
   if (!characterCount) {
     state.previewInput = "";
     elements.inputHint.textContent = "至少 3 章后开始转换。";
     setStatusTone(elements.inputSize.parentElement, "neutral");
     elements.inputSize.textContent = "0 字 / 0 章";
+    syncConvertAvailability();
     updateConversionFreshness();
     return;
   }
@@ -327,6 +347,7 @@ function updateInputStatus() {
   elements.inputHint.textContent = "正在用后端章节解析器预检。";
   setStatusTone(elements.inputSize.parentElement, "active");
   schedulePreview(text);
+  syncConvertAvailability();
   updateConversionFreshness();
 }
 
@@ -337,6 +358,42 @@ function schedulePreview(text) {
   state.previewLabelTimer = window.setTimeout(() => {
     void runPreview(text, requestId);
   }, 260);
+}
+
+function isCurrentRequestTooLarge() {
+  return currentRequestByteLength() > maxRequestBytes;
+}
+
+function currentRequestByteLength() {
+  return Math.max(
+    requestByteLength({ text: elements.manuscript.value }),
+    requestByteLength(conversionPayload())
+  );
+}
+
+function conversionPayload() {
+  return {
+    text: elements.manuscript.value,
+    title: elements.title.value,
+    format: elements.format.value,
+    provider: elements.provider.value,
+    model: elements.model.value,
+    validate: elements.validate.checked
+  };
+}
+
+function requestByteLength(payload) {
+  return textEncoder.encode(JSON.stringify(payload)).length;
+}
+
+function showRequestSizeError() {
+  const requestSize = currentRequestByteLength();
+  elements.inputSize.textContent = `${formatFileSize(requestSize)} / 上限 ${formatFileSize(
+    maxRequestBytes
+  )}`;
+  elements.inputHint.textContent = "手稿过大，请拆分后再预检或转换。";
+  setStatusTone(elements.inputSize.parentElement, "error");
+  setConversionStatus("无法转换", "当前手稿超过 Web 请求上限。", "error");
 }
 
 async function runPreview(text, requestId) {
@@ -510,6 +567,10 @@ function updateConversionFreshness() {
     return;
   }
 
+  if (isCurrentRequestTooLarge()) {
+    return;
+  }
+
   if (elements.manuscript.value !== state.lastConvertedInput) {
     setConversionStatus("需重新转换", "手稿已变更，当前结果可能不是最新。", "warn");
     return;
@@ -559,6 +620,13 @@ function formatDuration(milliseconds) {
     return `${milliseconds}ms`;
   }
   return `${(milliseconds / 1000).toFixed(1)}s`;
+}
+
+function formatFileSize(bytes) {
+  if (bytes < 1024 * 1024) {
+    return `${Math.ceil(bytes / 1024)} KB`;
+  }
+  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 }
 
 function conversionSummary(summary) {
@@ -634,10 +702,15 @@ function downloadOutput() {
 }
 
 function setWorking(isWorking) {
-  elements.convert.disabled = isWorking;
+  state.isWorking = isWorking;
+  syncConvertAvailability();
   elements.convert.textContent = isWorking ? "转换中" : "转换";
   elements.fileButton.disabled = isWorking;
   elements.sample.disabled = isWorking;
+}
+
+function syncConvertAvailability() {
+  elements.convert.disabled = state.isWorking || isCurrentRequestTooLarge();
 }
 
 function setOutputActions(isEnabled) {
