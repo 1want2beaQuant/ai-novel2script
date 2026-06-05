@@ -121,3 +121,4 @@ def test_cli_reports_conversion_errors(
     captured = capsys.readouterr()
     assert captured.out == ""
     assert "novel2script: error:" in captured.err
+    assert "至少需要 3 个包含正文的章节" in captured.err
