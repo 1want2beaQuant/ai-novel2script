@@ -10,6 +10,7 @@ Initial release candidate.
 
 - CLI package entry point: `novel2script`.
 - Module execution entry point: `python -m novel2script`.
+- CLI reports a clear error when the input manuscript is not UTF-8 text.
 - Local heuristic conversion from 3+ chapter manuscripts to screenplay YAML drafts.
 - YAML output validated by bundled JSON Schema.
 - Fountain screenplay export.
