@@ -307,6 +307,48 @@ select {
   align-items: center;
 }
 
+.output-tabs {
+  min-width: min(100%, 360px);
+  min-height: 38px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: var(--surface);
+}
+
+.output-tabs button {
+  flex: 1 1 78px;
+  min-width: 0;
+  min-height: 36px;
+  padding: 0 10px;
+  border: 0;
+  border-right: 1px solid var(--line);
+  border-radius: 0;
+  background: transparent;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+
+.output-tabs button:last-child {
+  border-right: 0;
+}
+
+.output-tabs button:hover:not(:disabled),
+.output-tabs button.is-selected {
+  color: var(--surface);
+  background: var(--teal);
+}
+
+.output-tabs button:disabled {
+  cursor: not-allowed;
+}
+
 textarea,
 pre {
   min-height: 0;

@@ -95,6 +95,44 @@
             <div class="pane-head">
               <h2>结果</h2>
               <div class="button-row">
+                <div class="output-tabs" role="tablist" aria-label="结果格式">
+                  <button
+                    id="viewYamlButton"
+                    type="button"
+                    role="tab"
+                    aria-controls="outputBox"
+                    data-output-format="yaml"
+                  >
+                    YAML
+                  </button>
+                  <button
+                    id="viewFountainButton"
+                    type="button"
+                    role="tab"
+                    aria-controls="outputBox"
+                    data-output-format="fountain"
+                  >
+                    Fountain
+                  </button>
+                  <button
+                    id="viewDraftJsonButton"
+                    type="button"
+                    role="tab"
+                    aria-controls="outputBox"
+                    data-output-format="draftJson"
+                  >
+                    Draft JSON
+                  </button>
+                  <button
+                    id="viewSummaryJsonButton"
+                    type="button"
+                    role="tab"
+                    aria-controls="outputBox"
+                    data-output-format="summaryJson"
+                  >
+                    Summary
+                  </button>
+                </div>
                 <button id="copyButton" type="button">复制</button>
                 <button id="downloadButton" type="button">下载</button>
                 <button id="bundleButton" type="button" aria-label="打包下载所有导出文件">

@@ -15,7 +15,7 @@ const crc32Table = buildCrc32Table();
 const state = {
   output: "",
   exports: null,
-  format: "yaml",
+  selectedOutput: "yaml",
   isWorking: false,
   copyLabelTimer: 0,
   downloadLabelTimer: 0,
@@ -28,7 +28,6 @@ const state = {
   openAiConfirmedFor: "",
   lastConvertedInput: "",
   lastTitle: "",
-  lastFormat: "yaml",
   lastValidate: true,
   lastProvider: "local",
   lastModel: "",
@@ -69,6 +68,7 @@ const elements = {
   copy: document.querySelector("#copyButton"),
   download: document.querySelector("#downloadButton"),
   bundle: document.querySelector("#bundleButton"),
+  outputTabs: Array.from(document.querySelectorAll("[data-output-format]")),
   serverStatus: document.querySelector("#serverStatus"),
   inputSize: document.querySelector("#inputSize"),
   inputHint: document.querySelector("#inputHint"),
@@ -98,6 +98,7 @@ const elements = {
 
 elements.manuscript.value = sampleText;
 elements.output.textContent = "转换结果会显示在这里。";
+setOutputActions(false);
 renderSummary(null);
 updateInputStatus();
 updateProviderStatus();
@@ -155,19 +156,19 @@ async function convertManuscript() {
       throw new Error(result.error || "Conversion failed.");
     }
 
-    state.output = result.output;
     state.exports = normalizeExports(result);
-    state.format = result.format;
+    state.selectedOutput = result.format === "fountain" ? "fountain" : "yaml";
+    state.output = outputForSelection(state.selectedOutput);
     state.lastConvertedInput = payload.text;
     state.lastTitle = payload.title;
-    state.lastFormat = payload.format;
     state.lastValidate = payload.validate;
     state.lastProvider = payload.provider;
     state.lastModel = requestModel;
     state.lastProviderStatus = result.provider_status || null;
     state.lastSummary = result.summary;
     state.lastDurationMs = Math.max(0, Math.round(performance.now() - startedAt));
-    elements.output.textContent = result.output;
+    elements.output.textContent = state.output;
+    renderOutputTabs();
     renderSummary(result.summary);
     renderProviderRunStatus(state.lastProviderStatus);
     updateExportStatus();
@@ -182,6 +183,7 @@ async function convertManuscript() {
   } catch (error) {
     state.output = "";
     state.exports = null;
+    renderOutputTabs();
     state.lastProviderStatus = null;
     elements.output.classList.add("is-error");
     elements.output.textContent = error instanceof Error ? error.message : String(error);
@@ -469,6 +471,44 @@ function conversionPayload() {
   };
 }
 
+function selectedOutputLabel() {
+  const labels = {
+    yaml: "YAML",
+    fountain: "Fountain",
+    draftJson: "Draft JSON",
+    summaryJson: "Summary JSON"
+  };
+  return labels[state.selectedOutput] || "YAML";
+}
+
+function outputForSelection(selection) {
+  if (!state.exports) {
+    return "";
+  }
+  return state.exports[selection] || "";
+}
+
+function selectOutput(selection) {
+  if (!state.exports || !Object.prototype.hasOwnProperty.call(state.exports, selection)) {
+    return;
+  }
+  state.selectedOutput = selection;
+  state.output = outputForSelection(selection);
+  elements.output.classList.remove("is-error");
+  elements.output.textContent = state.output;
+  renderOutputTabs();
+  updateExportStatus();
+}
+
+function renderOutputTabs() {
+  for (const button of elements.outputTabs) {
+    const isSelected = button.dataset.outputFormat === state.selectedOutput;
+    button.disabled = !state.exports;
+    button.classList.toggle("is-selected", Boolean(state.exports) && isSelected);
+    button.setAttribute("aria-selected", String(Boolean(state.exports) && isSelected));
+  }
+}
+
 function requestByteLength(payload) {
   return textEncoder.encode(JSON.stringify(payload)).length;
 }
@@ -684,7 +724,7 @@ function textFingerprint(text) {
 }
 
 function updateExportStatus() {
-  const formatLabel = elements.format.value === "fountain" ? "Fountain" : "YAML";
+  const formatLabel = selectedOutputLabel();
   const validationLabel = elements.validate.checked ? "Schema 校验开启" : "Schema 校验关闭";
 
   if (state.output) {
@@ -711,9 +751,6 @@ function updateExportStatus() {
 }
 
 function currentOutputStaleReason() {
-  const formatLabel = elements.format.value === "fountain" ? "Fountain" : "YAML";
-  const outputLabel = state.format === "fountain" ? "Fountain" : "YAML";
-
   if (elements.manuscript.value !== state.lastConvertedInput) {
     return {
       conversionDetail: "手稿已变更，当前结果可能不是最新。",
@@ -732,13 +769,6 @@ function currentOutputStaleReason() {
     return {
       conversionDetail: "处理模式已变更，重新转换后生效。",
       exportDetail: "处理模式已变更，当前导出仍使用旧结果。"
-    };
-  }
-
-  if (elements.format.value !== state.lastFormat) {
-    return {
-      conversionDetail: "输出格式已变更，重新转换后生成当前格式。",
-      exportDetail: `当前结果仍是 ${outputLabel}，目标导出为 ${formatLabel}。`
     };
   }
 
@@ -974,7 +1004,7 @@ function downloadOutput() {
   clearTimeout(state.downloadLabelTimer);
   let objectUrl = "";
   try {
-    const extension = state.format === "fountain" ? "fountain" : "yaml";
+    const extension = outputExtension(state.selectedOutput);
     const blob = new Blob([state.output], { type: "text/plain;charset=utf-8" });
     const link = document.createElement("a");
     objectUrl = URL.createObjectURL(blob);
@@ -995,6 +1025,19 @@ function downloadOutput() {
       elements.download.textContent = "下载";
     }, 1400);
   }
+}
+
+function outputExtension(selection) {
+  if (selection === "fountain") {
+    return "fountain";
+  }
+  if (selection === "draftJson") {
+    return "draft.json";
+  }
+  if (selection === "summaryJson") {
+    return "summary.json";
+  }
+  return "yaml";
 }
 
 function downloadBundle() {
@@ -1144,6 +1187,9 @@ function setOutputActions(isEnabled) {
   elements.copy.disabled = !isEnabled;
   elements.download.disabled = !isEnabled;
   elements.bundle.disabled = !isEnabled;
+  for (const button of elements.outputTabs) {
+    button.disabled = !isEnabled;
+  }
 }
 
 elements.sample.addEventListener("click", () => {
@@ -1174,8 +1220,14 @@ elements.model.addEventListener("input", () => {
 });
 elements.format.addEventListener("change", () => {
   syncConvertAvailability();
+  const selection = elements.format.value === "fountain" ? "fountain" : "yaml";
+  if (state.exports) {
+    selectOutput(selection);
+    return;
+  }
+  state.selectedOutput = selection;
+  renderOutputTabs();
   updateExportStatus();
-  updateConversionFreshness();
 });
 elements.validate.addEventListener("change", () => {
   syncConvertAvailability();
@@ -1186,5 +1238,10 @@ elements.convert.addEventListener("click", convertManuscript);
 elements.copy.addEventListener("click", copyOutput);
 elements.download.addEventListener("click", downloadOutput);
 elements.bundle.addEventListener("click", downloadBundle);
+for (const button of elements.outputTabs) {
+  button.addEventListener("click", () => {
+    selectOutput(button.dataset.outputFormat || "yaml");
+  });
+}
 
 checkServer();
