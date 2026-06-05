@@ -134,6 +134,8 @@ def test_local_web_workbench_is_documented_for_release() -> None:
     assert "Summary JSON" in readme
     assert "结果区可在 YAML、Fountain、Draft JSON 和 Summary JSON 之间切换" in readme
     assert "打包下载会生成包含全部导出文件的 zip" in readme
+    assert "自动保存当前手稿、片名、输出格式、处理模式、模型和 Schema 开关到本机浏览器" in readme
+    assert "刷新页面后自动恢复" in readme
     assert "清空按钮会移除当前手稿、标题、生成结果、诊断状态、选中文件引用和远程确认状态" in readme
     assert "Web 页面会在开始远程转换前按当前手稿、片名和模型要求确认" in readme
     assert "Web 工作台会在处理模式卡片显示“本地回退”" in readme

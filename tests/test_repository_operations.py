@@ -136,6 +136,8 @@ def test_web_privacy_and_security_docs_cover_local_server_risks() -> None:
     assert "confirmation before starting that remote conversion" in privacy
     assert "falls back to the local heuristic provider" in privacy
     assert "`本地回退`" in privacy
+    assert "browser `localStorage`" in privacy
+    assert "generated outputs and remote confirmation state are not restored" in privacy
     assert "--allow-remote" in privacy
     assert "preflight and conversion endpoints accept JSON requests only" in privacy
     assert "Cache-Control: no-store" in privacy

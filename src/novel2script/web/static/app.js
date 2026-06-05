@@ -9,6 +9,8 @@ Mara and Jon played the tape together. The hidden name finally connected every c
 
 const maxRequestBytes = 2000000;
 const defaultModel = "gpt-4.1-mini";
+const localDraftStorageKey = "novel2script:web:local-draft:v1";
+const localDraftVersion = 1;
 const textEncoder = new TextEncoder();
 const crc32Table = buildCrc32Table();
 
@@ -20,6 +22,7 @@ const state = {
   copyLabelTimer: 0,
   downloadLabelTimer: 0,
   bundleLabelTimer: 0,
+  draftSaveTimer: 0,
   previewLabelTimer: 0,
   previewRequestId: 0,
   previewInput: "",
@@ -70,6 +73,7 @@ const elements = {
   download: document.querySelector("#downloadButton"),
   bundle: document.querySelector("#bundleButton"),
   outputTabs: Array.from(document.querySelectorAll("[data-output-format]")),
+  draftStatus: document.querySelector("#draftStatus"),
   serverStatus: document.querySelector("#serverStatus"),
   inputSize: document.querySelector("#inputSize"),
   inputHint: document.querySelector("#inputHint"),
@@ -97,13 +101,7 @@ const elements = {
   qualityList: document.querySelector("#qualityList")
 };
 
-elements.manuscript.value = sampleText;
-elements.output.textContent = "转换结果会显示在这里。";
-setOutputActions(false);
-renderSummary(null);
-updateInputStatus();
-updateProviderStatus();
-updateExportStatus();
+initializeWorkbench();
 
 async function checkServer() {
   try {
@@ -512,6 +510,139 @@ function renderOutputTabs() {
 
 function requestByteLength(payload) {
   return textEncoder.encode(JSON.stringify(payload)).length;
+}
+
+function initializeWorkbench() {
+  const restored = restoreLocalDraft();
+  if (!restored) {
+    elements.manuscript.value = sampleText;
+    state.selectedOutput = elements.format.value === "fountain" ? "fountain" : "yaml";
+    if (localDraftStorage() && elements.draftStatus.textContent === "示例草稿") {
+      setDraftStatus("示例草稿", "neutral");
+    }
+  }
+
+  elements.output.textContent = "转换结果会显示在这里。";
+  setOutputActions(false);
+  renderSummary(null);
+  renderOutputTabs();
+  updateInputStatus();
+  updateProviderStatus();
+  updateExportStatus();
+
+  if (restored) {
+    const hasText = Boolean(elements.manuscript.value.trim());
+    setConversionStatus(
+      hasText ? "待转换" : "待输入",
+      hasText ? "已恢复浏览器本地草稿，等待章节预检。" : "本地草稿为空，等待手稿输入。",
+      hasText ? "active" : "neutral"
+    );
+  }
+}
+
+function restoreLocalDraft() {
+  const storage = localDraftStorage();
+  if (!storage) {
+    setDraftStatus("保存不可用", "warn");
+    return false;
+  }
+
+  let draft;
+  try {
+    const raw = storage.getItem(localDraftStorageKey);
+    if (!raw) {
+      return false;
+    }
+    draft = JSON.parse(raw);
+  } catch {
+    removeLocalDraft(storage);
+    setDraftStatus("草稿已重置", "warn");
+    return false;
+  }
+
+  if (!isLocalDraft(draft)) {
+    removeLocalDraft(storage);
+    setDraftStatus("草稿已重置", "warn");
+    return false;
+  }
+
+  elements.manuscript.value = typeof draft.text === "string" ? draft.text : "";
+  elements.title.value = typeof draft.title === "string" ? draft.title : "";
+  elements.format.value = draft.format === "fountain" ? "fountain" : "yaml";
+  elements.provider.value = draft.provider === "openai" ? "openai" : "local";
+  elements.model.value = typeof draft.model === "string" ? draft.model : defaultModel;
+  elements.validate.checked = typeof draft.validate === "boolean" ? draft.validate : true;
+  state.selectedOutput = elements.format.value === "fountain" ? "fountain" : "yaml";
+  setDraftStatus("已恢复草稿", "ready");
+  return true;
+}
+
+function isLocalDraft(value) {
+  return (
+    typeof value === "object" &&
+    value !== null &&
+    value.version === localDraftVersion &&
+    (typeof value.text === "string" || value.text === undefined)
+  );
+}
+
+function scheduleLocalDraftSave() {
+  clearTimeout(state.draftSaveTimer);
+  setDraftStatus("保存中", "active");
+  state.draftSaveTimer = window.setTimeout(saveLocalDraft, 240);
+}
+
+function saveLocalDraft() {
+  const storage = localDraftStorage();
+  if (!storage) {
+    setDraftStatus("保存不可用", "warn");
+    return false;
+  }
+
+  const draft = {
+    version: localDraftVersion,
+    savedAt: new Date().toISOString(),
+    text: elements.manuscript.value,
+    title: elements.title.value,
+    format: elements.format.value,
+    provider: elements.provider.value,
+    model: elements.model.value,
+    validate: elements.validate.checked
+  };
+
+  try {
+    storage.setItem(localDraftStorageKey, JSON.stringify(draft));
+  } catch {
+    setDraftStatus("保存失败", "warn");
+    return false;
+  }
+
+  setDraftStatus("草稿已保存", "ready");
+  return true;
+}
+
+function localDraftStorage() {
+  try {
+    return window.localStorage || null;
+  } catch {
+    return null;
+  }
+}
+
+function removeLocalDraft(storage) {
+  try {
+    storage.removeItem(localDraftStorageKey);
+  } catch {
+    return;
+  }
+}
+
+function setDraftStatus(label, tone) {
+  if (!elements.draftStatus) {
+    return;
+  }
+  elements.draftStatus.textContent = label;
+  setStatusTone(elements.draftStatus, tone);
 }
 
 function showRequestSizeError() {
@@ -962,6 +1093,7 @@ async function loadFile() {
   if (!elements.title.value) {
     elements.title.value = file.name.replace(/\.[^.]+$/, "");
   }
+  saveLocalDraft();
   setConversionStatus("待转换", `已导入 ${file.name}，等待章节预检。`, "active");
   updateInputStatus();
 }
@@ -1046,6 +1178,7 @@ function clearWorkbench() {
   clearTimeout(state.copyLabelTimer);
   clearTimeout(state.downloadLabelTimer);
   clearTimeout(state.bundleLabelTimer);
+  clearTimeout(state.draftSaveTimer);
   state.output = "";
   state.exports = null;
   state.selectedOutput = elements.format.value === "fountain" ? "fountain" : "yaml";
@@ -1074,6 +1207,7 @@ function clearWorkbench() {
   renderSummary(null);
   renderProviderSelectionStatus();
   renderOutputTabs();
+  saveLocalDraft();
   updateInputStatus();
   setConversionStatus("待转换", "工作台已清空，等待手稿输入。", "neutral");
   updateExportStatus();
@@ -1234,6 +1368,7 @@ function setOutputActions(isEnabled) {
 
 elements.sample.addEventListener("click", () => {
   elements.manuscript.value = sampleText;
+  saveLocalDraft();
   updateInputStatus();
 });
 elements.clear.addEventListener("click", clearWorkbench);
@@ -1242,24 +1377,31 @@ elements.fileButton.addEventListener("click", () => {
 });
 elements.file.addEventListener("change", loadFile);
 elements.title.addEventListener("input", () => {
+  scheduleLocalDraftSave();
   resetProviderRunStatus();
   syncConvertAvailability();
   updateExportStatus();
   updateConversionFreshness();
 });
-elements.manuscript.addEventListener("input", updateInputStatus);
+elements.manuscript.addEventListener("input", () => {
+  scheduleLocalDraftSave();
+  updateInputStatus();
+});
 elements.provider.addEventListener("change", () => {
+  scheduleLocalDraftSave();
   syncConvertAvailability();
   updateExportStatus();
   updateProviderStatus();
 });
 elements.model.addEventListener("input", () => {
+  scheduleLocalDraftSave();
   resetProviderRunStatus();
   syncConvertAvailability();
   updateExportStatus();
   updateConversionFreshness();
 });
 elements.format.addEventListener("change", () => {
+  scheduleLocalDraftSave();
   syncConvertAvailability();
   const selection = elements.format.value === "fountain" ? "fountain" : "yaml";
   if (state.exports) {
@@ -1271,6 +1413,7 @@ elements.format.addEventListener("change", () => {
   updateExportStatus();
 });
 elements.validate.addEventListener("change", () => {
+  scheduleLocalDraftSave();
   syncConvertAvailability();
   updateExportStatus();
   updateConversionFreshness();
@@ -1284,5 +1427,6 @@ for (const button of elements.outputTabs) {
     selectOutput(button.dataset.outputFormat || "yaml");
   });
 }
+window.addEventListener("beforeunload", saveLocalDraft);
 
 checkServer();

@@ -269,6 +269,8 @@ def test_web_server_serves_static_assets_and_conversion_api() -> None:
         assert "default-src 'self'" in (response.getheader("Content-Security-Policy") or "")
         assert "novel2script Studio" in body
         assert f'id="modelInput" type="text" value="{novel2script.DEFAULT_MODEL}"' in body
+        assert 'id="draftStatus"' in body
+        assert "示例草稿" in body
         assert 'id="fileButton"' in body
         assert 'id="clearButton"' in body
         assert "清空当前工作台" in body
@@ -362,6 +364,25 @@ def test_web_static_assets_include_conversion_status_ui() -> None:
         assert "function remoteConfirmationKey" in script
         assert "function textFingerprint" in script
         assert f'const defaultModel = "{novel2script.DEFAULT_MODEL}"' in script
+        assert 'const localDraftStorageKey = "novel2script:web:local-draft:v1"' in script
+        assert "const localDraftVersion = 1" in script
+        assert "draftSaveTimer" in script
+        assert "function initializeWorkbench" in script
+        assert "function restoreLocalDraft" in script
+        assert "function isLocalDraft" in script
+        assert "function scheduleLocalDraftSave" in script
+        assert "function saveLocalDraft" in script
+        assert "function localDraftStorage" in script
+        assert "window.localStorage" in script
+        assert "function removeLocalDraft" in script
+        assert "function setDraftStatus" in script
+        assert "已恢复浏览器本地草稿，等待章节预检。" in script
+        assert "本地草稿为空，等待手稿输入。" in script
+        assert "草稿已保存" in script
+        assert "保存不可用" in script
+        assert "保存失败" in script
+        assert "saveLocalDraft()" in script
+        assert "scheduleLocalDraftSave()" in script
         assert "openAiConfirmedFor" in script
         assert "isPreviewPending" in script
         assert "isPreviewReady" in script
@@ -478,6 +499,9 @@ def test_web_static_assets_include_conversion_status_ui() -> None:
 
         assert response.status == HTTPStatus.OK
         assert ".status-grid" in stylesheet
+        assert ".topbar-status" in stylesheet
+        assert ".status-pill.is-ready" in stylesheet
+        assert ".status-pill.is-warn" in stylesheet
         assert ".status-card.is-warn strong" in stylesheet
         assert ".status-card.is-error strong" in stylesheet
         assert ".input-pane" in stylesheet

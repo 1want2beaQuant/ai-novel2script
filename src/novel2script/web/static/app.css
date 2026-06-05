@@ -110,6 +110,14 @@ button:disabled {
   background: linear-gradient(90deg, var(--paper), #eef6f4);
 }
 
+.topbar-status {
+  flex: 0 0 auto;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
 .eyebrow,
 h1,
 h2,
@@ -153,7 +161,7 @@ h3 {
 
 .status-pill {
   flex: 0 0 auto;
-  min-width: 82px;
+  min-width: 94px;
   border: 1px solid var(--teal);
   border-radius: 999px;
   color: var(--teal);
@@ -161,6 +169,26 @@ h3 {
   text-align: center;
   font-size: 13px;
   font-weight: 700;
+}
+
+.status-pill.is-ready {
+  border-color: var(--teal);
+  color: var(--teal);
+}
+
+.status-pill.is-warn {
+  border-color: var(--amber);
+  color: var(--amber);
+}
+
+.status-pill.is-active {
+  border-color: var(--blue);
+  color: var(--blue);
+}
+
+.status-pill.is-error {
+  border-color: var(--accent-strong);
+  color: var(--accent-strong);
 }
 
 .controls {
@@ -813,6 +841,11 @@ pre {
   .topbar {
     align-items: flex-start;
     flex-direction: column;
+  }
+
+  .topbar-status {
+    width: 100%;
+    justify-content: flex-start;
   }
 
   h1 {
