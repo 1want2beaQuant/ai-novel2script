@@ -9,6 +9,7 @@ from typing import Any
 from novel2script.chapter_parser import parse_chapters
 from novel2script.converter import convert_text_to_script
 from novel2script.models import ScriptDraft
+from novel2script.schema import validate_script
 
 
 SYSTEM_PROMPT = """你是专业编剧助理。请把小说改编为可编辑剧本 YAML 数据。
@@ -29,6 +30,7 @@ def convert_with_optional_ai(
 
     try:
         enhanced = _enhance_with_openai(text=text, baseline=local_draft.to_dict(), model=model)
+        validate_script(enhanced)
     except ValueError:
         raise
     except Exception as exc:
