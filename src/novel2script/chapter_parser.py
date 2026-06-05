@@ -41,6 +41,16 @@ def parse_chapters(text: str) -> list[Chapter]:
     traceability unreliable.
     """
 
+    chapters = parse_chapter_candidates(text)
+    if len(chapters) < 3:
+        raise ValueError("至少需要 3 个包含正文的章节才能生成结构化剧本。")
+
+    return chapters
+
+
+def parse_chapter_candidates(text: str) -> list[Chapter]:
+    """Parse explicit chapter boundaries without enforcing the three-chapter minimum."""
+
     cleaned = text.replace("\r\n", "\n").replace("\r", "\n").strip().lstrip("\ufeff")
     if not cleaned:
         raise ValueError("输入文本为空，无法转换。")
@@ -57,9 +67,6 @@ def parse_chapters(text: str) -> list[Chapter]:
         body = cleaned[body_start:body_end].strip()
         if body:
             chapters.append(Chapter(index=len(chapters) + 1, title=title, body=body))
-
-    if len(chapters) < 3:
-        raise ValueError("至少需要 3 个包含正文的章节才能生成结构化剧本。")
 
     return chapters
 

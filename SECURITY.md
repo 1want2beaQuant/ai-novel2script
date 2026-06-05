@@ -24,6 +24,6 @@ to that network. The Web UI does not implement authentication, so anyone who can
 address may be able to submit manuscript text for conversion and view responses. Use remote binding
 only on trusted networks and stop the process when finished.
 
-The conversion API accepts `application/json` requests only and decodes UTF-8 JSON, including
-payloads with a UTF-8 BOM. Browser requests carrying an `Origin` header are rejected unless the
-origin matches the current local Web UI host.
+The preflight and conversion APIs accept `application/json` requests only and decode UTF-8 JSON,
+including payloads with a UTF-8 BOM. Browser requests carrying an `Origin` header are rejected
+unless the origin matches the current local Web UI host.

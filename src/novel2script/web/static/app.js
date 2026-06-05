@@ -11,6 +11,9 @@ const state = {
   output: "",
   format: "yaml",
   copyLabelTimer: 0,
+  previewLabelTimer: 0,
+  previewRequestId: 0,
+  previewInput: "",
   lastConvertedInput: "",
   lastTitle: "",
   lastProvider: "local",
@@ -292,24 +295,74 @@ function renderTextList(target, items) {
 }
 
 function updateInputStatus() {
-  const stats = measureInput(elements.manuscript.value);
-  elements.inputSize.textContent = `${formatNumber(stats.characterCount)} 字 / ${stats.chapterCount} 章`;
+  const text = elements.manuscript.value;
+  const characterCount = countCharacters(text);
+  elements.inputSize.textContent = `${formatNumber(characterCount)} 字 / 预检中`;
 
-  if (!stats.characterCount) {
+  clearTimeout(state.previewLabelTimer);
+  if (!characterCount) {
+    state.previewInput = "";
     elements.inputHint.textContent = "至少 3 章后开始转换。";
     setStatusTone(elements.inputSize.parentElement, "neutral");
-  } else if (stats.chapterCount >= 3) {
-    elements.inputHint.textContent = "符合三章以上输入要求。";
-    setStatusTone(elements.inputSize.parentElement, "ready");
-  } else if (stats.chapterCount > 0) {
-    elements.inputHint.textContent = "章节可能不足，转换时会再次校验。";
-    setStatusTone(elements.inputSize.parentElement, "warn");
-  } else {
-    elements.inputHint.textContent = "未识别章节标题，建议补充章名。";
-    setStatusTone(elements.inputSize.parentElement, "warn");
+    elements.inputSize.textContent = "0 字 / 0 章";
+    updateConversionFreshness();
+    return;
   }
 
+  elements.inputHint.textContent = "正在用后端章节解析器预检。";
+  setStatusTone(elements.inputSize.parentElement, "active");
+  schedulePreview(text);
   updateConversionFreshness();
+}
+
+function schedulePreview(text) {
+  const requestId = ++state.previewRequestId;
+  state.previewInput = text;
+  clearTimeout(state.previewLabelTimer);
+  state.previewLabelTimer = window.setTimeout(() => {
+    void runPreview(text, requestId);
+  }, 260);
+}
+
+async function runPreview(text, requestId) {
+  try {
+    const response = await fetch("/api/preview", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ text })
+    });
+    const preview = await response.json();
+    if (requestId !== state.previewRequestId || text !== elements.manuscript.value) {
+      return;
+    }
+    if (!response.ok) {
+      throw new Error(preview.error || "Preview failed.");
+    }
+    renderPreview(preview);
+  } catch {
+    if (requestId !== state.previewRequestId || text !== elements.manuscript.value) {
+      return;
+    }
+    const characterCount = countCharacters(text);
+    elements.inputSize.textContent = `${formatNumber(characterCount)} 字 / ? 章`;
+    elements.inputHint.textContent = "预检暂不可用，转换时会再次校验。";
+    setStatusTone(elements.inputSize.parentElement, "warn");
+  }
+}
+
+function renderPreview(preview) {
+  const characterCount = Number(preview.character_count || 0);
+  const chapterCount = Number(preview.chapter_count || 0);
+  elements.inputSize.textContent = `${formatNumber(characterCount)} 字 / ${chapterCount} 章`;
+  elements.inputHint.textContent = preview.message || "转换时会再次校验。";
+
+  if (preview.ready) {
+    setStatusTone(elements.inputSize.parentElement, "ready");
+  } else if (characterCount) {
+    setStatusTone(elements.inputSize.parentElement, "warn");
+  } else {
+    setStatusTone(elements.inputSize.parentElement, "neutral");
+  }
 }
 
 function updateProviderStatus() {
@@ -384,19 +437,8 @@ function setStatusTone(element, tone) {
   }
 }
 
-function measureInput(text) {
-  return {
-    characterCount: Array.from(text.replace(/\s/g, "")).length,
-    chapterCount: estimateChapterCount(text)
-  };
-}
-
-function estimateChapterCount(text) {
-  const chapterHeading = /^(?:#{1,6}\s*)?(?:(?:第\s*[一二三四五六七八九十百千万零〇两\d]+\s*[章节回卷部篇])|(?:序章|楔子|尾声|后记|番外)|(?:(?:chapter|chap\.?|ch\.)\s+(?:\d+|[ivxlcdm]+|one|two|three|four|five|six|seven|eight|nine|ten)\b))/i;
-  return text
-    .split(/\r?\n/)
-    .map((line) => line.trim())
-    .filter((line) => chapterHeading.test(line)).length;
+function countCharacters(text) {
+  return Array.from(text.replace(/\s/g, "")).length;
 }
 
 function formatNumber(value) {

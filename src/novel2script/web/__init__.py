@@ -15,6 +15,7 @@ import webbrowser
 
 from novel2script import __version__
 from novel2script.ai_provider import convert_with_optional_ai
+from novel2script.chapter_parser import parse_chapter_candidates
 from novel2script.fountain import draft_to_fountain
 from novel2script.schema import validate_script
 from novel2script.yaml_io import draft_to_yaml
@@ -61,6 +62,45 @@ def convert_payload(payload: dict[str, Any]) -> dict[str, Any]:
         "output": output,
         "summary": summarize_script(data),
         "draft": data,
+    }
+
+
+def preview_payload(payload: dict[str, Any]) -> dict[str, Any]:
+    text = _required_string(payload, "text").strip()
+    character_count = len("".join(text.split()))
+    if not text:
+        return {
+            "ready": False,
+            "character_count": 0,
+            "chapter_count": 0,
+            "chapters": [],
+            "message": "至少 3 章后开始转换。",
+        }
+
+    try:
+        chapters = parse_chapter_candidates(text)
+    except ValueError as exc:
+        return {
+            "ready": False,
+            "character_count": character_count,
+            "chapter_count": 0,
+            "chapters": [],
+            "message": str(exc),
+        }
+
+    ready = len(chapters) >= 3
+    return {
+        "ready": ready,
+        "character_count": character_count,
+        "chapter_count": len(chapters),
+        "chapters": [
+            {"index": chapter.index, "title": chapter.title} for chapter in chapters
+        ],
+        "message": (
+            "符合三章以上输入要求。"
+            if ready
+            else "至少需要 3 个包含正文的章节才能生成结构化剧本。"
+        ),
     }
 
 
@@ -239,14 +279,15 @@ class Novel2ScriptWebHandler(BaseHTTPRequestHandler):
         self._send_json({"error": "Not found."}, status=HTTPStatus.NOT_FOUND)
 
     def do_POST(self) -> None:
-        if self.path.split("?", 1)[0] != "/api/convert":
+        path = self.path.split("?", 1)[0]
+        if path not in {"/api/convert", "/api/preview"}:
             self._send_json({"error": "Not found."}, status=HTTPStatus.NOT_FOUND)
             return
 
         try:
             self._validate_convert_request()
             payload = self._read_json_payload()
-            result = convert_payload(payload)
+            result = preview_payload(payload) if path == "/api/preview" else convert_payload(payload)
         except ValueError as exc:
             self._send_json({"error": str(exc)}, status=HTTPStatus.BAD_REQUEST)
             return
