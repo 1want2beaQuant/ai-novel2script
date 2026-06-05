@@ -126,4 +126,5 @@ def test_local_web_workbench_is_documented_for_release() -> None:
     assert "python -m novel2script.web --host 127.0.0.1 --port 8765 --no-open" in readme
     assert "默认本地模式不会把手稿发送到外部服务" in readme
     assert "--allow-remote" in readme
+    assert "转换 API 只接受 JSON 请求" in readme
     assert "Local browser workbench" in changelog

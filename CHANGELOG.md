@@ -15,6 +15,7 @@ Initial release candidate.
 - Fountain screenplay export.
 - Local browser workbench through `novel2script-web` and `python -m novel2script.web`.
 - Local Web UI refuses non-loopback hosts unless `--allow-remote` is provided and sends basic browser security headers.
+- Local Web conversion API rejects non-JSON and cross-origin browser requests.
 - Structured `structure_map`, `story_bible`, `adaptation_report`, and `coverage_report` sections.
 - Optional OpenAI-compatible enhancement through the `novel2script[ai]` extra.
 - OpenAI-compatible enhancement responses are parsed as JSON objects, tolerate fenced JSON blocks, and are validated against the bundled schema before use.

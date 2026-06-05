@@ -23,3 +23,6 @@ If you intentionally bind to `0.0.0.0` or another network-facing address, treat 
 to that network. The Web UI does not implement authentication, so anyone who can reach the bound
 address may be able to submit manuscript text for conversion and view responses. Use remote binding
 only on trusted networks and stop the process when finished.
+
+The conversion API accepts `application/json` requests only. Browser requests carrying an `Origin`
+header are rejected unless the origin matches the current local Web UI host.

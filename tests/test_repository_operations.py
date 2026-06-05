@@ -130,7 +130,11 @@ def test_web_privacy_and_security_docs_cover_local_server_risks() -> None:
     assert "local `/api/convert` endpoint" in privacy
     assert "OpenAI mode follows the remote payload behavior" in privacy
     assert "--allow-remote" in privacy
+    assert "accepts JSON requests only" in privacy
+    assert "Origin" in privacy
 
     assert "Local Web UI" in security
     assert "refuses non-loopback hosts unless `--allow-remote` is provided" in security
     assert "does not implement authentication" in security
+    assert "accepts `application/json` requests only" in security
+    assert "Origin" in security
