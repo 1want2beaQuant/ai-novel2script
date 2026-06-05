@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from datetime import UTC, datetime
+from datetime import datetime, timezone
 from typing import Any, Literal
 
 
@@ -107,7 +107,7 @@ class ScriptDraft:
     revision_notes: list[str]
     schema_version: str = "1.4.0"
     language: str = "zh-CN"
-    generated_at: str = field(default_factory=lambda: datetime.now(UTC).isoformat())
+    generated_at: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
 
     def to_dict(self) -> dict[str, Any]:
         return {

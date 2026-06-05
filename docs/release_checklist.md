@@ -1,0 +1,41 @@
+# 发布检查清单
+
+本文档用于把 `novel2script` 从可运行项目推进到可发布、可维护的 Python 包。
+
+## 发布前
+
+1. 确认 `main` 分支 CI 全绿。
+2. 更新 `pyproject.toml` 中的 `version`。
+3. 本地执行：
+
+```powershell
+python -m pytest
+python -m ruff check .
+python -m build
+python -m novel2script.cli examples/three_chapters.txt --output outputs/release-smoke.yaml --validate
+python -m novel2script.cli examples/three_chapters.txt --format fountain --output outputs/release-smoke.fountain
+cmd /c fc /b schemas\script.schema.json src\novel2script\schemas\script.schema.json
+```
+
+4. 在 PyPI 项目中配置 Trusted Publishing：
+   - Owner：`1want2beaQuant`
+   - Repository：`ai-novel2script`
+   - Workflow：`release.yml`
+   - Environment：`pypi`
+
+## 发布
+
+创建并推送语义化版本标签：
+
+```powershell
+git tag v0.1.0
+git push origin v0.1.0
+```
+
+GitHub Actions 会构建 wheel/sdist，并通过 PyPI Trusted Publishing 发布。
+
+## 发布后
+
+1. 在干净虚拟环境中安装发布包。
+2. 运行 `novel2script --help` 和示例转换命令。
+3. 核对 PyPI 页面中的 README、许可证、项目链接和版本号。

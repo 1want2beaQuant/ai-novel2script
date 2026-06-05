@@ -8,21 +8,30 @@ version = "0.1.0"
 description = "AI-assisted tool for converting multi-chapter novels into editable screenplay YAML drafts."
 readme = "README.md"
 requires-python = ">=3.10"
-license = { text = "MIT" }
+license = "MIT"
 authors = [
   { name = "1want2beaQuant" }
 ]
 dependencies = [
   "jsonschema>=4.22.0",
-  "openai>=1.30.0",
   "PyYAML>=6.0.1"
 ]
 
 [project.optional-dependencies]
+ai = [
+  "openai>=1.30.0"
+]
 dev = [
+  "openai>=1.30.0",
   "pytest>=8.2.0",
   "ruff>=0.5.0"
 ]
+
+[project.urls]
+Homepage = "https://github.com/1want2beaQuant/ai-novel2script"
+Repository = "https://github.com/1want2beaQuant/ai-novel2script"
+Documentation = "https://github.com/1want2beaQuant/ai-novel2script#readme"
+Issues = "https://github.com/1want2beaQuant/ai-novel2script/issues"
 
 [project.scripts]
 novel2script = "novel2script.cli:main"
