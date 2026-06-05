@@ -97,3 +97,15 @@ def test_package_data_and_manifest_include_release_assets() -> None:
         "recursive-include examples *.txt",
         "recursive-include scripts *.py",
     } <= manifest_entries
+
+
+def test_openai_validation_behavior_is_documented_for_release() -> None:
+    readme = (ROOT / "README.md").read_text(encoding="utf-8")
+    changelog = (ROOT / "CHANGELOG.md").read_text(encoding="utf-8")
+
+    assert "返回内容会按 JSON 对象解析" in readme
+    assert "fenced JSON" in readme
+    assert "内置 Schema 校验" in readme
+    assert "OpenAI-compatible enhancement responses are parsed as JSON objects" in changelog
+    assert "tolerate fenced JSON blocks" in changelog
+    assert "validated against the bundled schema" in changelog
