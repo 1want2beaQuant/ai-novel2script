@@ -199,6 +199,16 @@ def test_convert_payload_rejects_non_string_title() -> None:
         convert_payload({"text": MANUSCRIPT, "format": "yaml", "title": 123})
 
 
+def test_convert_payload_rejects_non_string_format() -> None:
+    with pytest.raises(ValueError, match="format must be a string"):
+        convert_payload({"text": MANUSCRIPT, "format": ["yaml"]})
+
+
+def test_convert_payload_rejects_non_string_provider() -> None:
+    with pytest.raises(ValueError, match="provider must be a string"):
+        convert_payload({"text": MANUSCRIPT, "format": "yaml", "provider": 1})
+
+
 def test_preview_payload_reports_authoritative_chapter_preflight() -> None:
     two_chapters = """
 第 1 章
