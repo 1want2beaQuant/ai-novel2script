@@ -13,6 +13,7 @@
     "themes",
     "characters",
     "acts",
+    "story_bible",
     "adaptation_report",
     "revision_notes"
   ],
@@ -256,6 +257,101 @@
           }
         },
         "revision_checklist": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      }
+    },
+    "story_bible": {
+      "type": "object",
+      "required": ["characters", "locations", "props", "open_questions"],
+      "additionalProperties": false,
+      "properties": {
+        "characters": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "required": ["name", "role", "first_seen_scene", "continuity_note"],
+            "additionalProperties": false,
+            "properties": {
+              "name": {
+                "type": "string",
+                "minLength": 1
+              },
+              "role": {
+                "type": "string",
+                "enum": ["protagonist", "supporting", "antagonist", "mentor", "minor"]
+              },
+              "first_seen_scene": {
+                "type": "string",
+                "pattern": "^S\\d{3}$"
+              },
+              "continuity_note": {
+                "type": "string",
+                "minLength": 1
+              }
+            }
+          }
+        },
+        "locations": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "required": ["name", "scene_ids", "note"],
+            "additionalProperties": false,
+            "properties": {
+              "name": {
+                "type": "string",
+                "minLength": 1
+              },
+              "scene_ids": {
+                "type": "array",
+                "minItems": 1,
+                "items": {
+                  "type": "string",
+                  "pattern": "^S\\d{3}$"
+                }
+              },
+              "note": {
+                "type": "string",
+                "minLength": 1
+              }
+            }
+          }
+        },
+        "props": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["name", "source_chapters", "dramatic_function"],
+            "additionalProperties": false,
+            "properties": {
+              "name": {
+                "type": "string",
+                "minLength": 1
+              },
+              "source_chapters": {
+                "type": "array",
+                "minItems": 1,
+                "items": {
+                  "type": "integer",
+                  "minimum": 1
+                }
+              },
+              "dramatic_function": {
+                "type": "string",
+                "minLength": 1
+              }
+            }
+          }
+        },
+        "open_questions": {
           "type": "array",
           "minItems": 1,
           "items": {
