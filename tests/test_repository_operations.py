@@ -44,6 +44,7 @@ def test_pull_request_template_keeps_release_validation_prompts() -> None:
     assert "`python -m pip_audit --skip-editable`" in template
     assert "`python -m build`" in template
     assert "`python -m twine check dist\\*`" in template
+    assert "`python scripts\\smoke_web_server.py`" in template
     assert "schemas\\script.schema.json src\\novel2script\\schemas\\script.schema.json" in template
     assert "`PRIVACY.md` is updated" in template
     assert "`CHANGELOG.md` is updated" in template
@@ -97,6 +98,7 @@ def test_documented_local_commands_are_cross_shell_safe() -> None:
     ) in release_checklist
     assert "novel2script-web --version" in release_checklist
     assert "python -m novel2script.web --version" in release_checklist
+    assert "python scripts\\smoke_web_server.py" in release_checklist
 
 
 def test_local_validation_docs_clean_stale_distribution_artifacts_before_build() -> None:

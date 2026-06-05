@@ -9,6 +9,7 @@
 - [ ] `python -m pip_audit --skip-editable`
 - [ ] `python -m build`
 - [ ] `python -m twine check dist\*`
+- [ ] `python scripts\smoke_web_server.py`
 - [ ] `cmd /c fc /b schemas\script.schema.json src\novel2script\schemas\script.schema.json`
 
 ## Checklist

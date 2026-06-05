@@ -101,6 +101,7 @@ jobs:
           .venv-wheel/bin/python -m novel2script --version
           .venv-wheel/bin/python -m novel2script.web --version
           .venv-wheel/bin/python -m novel2script.web --help
+          .venv-wheel/bin/python scripts/smoke_web_server.py --python .venv-wheel/bin/python
           .venv-wheel/bin/novel2script examples/three_chapters.txt --output outputs/wheel-smoke.yaml --validate
           .venv-wheel/bin/novel2script examples/three_chapters.txt --format fountain --output outputs/wheel-smoke.fountain
 
@@ -119,6 +120,7 @@ jobs:
           .venv-sdist/bin/python -m novel2script --version
           .venv-sdist/bin/python -m novel2script.web --version
           .venv-sdist/bin/python -m novel2script.web --help
+          .venv-sdist/bin/python scripts/smoke_web_server.py --python .venv-sdist/bin/python
           .venv-sdist/bin/novel2script examples/three_chapters.txt --output outputs/sdist-smoke.yaml --validate
           .venv-sdist/bin/novel2script examples/three_chapters.txt --format fountain --output outputs/sdist-smoke.fountain
 
