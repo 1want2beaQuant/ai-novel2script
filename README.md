@@ -8,6 +8,7 @@
 - 要求至少 3 个章节输入，避免把短片段误当作完整改编任务。
 - 将小说段落拆解为幕、场景、动作、对白和转场说明。
 - 输出可编辑 YAML，并提供 JSON Schema 校验。
+- 生成 `adaptation_report`，汇总章节覆盖、场景映射、结构指标、质量风险和修订清单。
 - 支持 CLI 批处理，适合持续迭代剧本初稿。
 
 ## 安装
@@ -53,4 +54,5 @@ python -m novel2script.cli examples/three_chapters.txt --provider openai --model
 ## 文档
 
 - [YAML Schema 设计文档](docs/yaml_schema.md)
+- [竞品调研与改进记录](docs/market_research.md)
 - [JSON Schema 文件](schemas/script.schema.json)

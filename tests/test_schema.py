@@ -15,5 +15,8 @@ def test_generated_script_matches_schema() -> None:
 """
 
     draft = convert_text_to_script(text, title="雾城来信")
+    data = draft.to_dict()
 
-    validate_script(draft.to_dict())
+    validate_script(data)
+    assert data["schema_version"] == "1.1.0"
+    assert data["adaptation_report"]["chapter_coverage"]["adapted_chapters"] == 3

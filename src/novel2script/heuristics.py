@@ -50,9 +50,11 @@ def build_script_from_chapters(chapters: list[Chapter], title: str | None = None
         themes=_infer_themes(chapters),
         characters=characters,
         acts=acts,
+        adaptation_report=_build_adaptation_report(chapters, scenes),
         revision_notes=[
             "本稿由本地启发式改编引擎生成，建议作者重点复核人物动机和对白语气。",
             "每个场景保留 source_chapter，便于回到原小说章节继续打磨。",
+            "adaptation_report 汇总章节覆盖、场景映射和质量风险，可作为下一轮修订清单。",
         ],
     )
 
@@ -167,6 +169,85 @@ def _build_logline(title: str, scenes: list[Scene], character_names: list[str]) 
     first_goal = scenes[0].summary if scenes else "面对新的命运转折"
     last_turn = scenes[-1].summary if scenes else "完成关键选择"
     return f"《{title}》讲述{lead}在{first_goal}后，被迫面对{last_turn}的故事。"
+
+
+def _build_adaptation_report(chapters: list[Chapter], scenes: list[Scene]) -> dict[str, object]:
+    covered_chapters = sorted({scene.source_chapter for scene in scenes})
+    missing_chapters = [
+        chapter.index for chapter in chapters if chapter.index not in set(covered_chapters)
+    ]
+    action_blocks = sum(1 for scene in scenes for block in scene.blocks if block.type == "action")
+    dialogue_blocks = sum(1 for scene in scenes for block in scene.blocks if block.type == "dialogue")
+    total_blocks = sum(len(scene.blocks) for scene in scenes)
+    dialogue_ratio = round(dialogue_blocks / total_blocks, 2) if total_blocks else 0
+    quality_flags = _quality_flags(
+        missing_chapters=missing_chapters,
+        scenes=scenes,
+        action_blocks=action_blocks,
+        dialogue_blocks=dialogue_blocks,
+        dialogue_ratio=dialogue_ratio,
+    )
+
+    return {
+        "chapter_coverage": {
+            "total_chapters": len(chapters),
+            "adapted_chapters": len(covered_chapters),
+            "coverage_ratio": round(len(covered_chapters) / len(chapters), 2),
+            "missing_chapters": missing_chapters,
+        },
+        "scene_map": [
+            {
+                "chapter_index": scene.source_chapter,
+                "chapter_title": chapters[scene.source_chapter - 1].title,
+                "scene_id": scene.id,
+                "scene_title": scene.title,
+            }
+            for scene in scenes
+        ],
+        "metrics": {
+            "scene_count": len(scenes),
+            "block_count": total_blocks,
+            "action_blocks": action_blocks,
+            "dialogue_blocks": dialogue_blocks,
+            "dialogue_ratio": dialogue_ratio,
+        },
+        "quality_flags": quality_flags,
+        "revision_checklist": _revision_checklist(quality_flags),
+    }
+
+
+def _quality_flags(
+    missing_chapters: list[int],
+    scenes: list[Scene],
+    action_blocks: int,
+    dialogue_blocks: int,
+    dialogue_ratio: float,
+) -> list[str]:
+    flags: list[str] = []
+    if missing_chapters:
+        flags.append("存在未生成场景的源章节，请复核章节拆分。")
+    if any(scene.location == "待定场景" for scene in scenes):
+        flags.append("部分场景地点仍为待定，需要作者补充可拍摄空间。")
+    if dialogue_blocks == 0:
+        flags.append("未检测到对白块，剧本可能仍偏小说叙述。")
+    elif dialogue_ratio < 0.2 and action_blocks > dialogue_blocks:
+        flags.append("对白占比偏低，建议补充人物目标冲突和台词推进。")
+    if len(scenes) < 3:
+        flags.append("场景数量偏少，可能不足以覆盖完整三幕改编。")
+    return flags or ["未发现结构性风险，建议进入人物动机和对白语气复核。"]
+
+
+def _revision_checklist(quality_flags: list[str]) -> list[str]:
+    checklist = [
+        "逐项核对 scene_map，确认每个小说章节都有对应剧本场景。",
+        "检查每场的 location、time 和 characters 是否足以指导后续拍摄化改写。",
+        "对照 beats 扩写动作与对白，避免只保留小说摘要。",
+    ]
+    if any("对白" in flag for flag in quality_flags):
+        checklist.append("为关键角色补充更明确的对白目标、潜台词和情绪转折。")
+    if any("地点" in flag for flag in quality_flags):
+        checklist.append("把待定地点改成具体、可视觉化的内景或外景。")
+    return checklist
 
 
 def _infer_themes(chapters: list[Chapter]) -> list[str]:

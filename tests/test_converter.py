@@ -31,3 +31,8 @@ def test_convert_text_to_script_contains_traceable_scenes() -> None:
     assert data["characters"][0]["name"] == "林晚"
     assert scenes[0]["location"] == "书房"
     assert any(block["type"] == "dialogue" for scene in scenes for block in scene["blocks"])
+    report = data["adaptation_report"]
+    assert report["chapter_coverage"]["coverage_ratio"] == 1
+    assert report["scene_map"][0]["scene_id"] == "S001"
+    assert report["metrics"]["scene_count"] == 3
+    assert report["revision_checklist"]
