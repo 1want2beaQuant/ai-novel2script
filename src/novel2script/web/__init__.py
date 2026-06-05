@@ -227,7 +227,7 @@ def serve(
 ) -> None:
     server = create_server(host, port, allow_remote=allow_remote)
     url = f"http://{host}:{server.server_address[1]}"
-    print(f"novel2script web UI running at {url}")
+    print(f"novel2script web UI running at {url}", flush=True)
     if open_browser:
         webbrowser.open(url)
     try:

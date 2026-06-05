@@ -63,12 +63,20 @@ def test_release_workflow_smokes_web_entrypoints_in_distributions() -> None:
     assert ".venv-wheel/bin/novel2script-web --help" in wheel_smoke["run"]
     assert ".venv-wheel/bin/python -m novel2script.web --version" in wheel_smoke["run"]
     assert ".venv-wheel/bin/python -m novel2script.web --help" in wheel_smoke["run"]
+    assert (
+        ".venv-wheel/bin/python scripts/smoke_web_server.py --python .venv-wheel/bin/python"
+        in wheel_smoke["run"]
+    )
 
     sdist_smoke = next(step for step in build_job["steps"] if step["name"] == "Smoke test installed sdist")
     assert ".venv-sdist/bin/novel2script-web --version" in sdist_smoke["run"]
     assert ".venv-sdist/bin/novel2script-web --help" in sdist_smoke["run"]
     assert ".venv-sdist/bin/python -m novel2script.web --version" in sdist_smoke["run"]
     assert ".venv-sdist/bin/python -m novel2script.web --help" in sdist_smoke["run"]
+    assert (
+        ".venv-sdist/bin/python scripts/smoke_web_server.py --python .venv-sdist/bin/python"
+        in sdist_smoke["run"]
+    )
 
 
 def test_release_workflow_creates_github_release_after_pypi_publish() -> None:
@@ -107,6 +115,10 @@ def test_ci_workflow_smokes_linux_distributions_and_windows_cli() -> None:
     assert ".venv-wheel/bin/python -m novel2script --version" in wheel_smoke["run"]
     assert ".venv-wheel/bin/python -m novel2script.web --version" in wheel_smoke["run"]
     assert ".venv-wheel/bin/python -m novel2script.web --help" in wheel_smoke["run"]
+    assert (
+        ".venv-wheel/bin/python scripts/smoke_web_server.py --python .venv-wheel/bin/python"
+        in wheel_smoke["run"]
+    )
 
     sdist_smoke = next(step for step in build_job["steps"] if step["name"] == "Smoke test installed sdist")
     assert ".venv-sdist/bin/novel2script --help" in sdist_smoke["run"]
@@ -115,6 +127,10 @@ def test_ci_workflow_smokes_linux_distributions_and_windows_cli() -> None:
     assert ".venv-sdist/bin/python -m novel2script --version" in sdist_smoke["run"]
     assert ".venv-sdist/bin/python -m novel2script.web --version" in sdist_smoke["run"]
     assert ".venv-sdist/bin/python -m novel2script.web --help" in sdist_smoke["run"]
+    assert (
+        ".venv-sdist/bin/python scripts/smoke_web_server.py --python .venv-sdist/bin/python"
+        in sdist_smoke["run"]
+    )
 
     windows_job = jobs["windows-smoke"]
     assert windows_job["runs-on"] == "windows-latest"

@@ -1,0 +1,189 @@
+"""Smoke test the installed novel2script Web server."""
+
+from __future__ import annotations
+
+import argparse
+import json
+from http.client import HTTPConnection
+import queue
+import re
+import subprocess
+import sys
+import threading
+import time
+from typing import Any
+
+
+MANUSCRIPT = """
+Chapter 1 The Locked Room
+Mara found a sealed letter on the desk. Rain tapped the glass while the house stayed silent.
+
+Chapter 2 The Empty Hall
+Jon arrived before dawn and saw fresh footprints crossing the hall.
+
+Chapter 3 The Last Tape
+Mara and Jon played the tape together. The hidden name finally connected every clue.
+"""
+
+
+def build_parser() -> argparse.ArgumentParser:
+    parser = argparse.ArgumentParser(
+        description="Start the installed Web server and verify health, static assets, and preview."
+    )
+    parser.add_argument(
+        "--python",
+        default=sys.executable,
+        help="Python executable used to run `-m novel2script.web`.",
+    )
+    parser.add_argument("--host", default="127.0.0.1", help="Host to bind for the smoke server.")
+    parser.add_argument(
+        "--startup-timeout",
+        type=float,
+        default=10,
+        help="Seconds to wait for the server URL to be printed.",
+    )
+    return parser
+
+
+def main(argv: list[str] | None = None) -> int:
+    args = build_parser().parse_args(argv)
+    process = subprocess.Popen(
+        [
+            args.python,
+            "-m",
+            "novel2script.web",
+            "--host",
+            args.host,
+            "--port",
+            "0",
+            "--no-open",
+        ],
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        text=True,
+        encoding="utf-8",
+    )
+
+    try:
+        base_url = _read_server_url(process, timeout_seconds=args.startup_timeout)
+        _check_health(base_url)
+        _check_static_app(base_url)
+        _check_preview(base_url)
+    finally:
+        _terminate(process)
+
+    print(f"Web server smoke passed at {base_url}")
+    return 0
+
+
+def _read_server_url(process: subprocess.Popen[str], *, timeout_seconds: float) -> str:
+    assert process.stdout is not None
+    lines: queue.Queue[str | None] = queue.Queue()
+
+    def read_stdout() -> None:
+        assert process.stdout is not None
+        for line in process.stdout:
+            lines.put(line)
+        lines.put(None)
+
+    threading.Thread(target=read_stdout, daemon=True).start()
+    deadline = time.monotonic() + timeout_seconds
+    while time.monotonic() < deadline:
+        if process.poll() is not None:
+            stderr = process.stderr.read() if process.stderr else ""
+            raise RuntimeError(f"Web server exited before startup: {stderr.strip()}")
+        wait_seconds = max(0.01, min(0.05, deadline - time.monotonic()))
+        try:
+            line = lines.get(timeout=wait_seconds)
+        except queue.Empty:
+            continue
+        if line is None:
+            break
+        line = line.strip()
+        if not line:
+            continue
+        match = re.search(r"http://[^\s]+", line)
+        if match:
+            return match.group(0)
+    raise TimeoutError("Timed out waiting for Web server startup URL.")
+
+
+def _check_health(base_url: str) -> None:
+    status, payload = _request_json(base_url, "GET", "/api/health")
+    if status != 200 or payload != {"status": "ok"}:
+        raise AssertionError(f"Unexpected health response: {status} {payload!r}")
+
+
+def _check_static_app(base_url: str) -> None:
+    status, body = _request_text(base_url, "GET", "/app.js")
+    required = ["fetch(\"/api/preview\"", "providerStatusSummary", "maxRequestBytes"]
+    if status != 200 or not all(marker in body for marker in required):
+        raise AssertionError(f"Unexpected app.js response: {status}")
+
+
+def _check_preview(base_url: str) -> None:
+    payload = json.dumps({"text": MANUSCRIPT}).encode("utf-8")
+    status, response = _request_json(
+        base_url,
+        "POST",
+        "/api/preview",
+        body=payload,
+        headers={"Content-Type": "application/json"},
+    )
+    if status != 200:
+        raise AssertionError(f"Preview failed with status {status}: {response!r}")
+    if response.get("ready") is not True or response.get("chapter_count") != 3:
+        raise AssertionError(f"Unexpected preview payload: {response!r}")
+
+
+def _request_json(
+    base_url: str,
+    method: str,
+    path: str,
+    body: bytes | None = None,
+    headers: dict[str, str] | None = None,
+) -> tuple[int, dict[str, Any]]:
+    status, text = _request_text(base_url, method, path, body=body, headers=headers)
+    loaded = json.loads(text)
+    if not isinstance(loaded, dict):
+        raise AssertionError(f"Expected JSON object from {path}, got {type(loaded).__name__}")
+    return status, loaded
+
+
+def _request_text(
+    base_url: str,
+    method: str,
+    path: str,
+    body: bytes | None = None,
+    headers: dict[str, str] | None = None,
+) -> tuple[int, str]:
+    host, port = _parse_http_url(base_url)
+    connection = HTTPConnection(host, port, timeout=10)
+    try:
+        connection.request(method, path, body=body, headers=headers or {})
+        response = connection.getresponse()
+        return response.status, response.read().decode("utf-8")
+    finally:
+        connection.close()
+
+
+def _parse_http_url(url: str) -> tuple[str, int]:
+    match = re.fullmatch(r"http://(?P<host>\[[^\]]+\]|[^:/]+):(?P<port>\d+)", url)
+    if not match:
+        raise ValueError(f"Unsupported server URL: {url}")
+    return match.group("host").strip("[]"), int(match.group("port"))
+
+
+def _terminate(process: subprocess.Popen[str]) -> None:
+    if process.poll() is not None:
+        return
+    process.terminate()
+    try:
+        process.wait(timeout=5)
+    except subprocess.TimeoutExpired:
+        process.kill()
+        process.wait(timeout=5)
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
