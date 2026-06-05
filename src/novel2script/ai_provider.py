@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 import os
+import re
 from typing import Any
 
 from novel2script.chapter_parser import parse_chapters
@@ -73,13 +74,9 @@ def _enhance_with_openai(text: str, baseline: dict[str, Any], model: str) -> dic
 
 def _parse_response_json(content: str) -> dict[str, Any]:
     stripped = content.strip()
-    if stripped.startswith("```"):
-        lines = stripped.splitlines()
-        if lines and lines[0].strip().lower() in {"```", "```json"}:
-            lines = lines[1:]
-        if lines and lines[-1].strip() == "```":
-            lines = lines[:-1]
-        stripped = "\n".join(lines).strip()
+    fenced = re.search(r"```(?:\s*json)?\s*\n(?P<body>.*?)\n```", stripped, flags=re.IGNORECASE | re.DOTALL)
+    if fenced:
+        stripped = fenced.group("body").strip()
 
     loaded = json.loads(stripped)
     if not isinstance(loaded, dict):

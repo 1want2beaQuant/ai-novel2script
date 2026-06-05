@@ -104,6 +104,12 @@ def test_parse_response_json_accepts_markdown_json_fence() -> None:
     }
 
 
+def test_parse_response_json_accepts_spaced_fence_label_and_surrounding_text() -> None:
+    response = 'Here is the draft:\n``` json\n{"title": "Enhanced"}\n```\n'
+
+    assert _parse_response_json(response) == {"title": "Enhanced"}
+
+
 def test_parse_response_json_rejects_non_object_json() -> None:
     with pytest.raises(ValueError, match="JSON object"):
         _parse_response_json('[{"title": "Enhanced"}]')
