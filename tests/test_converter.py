@@ -24,6 +24,9 @@ def test_convert_text_to_script_contains_traceable_scenes() -> None:
     data = draft.to_dict()
 
     assert data["title"] == "雾城来信"
+    assert "林晚在林晚" not in data["logline"]
+    assert "后的故事" not in data["logline"]
+    assert data["logline"].startswith("《雾城来信》讲述林晚")
     assert data["source"]["chapter_count"] == 3
     assert len(data["acts"]) == 3
     scenes = [scene for act in data["acts"] for scene in act["scenes"]]

@@ -229,9 +229,16 @@ def _build_characters(scenes: list[Scene]) -> list[Character]:
 
 def _build_logline(title: str, scenes: list[Scene], character_names: list[str]) -> str:
     lead = character_names[0] if character_names else "主角"
-    first_goal = scenes[0].summary if scenes else "面对新的命运转折"
-    last_turn = scenes[-1].summary if scenes else "完成关键选择"
-    return f"《{title}》讲述{lead}在{first_goal}后，被迫面对{last_turn}的故事。"
+    first_turn = _logline_clause(scenes[0].summary, lead) if scenes else "命运被打破"
+    final_turn = _logline_clause(scenes[-1].summary, lead) if scenes else "完成关键选择"
+    return f"《{title}》讲述{lead}经历{first_turn}，并被迫面对{final_turn}。"
+
+
+def _logline_clause(summary: str, lead: str) -> str:
+    clause = summary.strip().strip("。！？!?；;，, ")
+    if lead and clause.startswith(lead):
+        clause = clause[len(lead) :].lstrip("在把将和与、，, ")
+    return clause or "新的命运转折"
 
 
 def _build_structure_map(scenes: list[Scene]) -> dict[str, object]:
