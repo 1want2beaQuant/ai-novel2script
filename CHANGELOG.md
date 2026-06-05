@@ -31,6 +31,7 @@ Initial release candidate.
 - Local Web conversion and preflight APIs return 413 for oversized requests, and the browser workbench warns before sending manuscripts over the 2 MB request limit.
 - Local Web file import refuses oversized manuscripts before reading them into the workbench.
 - Local Web file import reports local read failures without replacing the current manuscript.
+- Local Web file import resets the picker after a successful import so the same file can be selected again.
 - Local Web downloads use the screenplay title when naming exported YAML or Fountain files.
 - Local Web download action reports browser download failures and recovers its button label.
 - Installed Web server smoke validation covers health, static app assets, and preview parsing in CI and release distribution checks.
