@@ -129,7 +129,9 @@ def test_local_web_workbench_is_documented_for_release() -> None:
     assert "coverage 分项评分" in readme
     assert "结构节拍" in readme
     assert "优先修订动作" in readme
+    assert "实际处理方式" in readme
     assert "Web 页面会在开始远程转换前按当前手稿、片名和模型要求确认" in readme
+    assert "Web 工作台会在处理模式卡片显示“本地回退”" in readme
     assert "转换 API 只接受 JSON 请求" in readme
     assert "Local browser workbench" in changelog
     assert "Local Web adaptation inspector" in changelog

@@ -27,6 +27,8 @@ Remote AI enhancement runs only when both conditions are true:
 - the CLI is invoked with `--provider openai`, or the Web UI provider selector is set to `OpenAI`;
 - `OPENAI_API_KEY` is set in the environment.
 
+If OpenAI mode is requested without `OPENAI_API_KEY`, conversion falls back to the local heuristic provider. The CLI prints a warning, and the Web UI reports `本地回退` in the provider status card.
+
 When enabled, the current implementation sends an OpenAI-compatible provider:
 
 - up to the first 8 parsed chapters;
@@ -47,6 +49,8 @@ When using the Web UI:
 - local mode keeps conversion on the same machine and does not call external AI services;
 - OpenAI mode follows the remote payload behavior described above, and the Web UI asks for
   confirmation before starting that remote conversion for the current manuscript, title, and model;
+- if OpenAI mode falls back because no API key is configured, the provider status card shows
+  `本地回退` and no remote AI service is called;
 - generated YAML or Fountain text remains in the browser until you copy or download it.
 
 Binding the Web UI to a non-loopback host requires `--allow-remote`. That can expose manuscript text,

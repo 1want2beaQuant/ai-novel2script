@@ -3,7 +3,11 @@ import builtins
 import pytest
 
 import novel2script.ai_provider as ai_provider
-from novel2script.ai_provider import _parse_response_json, convert_with_optional_ai
+from novel2script.ai_provider import (
+    _parse_response_json,
+    convert_with_optional_ai,
+    convert_with_provider_status,
+)
 from novel2script.fountain import draft_to_fountain
 from novel2script.schema import validate_script
 from novel2script.yaml_io import draft_to_yaml
@@ -29,6 +33,44 @@ def test_openai_provider_without_key_uses_local_draft(monkeypatch: pytest.Monkey
     data = draft.to_dict()
     assert data["title"] == "雾城来信"
     assert data["coverage_report"]["model"] == "screenplay_coverage_v1"
+
+
+def test_openai_provider_without_key_reports_local_fallback(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.delenv("OPENAI_API_KEY", raising=False)
+
+    result = convert_with_provider_status(
+        SAMPLE,
+        title="雾城来信",
+        provider="openai",
+        model="test",
+    )
+
+    assert result.draft.to_dict()["title"] == "雾城来信"
+    assert result.provider_status.to_dict() == {
+        "requested": "openai",
+        "actual": "local",
+        "model": "test",
+        "remote": False,
+        "reason": "missing_api_key",
+        "message": "OPENAI_API_KEY is not set; used the local heuristic provider.",
+    }
+
+
+def test_local_provider_reports_local_status(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setenv("OPENAI_API_KEY", "unused")
+
+    result = convert_with_provider_status(
+        SAMPLE,
+        title="雾城来信",
+        provider="local",
+        model="test",
+    )
+
+    assert result.provider_status.actual == "local"
+    assert result.provider_status.remote is False
+    assert result.provider_status.reason == "local_selected"
 
 
 def test_openai_provider_without_optional_dependency_has_actionable_error(
@@ -81,6 +123,32 @@ def test_openai_provider_uses_successful_enhancement(monkeypatch: pytest.MonkeyP
     assert data["logline"] == "AI refined the logline while preserving the schema."
     assert "AI Enhanced Title" in draft_to_yaml(draft)
     assert "Title: AI Enhanced Title" in draft_to_fountain(draft)
+
+
+def test_openai_provider_success_reports_remote_status(monkeypatch: pytest.MonkeyPatch) -> None:
+    def enhance(text: str, baseline: dict[str, object], model: str) -> dict[str, object]:
+        enhanced = dict(baseline)
+        enhanced["logline"] = f"Enhanced by {model}."
+        return enhanced
+
+    monkeypatch.setenv("OPENAI_API_KEY", "test-key")
+    monkeypatch.setattr(ai_provider, "_enhance_with_openai", enhance)
+
+    result = convert_with_provider_status(
+        SAMPLE,
+        title="雾城来信",
+        provider="openai",
+        model="test-model",
+    )
+
+    assert result.provider_status.to_dict() == {
+        "requested": "openai",
+        "actual": "openai",
+        "model": "test-model",
+        "remote": True,
+        "reason": "openai_enhanced",
+        "message": "Used OpenAI-compatible remote enhancement.",
+    }
 
 
 def test_openai_provider_rejects_invalid_enhancement(monkeypatch: pytest.MonkeyPatch) -> None:

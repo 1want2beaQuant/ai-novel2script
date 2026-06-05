@@ -5,6 +5,7 @@ from __future__ import annotations
 import json
 import os
 import re
+from dataclasses import dataclass
 from typing import Any
 
 from novel2script.chapter_parser import parse_chapters
@@ -17,6 +18,32 @@ SYSTEM_PROMPT = """你是专业编剧助理。请把小说改编为可编辑剧�
 必须保持 JSON 对象字段与用户提供的 baseline 完全兼容，不要输出 Markdown。"""
 
 
+@dataclass(frozen=True)
+class ProviderStatus:
+    requested: str
+    actual: str
+    model: str
+    remote: bool
+    reason: str
+    message: str
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "requested": self.requested,
+            "actual": self.actual,
+            "model": self.model,
+            "remote": self.remote,
+            "reason": self.reason,
+            "message": self.message,
+        }
+
+
+@dataclass(frozen=True)
+class ConversionResult:
+    draft: ScriptDraft
+    provider_status: ProviderStatus
+
+
 def convert_with_optional_ai(
     text: str,
     title: str | None,
@@ -25,9 +52,48 @@ def convert_with_optional_ai(
 ) -> ScriptDraft:
     """Use AI enhancement when requested and configured, otherwise return local draft."""
 
+    return convert_with_provider_status(
+        text=text,
+        title=title,
+        provider=provider,
+        model=model,
+    ).draft
+
+
+def convert_with_provider_status(
+    text: str,
+    title: str | None,
+    provider: str,
+    model: str,
+) -> ConversionResult:
+    """Convert text and report which provider actually produced the final draft."""
+
     local_draft = convert_text_to_script(text, title=title)
-    if provider != "openai" or not os.environ.get("OPENAI_API_KEY"):
-        return local_draft
+    if provider != "openai":
+        return ConversionResult(
+            draft=local_draft,
+            provider_status=ProviderStatus(
+                requested=provider,
+                actual="local",
+                model=model,
+                remote=False,
+                reason="local_selected",
+                message="Used the local heuristic provider.",
+            ),
+        )
+
+    if not os.environ.get("OPENAI_API_KEY"):
+        return ConversionResult(
+            draft=local_draft,
+            provider_status=ProviderStatus(
+                requested=provider,
+                actual="local",
+                model=model,
+                remote=False,
+                reason="missing_api_key",
+                message="OPENAI_API_KEY is not set; used the local heuristic provider.",
+            ),
+        )
 
     try:
         enhanced = _enhance_with_openai(text=text, baseline=local_draft.to_dict(), model=model)
@@ -36,7 +102,17 @@ def convert_with_optional_ai(
         raise
     except Exception as exc:
         raise ValueError(f"OpenAI enhancement failed: {exc}") from exc
-    return _dict_to_draft(enhanced, fallback=local_draft)
+    return ConversionResult(
+        draft=_dict_to_draft(enhanced, fallback=local_draft),
+        provider_status=ProviderStatus(
+            requested=provider,
+            actual="openai",
+            model=model,
+            remote=True,
+            reason="openai_enhanced",
+            message="Used OpenAI-compatible remote enhancement.",
+        ),
+    )
 
 
 def _enhance_with_openai(text: str, baseline: dict[str, Any], model: str) -> dict[str, Any]:

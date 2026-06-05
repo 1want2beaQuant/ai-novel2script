@@ -9,7 +9,7 @@ from pathlib import Path
 import yaml
 
 from novel2script import __version__
-from novel2script.ai_provider import convert_with_optional_ai
+from novel2script.ai_provider import convert_with_provider_status
 from novel2script.fountain import draft_to_fountain, write_fountain
 from novel2script.schema import validate_script
 from novel2script.yaml_io import draft_to_yaml, write_yaml
@@ -52,12 +52,15 @@ def main(argv: list[str] | None = None) -> int:
             _validate_output_path(args.output)
 
         text = _read_input_text(args.input)
-        draft = convert_with_optional_ai(
+        conversion = convert_with_provider_status(
             text=text,
             title=args.title,
             provider=args.provider,
             model=args.model,
         )
+        draft = conversion.draft
+        if args.provider == "openai" and not conversion.provider_status.remote:
+            sys.stderr.write(f"novel2script: warning: {conversion.provider_status.message}\n")
         data = draft.to_dict()
         if args.validate:
             validate_script(data)

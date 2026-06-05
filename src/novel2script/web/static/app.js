@@ -19,6 +19,7 @@ const state = {
   lastTitle: "",
   lastProvider: "local",
   lastModel: "",
+  lastProviderStatus: null,
   lastSummary: null,
   lastDurationMs: 0
 };
@@ -131,22 +132,28 @@ async function convertManuscript() {
     state.lastTitle = elements.title.value;
     state.lastProvider = elements.provider.value;
     state.lastModel = normalizedModel();
+    state.lastProviderStatus = payload.provider_status || null;
     state.lastSummary = payload.summary;
     state.lastDurationMs = Math.max(0, Math.round(performance.now() - startedAt));
     elements.output.textContent = payload.output;
     renderSummary(payload.summary);
+    renderProviderRunStatus(state.lastProviderStatus);
     setOutputActions(true);
     updateExportStatus();
     setConversionStatus(
       "已完成",
-      `${formatDuration(state.lastDurationMs)} · ${conversionSummary(payload.summary)}`,
+      `${formatDuration(state.lastDurationMs)} · ${providerStatusSummary(
+        state.lastProviderStatus
+      )} · ${conversionSummary(payload.summary)}`,
       "ready"
     );
   } catch (error) {
     state.output = "";
+    state.lastProviderStatus = null;
     elements.output.classList.add("is-error");
     elements.output.textContent = error instanceof Error ? error.message : String(error);
     renderSummary(null);
+    renderProviderSelectionStatus();
     setOutputActions(false);
     updateExportStatus();
     setConversionStatus(
@@ -302,6 +309,7 @@ function renderTextList(target, items) {
 }
 
 function updateInputStatus() {
+  resetProviderRunStatus();
   const text = elements.manuscript.value;
   const characterCount = countCharacters(text);
   elements.inputSize.textContent = `${formatNumber(characterCount)} 字 / 预检中`;
@@ -373,6 +381,11 @@ function renderPreview(preview) {
 }
 
 function updateProviderStatus() {
+  renderProviderSelectionStatus();
+  updateConversionFreshness();
+}
+
+function renderProviderSelectionStatus() {
   const isOpenAI = elements.provider.value === "openai";
   elements.providerMode.textContent = isOpenAI ? "OpenAI" : "本地";
   elements.privacyHint.textContent = isOpenAI
@@ -382,7 +395,38 @@ function updateProviderStatus() {
   if (!isOpenAI) {
     state.openAiConfirmedFor = "";
   }
-  updateConversionFreshness();
+}
+
+function renderProviderRunStatus(status) {
+  if (!status) {
+    renderProviderSelectionStatus();
+    return;
+  }
+
+  if (status.remote) {
+    elements.providerMode.textContent = "OpenAI";
+    elements.privacyHint.textContent = `已使用 ${status.model || "OpenAI"} 远程增强。`;
+    setStatusTone(elements.providerMode.parentElement, "warn");
+    return;
+  }
+
+  if (status.requested === "openai" && status.reason === "missing_api_key") {
+    elements.providerMode.textContent = "本地回退";
+    elements.privacyHint.textContent = "OPENAI_API_KEY 未设置，实际使用本地转换。";
+    setStatusTone(elements.providerMode.parentElement, "warn");
+    return;
+  }
+
+  elements.providerMode.textContent = "本地";
+  elements.privacyHint.textContent = "已使用本地启发式转换。";
+  setStatusTone(elements.providerMode.parentElement, "ready");
+}
+
+function resetProviderRunStatus() {
+  if (!state.lastProviderStatus) {
+    return;
+  }
+  renderProviderSelectionStatus();
 }
 
 function confirmRemoteProvider() {
@@ -488,7 +532,9 @@ function updateConversionFreshness() {
 
   setConversionStatus(
     "已完成",
-    `${formatDuration(state.lastDurationMs)} · ${conversionSummary(state.lastSummary)}`,
+    `${formatDuration(state.lastDurationMs)} · ${providerStatusSummary(
+      state.lastProviderStatus
+    )} · ${conversionSummary(state.lastSummary)}`,
     "ready"
   );
 }
@@ -524,6 +570,19 @@ function conversionSummary(summary) {
     return `缺失章节：${missing.join("、")}`;
   }
   return `${summary.scene_count ?? 0} 场 · coverage ${summary.coverage_score ?? 0}`;
+}
+
+function providerStatusSummary(status) {
+  if (!status) {
+    return "处理方式未知";
+  }
+  if (status.remote) {
+    return "OpenAI 增强";
+  }
+  if (status.requested === "openai") {
+    return "本地回退";
+  }
+  return "本地转换";
 }
 
 function withEmpty(items, message) {
@@ -594,10 +653,16 @@ elements.fileButton.addEventListener("click", () => {
   elements.file.click();
 });
 elements.file.addEventListener("change", loadFile);
-elements.title.addEventListener("input", updateConversionFreshness);
+elements.title.addEventListener("input", () => {
+  resetProviderRunStatus();
+  updateConversionFreshness();
+});
 elements.manuscript.addEventListener("input", updateInputStatus);
 elements.provider.addEventListener("change", updateProviderStatus);
-elements.model.addEventListener("input", updateConversionFreshness);
+elements.model.addEventListener("input", () => {
+  resetProviderRunStatus();
+  updateConversionFreshness();
+});
 elements.format.addEventListener("change", updateExportStatus);
 elements.validate.addEventListener("change", updateExportStatus);
 elements.convert.addEventListener("click", convertManuscript);

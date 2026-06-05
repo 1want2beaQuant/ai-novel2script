@@ -128,6 +128,25 @@ def test_cli_writes_yaml_to_stdout(
     assert data["adaptation_report"]["chapter_coverage"]["coverage_ratio"] == 1
 
 
+def test_cli_warns_when_openai_falls_back_without_api_key(
+    tmp_path: Path,
+    capsys: pytest.CaptureFixture[str],
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.delenv("OPENAI_API_KEY", raising=False)
+    input_path = tmp_path / "novel.txt"
+    input_path.write_text(MANUSCRIPT, encoding="utf-8")
+
+    exit_code = main([str(input_path), "--provider", "openai", "--title", "The Locked Room"])
+
+    assert exit_code == 0
+    captured = capsys.readouterr()
+    data = yaml.safe_load(captured.out)
+    assert data["title"] == "The Locked Room"
+    assert "novel2script: warning:" in captured.err
+    assert "OPENAI_API_KEY is not set; used the local heuristic provider." in captured.err
+
+
 def test_cli_reports_conversion_errors(
     tmp_path: Path,
     capsys: pytest.CaptureFixture[str],
@@ -203,7 +222,7 @@ def test_cli_validates_output_path_before_conversion(
     def fail_conversion(*args: object, **kwargs: object) -> object:
         raise AssertionError("conversion should not run for invalid output paths")
 
-    monkeypatch.setattr(cli_module, "convert_with_optional_ai", fail_conversion)
+    monkeypatch.setattr(cli_module, "convert_with_provider_status", fail_conversion)
 
     exit_code = main([str(input_path), "--output", str(output_dir)])
 
@@ -227,7 +246,7 @@ def test_cli_reports_invalid_output_parent_before_conversion(
     def fail_conversion(*args: object, **kwargs: object) -> object:
         raise AssertionError("conversion should not run for invalid output paths")
 
-    monkeypatch.setattr(cli_module, "convert_with_optional_ai", fail_conversion)
+    monkeypatch.setattr(cli_module, "convert_with_provider_status", fail_conversion)
 
     exit_code = main([str(input_path), "--output", str(output_path)])
 
