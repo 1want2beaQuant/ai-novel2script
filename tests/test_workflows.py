@@ -28,6 +28,7 @@ def test_release_workflow_requires_tagged_releases_and_trusted_publishing() -> N
     workflow = load_workflow("release.yml")
 
     assert workflow["on"]["push"]["tags"] == ["v*.*.*"]
+    assert workflow["on"]["workflow_dispatch"] is None
 
     jobs = workflow["jobs"]
     test_job = jobs["test"]
@@ -37,6 +38,7 @@ def test_release_workflow_requires_tagged_releases_and_trusted_publishing() -> N
 
     publish_job = jobs["publish"]
     assert publish_job["needs"] == "build"
+    assert publish_job["if"] == "github.event_name == 'push'"
     assert publish_job["environment"]["name"] == "pypi"
     assert publish_job["permissions"]["id-token"] == "write"
     assert step_uses(publish_job, "pypa/gh-action-pypi-publish@release/v1")
@@ -47,6 +49,7 @@ def test_release_workflow_creates_github_release_after_pypi_publish() -> None:
 
     release_job = workflow["jobs"]["github-release"]
     assert set(release_job["needs"]) == {"build", "publish"}
+    assert release_job["if"] == "github.event_name == 'push'"
     assert release_job["permissions"]["contents"] == "write"
     assert step_uses(release_job, "softprops/action-gh-release@v2")
 
