@@ -32,7 +32,12 @@ def test_release_workflow_requires_tagged_releases_and_trusted_publishing() -> N
 
     jobs = workflow["jobs"]
     test_job = jobs["test"]
-    assert step_runs(test_job, 'python scripts/check_release_tag.py "${{ github.ref_name }}"')
+    tag_check = next(
+        step
+        for step in test_job["steps"]
+        if step.get("run") == 'python scripts/check_release_tag.py "${{ github.ref_name }}"'
+    )
+    assert tag_check["if"] == "github.event_name == 'push'"
     assert step_runs(test_job, "python -m pip_audit --skip-editable")
     assert step_runs(test_job, "python -m pytest")
 
