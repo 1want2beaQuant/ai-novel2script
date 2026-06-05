@@ -40,6 +40,10 @@ def test_release_workflow_requires_tagged_releases_and_trusted_publishing() -> N
     assert tag_check["if"] == "github.event_name == 'push'"
     assert step_runs(test_job, "python -m pip_audit --skip-editable")
     assert step_runs(test_job, "python -m pytest")
+    assert step_runs(
+        test_job,
+        "novel2script examples/three_chapters.txt --format markdown --output outputs/release-smoke.revision.md",
+    )
     web_smoke = next(step for step in test_job["steps"] if step["name"] == "Smoke test Web entrypoint")
     assert "novel2script-web --version" in web_smoke["run"]
     assert "novel2script-web --help" in web_smoke["run"]
@@ -67,6 +71,11 @@ def test_release_workflow_smokes_web_entrypoints_in_distributions() -> None:
         ".venv-wheel/bin/python scripts/smoke_web_server.py --python .venv-wheel/bin/python"
         in wheel_smoke["run"]
     )
+    assert (
+        ".venv-wheel/bin/novel2script examples/three_chapters.txt --format markdown "
+        "--output outputs/wheel-smoke.revision.md"
+        in wheel_smoke["run"]
+    )
 
     sdist_smoke = next(step for step in build_job["steps"] if step["name"] == "Smoke test installed sdist")
     assert ".venv-sdist/bin/novel2script-web --version" in sdist_smoke["run"]
@@ -75,6 +84,11 @@ def test_release_workflow_smokes_web_entrypoints_in_distributions() -> None:
     assert ".venv-sdist/bin/python -m novel2script.web --help" in sdist_smoke["run"]
     assert (
         ".venv-sdist/bin/python scripts/smoke_web_server.py --python .venv-sdist/bin/python"
+        in sdist_smoke["run"]
+    )
+    assert (
+        ".venv-sdist/bin/novel2script examples/three_chapters.txt --format markdown "
+        "--output outputs/sdist-smoke.revision.md"
         in sdist_smoke["run"]
     )
 
@@ -106,6 +120,10 @@ def test_ci_workflow_smokes_linux_distributions_and_windows_cli() -> None:
         "3.13",
         "3.14",
     ]
+    assert step_runs(
+        jobs["test"],
+        "novel2script examples/three_chapters.txt --format markdown --output outputs/ci-smoke.revision.md",
+    )
 
     build_job = jobs["build"]
     wheel_smoke = next(step for step in build_job["steps"] if step["name"] == "Smoke test installed wheel")
@@ -117,6 +135,11 @@ def test_ci_workflow_smokes_linux_distributions_and_windows_cli() -> None:
     assert ".venv-wheel/bin/python -m novel2script.web --help" in wheel_smoke["run"]
     assert (
         ".venv-wheel/bin/python scripts/smoke_web_server.py --python .venv-wheel/bin/python"
+        in wheel_smoke["run"]
+    )
+    assert (
+        ".venv-wheel/bin/novel2script examples/three_chapters.txt --format markdown "
+        "--output outputs/wheel-smoke.revision.md"
         in wheel_smoke["run"]
     )
 
@@ -131,11 +154,20 @@ def test_ci_workflow_smokes_linux_distributions_and_windows_cli() -> None:
         ".venv-sdist/bin/python scripts/smoke_web_server.py --python .venv-sdist/bin/python"
         in sdist_smoke["run"]
     )
+    assert (
+        ".venv-sdist/bin/novel2script examples/three_chapters.txt --format markdown "
+        "--output outputs/sdist-smoke.revision.md"
+        in sdist_smoke["run"]
+    )
 
     windows_job = jobs["windows-smoke"]
     assert windows_job["runs-on"] == "windows-latest"
     assert step_runs(windows_job, "novel2script --version")
     assert step_runs(windows_job, "python -m novel2script --version")
+    assert step_runs(
+        windows_job,
+        r"novel2script examples\three_chapters.txt --format markdown --output outputs\windows-smoke.revision.md",
+    )
     windows_web_smoke = next(
         step for step in windows_job["steps"] if step["name"] == "Smoke test Web entrypoint"
     )

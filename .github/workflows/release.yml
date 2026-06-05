@@ -59,6 +59,9 @@ jobs:
       - name: Smoke test Fountain CLI
         run: novel2script examples/three_chapters.txt --format fountain --output outputs/release-smoke.fountain
 
+      - name: Smoke test Markdown CLI
+        run: novel2script examples/three_chapters.txt --format markdown --output outputs/release-smoke.revision.md
+
       - name: Verify schema copies match
         run: cmp schemas/script.schema.json src/novel2script/schemas/script.schema.json
 
@@ -104,6 +107,7 @@ jobs:
           .venv-wheel/bin/python scripts/smoke_web_server.py --python .venv-wheel/bin/python
           .venv-wheel/bin/novel2script examples/three_chapters.txt --output outputs/wheel-smoke.yaml --validate
           .venv-wheel/bin/novel2script examples/three_chapters.txt --format fountain --output outputs/wheel-smoke.fountain
+          .venv-wheel/bin/novel2script examples/three_chapters.txt --format markdown --output outputs/wheel-smoke.revision.md
 
       - name: Install sdist in clean environment
         run: |
@@ -123,6 +127,7 @@ jobs:
           .venv-sdist/bin/python scripts/smoke_web_server.py --python .venv-sdist/bin/python
           .venv-sdist/bin/novel2script examples/three_chapters.txt --output outputs/sdist-smoke.yaml --validate
           .venv-sdist/bin/novel2script examples/three_chapters.txt --format fountain --output outputs/sdist-smoke.fountain
+          .venv-sdist/bin/novel2script examples/three_chapters.txt --format markdown --output outputs/sdist-smoke.revision.md
 
       - name: Upload distributions
         uses: actions/upload-artifact@v7
