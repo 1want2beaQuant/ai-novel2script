@@ -8,6 +8,7 @@ from pathlib import Path
 
 import yaml
 
+from novel2script import __version__
 from novel2script.ai_provider import convert_with_optional_ai
 from novel2script.fountain import draft_to_fountain, write_fountain
 from novel2script.schema import validate_script
@@ -36,6 +37,7 @@ def build_parser() -> argparse.ArgumentParser:
     )
     parser.add_argument("--model", default="gpt-4.1-mini", help="OpenAI-compatible model name.")
     parser.add_argument("--validate", action="store_true", help="Validate generated YAML with Schema.")
+    parser.add_argument("--version", action="version", version=f"%(prog)s {__version__}")
     return parser
 
 
