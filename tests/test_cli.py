@@ -194,6 +194,31 @@ def test_cli_validates_output_path_before_conversion(
     assert "novel2script: error: Output path is a directory" in captured.err
 
 
+def test_cli_reports_invalid_output_parent_before_conversion(
+    tmp_path: Path,
+    capsys: pytest.CaptureFixture[str],
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    input_path = tmp_path / "novel.txt"
+    input_path.write_text(MANUSCRIPT, encoding="utf-8")
+    output_parent = tmp_path / "not-a-directory"
+    output_parent.write_text("occupied", encoding="utf-8")
+    output_path = output_parent / "draft.yaml"
+
+    def fail_conversion(*args: object, **kwargs: object) -> object:
+        raise AssertionError("conversion should not run for invalid output paths")
+
+    monkeypatch.setattr(cli_module, "convert_with_optional_ai", fail_conversion)
+
+    exit_code = main([str(input_path), "--output", str(output_path)])
+
+    assert exit_code == 1
+    captured = capsys.readouterr()
+    assert captured.out == ""
+    assert "novel2script: error: Output parent path is not a directory:" in captured.err
+    assert str(output_parent) in captured.err
+
+
 def test_cli_reports_directory_fountain_output(
     tmp_path: Path,
     capsys: pytest.CaptureFixture[str],
