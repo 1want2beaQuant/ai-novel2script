@@ -26,6 +26,7 @@ Initial release candidate.
 - Local character guessing avoids promoting action/location phrases to character names while preserving dialogue speakers and common Chinese compound surnames.
 - Local logline generation avoids repeated protagonist phrasing and uses a cleaner one-sentence pitch template.
 - Local Web workbench shows live input size, chapter estimate, provider privacy status, conversion freshness, and export readiness.
+- Local Web copy action reports clipboard permission failures instead of silently failing.
 - Local Web workbench preflights chapter detection through the backend parser before conversion.
 - Local Web workbench disables conversion until backend chapter preflight confirms at least 3 chapters.
 - Local Web OpenAI mode asks for confirmation before starting a remote conversion.

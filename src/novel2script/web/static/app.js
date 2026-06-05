@@ -739,9 +739,17 @@ async function copyOutput() {
   if (!state.output) {
     return;
   }
-  await navigator.clipboard.writeText(state.output);
-  elements.copy.textContent = "已复制";
   clearTimeout(state.copyLabelTimer);
+  try {
+    if (!navigator.clipboard?.writeText) {
+      throw new Error("Clipboard API is unavailable.");
+    }
+    await navigator.clipboard.writeText(state.output);
+    elements.copy.textContent = "已复制";
+  } catch {
+    elements.copy.textContent = "复制失败";
+    setConversionStatus("复制失败", "浏览器未允许写入剪贴板，请手动选中结果复制。", "warn");
+  }
   state.copyLabelTimer = window.setTimeout(() => {
     elements.copy.textContent = "复制";
   }, 1400);
