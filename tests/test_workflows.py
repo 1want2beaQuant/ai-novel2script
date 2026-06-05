@@ -79,9 +79,11 @@ def test_ci_workflow_smokes_linux_distributions_and_windows_cli() -> None:
 
     build_job = jobs["build"]
     wheel_smoke = next(step for step in build_job["steps"] if step["name"] == "Smoke test installed wheel")
+    assert ".venv-wheel/bin/novel2script --help" in wheel_smoke["run"]
     assert ".venv-wheel/bin/python -m novel2script --version" in wheel_smoke["run"]
 
     sdist_smoke = next(step for step in build_job["steps"] if step["name"] == "Smoke test installed sdist")
+    assert ".venv-sdist/bin/novel2script --help" in sdist_smoke["run"]
     assert ".venv-sdist/bin/python -m novel2script --version" in sdist_smoke["run"]
 
     windows_job = jobs["windows-smoke"]
