@@ -91,7 +91,6 @@ const elements = {
 
 elements.manuscript.value = sampleText;
 elements.output.textContent = "转换结果会显示在这里。";
-setOutputActions(false);
 renderSummary(null);
 updateInputStatus();
 updateProviderStatus();
@@ -163,7 +162,6 @@ async function convertManuscript() {
     elements.output.textContent = result.output;
     renderSummary(result.summary);
     renderProviderRunStatus(state.lastProviderStatus);
-    setOutputActions(true);
     updateExportStatus();
     setConversionStatus(
       "已完成",
@@ -180,7 +178,6 @@ async function convertManuscript() {
     elements.output.textContent = error instanceof Error ? error.message : String(error);
     renderSummary(null);
     renderProviderSelectionStatus();
-    setOutputActions(false);
     updateExportStatus();
     setConversionStatus(
       "转换失败",
@@ -344,6 +341,7 @@ function updateInputStatus() {
   state.isPreviewPending = false;
   state.isPreviewReady = false;
   syncConvertAvailability();
+  updateExportStatus();
 
   if (isCurrentRequestTooLarge()) {
     state.previewInput = "";
@@ -359,6 +357,7 @@ function updateInputStatus() {
     setStatusTone(elements.inputSize.parentElement, "neutral");
     elements.inputSize.textContent = "0 字 / 0 章";
     syncConvertAvailability();
+    updateExportStatus();
     updateConversionFreshness();
     return;
   }
@@ -368,6 +367,7 @@ function updateInputStatus() {
   state.isPreviewPending = true;
   schedulePreview(text);
   syncConvertAvailability();
+  updateExportStatus();
   updateConversionFreshness();
 }
 
@@ -429,6 +429,7 @@ function showRequestSizeError() {
   setStatusTone(elements.inputSize.parentElement, "error");
   setConversionStatus("无法转换", "当前手稿超过 Web 请求上限。", "error");
   syncConvertAvailability();
+  updateExportStatus();
 }
 
 function showFileImportSizeError(file) {
@@ -442,6 +443,7 @@ function showFileImportSizeError(file) {
   setStatusTone(elements.inputSize.parentElement, "error");
   setConversionStatus("无法导入", "所选文件会超过 Web 请求上限。", "error");
   syncConvertAvailability();
+  updateExportStatus();
 }
 
 function showFileImportReadError(file) {
@@ -451,6 +453,7 @@ function showFileImportReadError(file) {
   setStatusTone(elements.inputSize.parentElement, "warn");
   setConversionStatus("导入失败", `${file.name} 无法读取。`, "warn");
   syncConvertAvailability();
+  updateExportStatus();
 }
 
 function showPreflightBlockedConversion() {
@@ -615,27 +618,26 @@ function updateExportStatus() {
       elements.exportState.textContent = "需重新转换";
       elements.exportMeta.textContent = `${staleReason.exportDetail} 重新转换后再复制或下载。`;
       setStatusTone(elements.exportState.parentElement, "warn");
+      setOutputActions(false);
       return;
     }
 
     elements.exportState.textContent = formatLabel;
     elements.exportMeta.textContent = `${validationLabel} · 可复制或下载。`;
     setStatusTone(elements.exportState.parentElement, "ready");
+    setOutputActions(true);
     return;
   }
 
   elements.exportState.textContent = "未生成";
   elements.exportMeta.textContent = `${formatLabel} / ${validationLabel}。`;
   setStatusTone(elements.exportState.parentElement, "neutral");
+  setOutputActions(false);
 }
 
 function currentOutputStaleReason() {
   const formatLabel = elements.format.value === "fountain" ? "Fountain" : "YAML";
   const outputLabel = state.format === "fountain" ? "Fountain" : "YAML";
-
-  if (isCurrentRequestTooLarge()) {
-    return null;
-  }
 
   if (elements.manuscript.value !== state.lastConvertedInput) {
     return {
@@ -806,6 +808,12 @@ async function copyOutput() {
   if (!state.output) {
     return;
   }
+  const staleReason = currentOutputStaleReason();
+  if (staleReason) {
+    updateExportStatus();
+    setConversionStatus("需重新转换", staleReason.conversionDetail, "warn");
+    return;
+  }
   clearTimeout(state.copyLabelTimer);
   try {
     if (!navigator.clipboard?.writeText) {
@@ -824,6 +832,12 @@ async function copyOutput() {
 
 function downloadOutput() {
   if (!state.output) {
+    return;
+  }
+  const staleReason = currentOutputStaleReason();
+  if (staleReason) {
+    updateExportStatus();
+    setConversionStatus("需重新转换", staleReason.conversionDetail, "warn");
     return;
   }
   clearTimeout(state.downloadLabelTimer);
