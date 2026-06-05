@@ -340,6 +340,7 @@ def test_web_static_assets_include_conversion_status_ui() -> None:
         assert "function confirmRemoteProvider" in script
         assert "function remoteConfirmationKey" in script
         assert "function textFingerprint" in script
+        assert 'const defaultModel = "gpt-4.1-mini"' in script
         assert "openAiConfirmedFor" in script
         assert "isPreviewPending" in script
         assert "isPreviewReady" in script
@@ -361,6 +362,7 @@ def test_web_static_assets_include_conversion_status_ui() -> None:
         assert "function currentOutputStaleReason" in script
         assert "setOutputActions(false)" in script
         assert "setOutputActions(true)" in script
+        assert "model: normalizedModel()" in script
         assert "lastFormat" in script
         assert "lastValidate" in script
         assert "输出格式已变更" in script
@@ -369,6 +371,7 @@ def test_web_static_assets_include_conversion_status_ui() -> None:
         assert "Schema 校验设置已变更，当前导出仍使用旧设置。" in script
         assert "转换前会按当前手稿、片名和模型确认远程发送。" in script
         assert "OpenAI 模型已变更" in script
+        assert "return elements.model.value.trim() || defaultModel" in script
         assert "重新转换后再复制或下载。" in script
         assert "function renderProviderRunStatus" in script
         assert "function providerStatusSummary" in script

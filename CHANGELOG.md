@@ -23,6 +23,7 @@ Initial release candidate.
 - Local Web conversion API rejects non-string `format` and `provider` values before checking allowed options.
 - Local Web conversion API validates `model` with the shared non-empty string path.
 - Local Web conversion API rejects non-boolean `validate` values instead of coercing them.
+- Local Web conversion payloads fall back to the default OpenAI-compatible model when the model input is blank.
 - Local Web JSON API responses use `Cache-Control: no-store` and reject malformed request lengths.
 - Local Web UI reports readable conversion and preflight errors when API responses are not valid JSON.
 - Local Web export status marks generated output stale when inputs or conversion settings change.
