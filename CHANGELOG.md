@@ -9,12 +9,13 @@ Initial release candidate.
 ### Added
 
 - CLI package entry point: `novel2script`.
+- Module execution entry point: `python -m novel2script`.
 - Local heuristic conversion from 3+ chapter manuscripts to screenplay YAML drafts.
 - YAML output validated by bundled JSON Schema.
 - Fountain screenplay export.
 - Structured `structure_map`, `story_bible`, `adaptation_report`, and `coverage_report` sections.
 - Optional OpenAI-compatible enhancement through the `novel2script[ai]` extra.
-- Release workflow for tagged PyPI publishing through Trusted Publishing.
+- Release workflow for tagged PyPI publishing through Trusted Publishing and GitHub Release assets.
 - CI matrix for Python 3.10, 3.11, and 3.12.
-- Build, wheel smoke, release tag, and dependency security audit guards.
+- Build, wheel/sdist smoke, release tag, workflow configuration, Windows smoke, and dependency security audit guards.
 - Repository governance, contribution, security, privacy, issue, and pull request documentation.
