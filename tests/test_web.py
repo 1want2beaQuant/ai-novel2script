@@ -328,6 +328,10 @@ def test_web_static_assets_include_conversion_status_ui() -> None:
         assert "function showFileImportSizeError" in script
         assert "文件过大，未导入" in script
         assert "elements.file.value = \"\"" in script
+        assert "function copyOutput" in script
+        assert "navigator.clipboard?.writeText" in script
+        assert "复制失败" in script
+        assert "浏览器未允许写入剪贴板，请手动选中结果复制。" in script
         assert "function syncConvertAvailability" in script
         assert "手稿过大，请拆分后再预检或转换。" in script
         assert "conversionSummary" in script
