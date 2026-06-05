@@ -334,6 +334,8 @@ def test_web_static_assets_include_conversion_status_ui() -> None:
         assert "浏览器未允许写入剪贴板，请手动选中结果复制。" in script
         assert "function syncConvertAvailability" in script
         assert "手稿过大，请拆分后再预检或转换。" in script
+        assert "预检失败：" in script
+        assert "setConversionStatus(\"预检失败\"" in script
         assert "conversionSummary" in script
 
         connection.request("GET", "/app.css")
@@ -538,6 +540,38 @@ def test_web_server_reports_unexpected_conversion_error(
 
         assert response.status == HTTPStatus.INTERNAL_SERVER_ERROR
         assert data == {"error": "Conversion failed unexpectedly."}
+    finally:
+        server.shutdown()
+        server.server_close()
+        thread.join(timeout=5)
+
+
+def test_web_server_reports_unexpected_preview_error(
+    monkeypatch,
+) -> None:
+    def fail_preview(payload: dict[str, object]) -> dict[str, object]:
+        raise RuntimeError("boom")
+
+    monkeypatch.setattr(web_module, "preview_payload", fail_preview)
+    server = create_server(port=0)
+    thread = Thread(target=server.serve_forever, daemon=True)
+    thread.start()
+    host, port = server.server_address
+
+    try:
+        connection = HTTPConnection(host, port, timeout=10)
+        payload = json.dumps({"text": MANUSCRIPT}).encode("utf-8")
+        connection.request(
+            "POST",
+            "/api/preview",
+            body=payload,
+            headers={"Content-Type": "application/json"},
+        )
+        response = connection.getresponse()
+        data = json.loads(response.read().decode("utf-8"))
+
+        assert response.status == HTTPStatus.INTERNAL_SERVER_ERROR
+        assert data == {"error": "Preview failed unexpectedly."}
     finally:
         server.shutdown()
         server.server_close()
