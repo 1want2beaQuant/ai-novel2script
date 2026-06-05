@@ -70,6 +70,50 @@ def test_cli_configures_stdout_and_stderr_as_utf8(monkeypatch: pytest.MonkeyPatc
     assert stderr.encodings == ["utf-8"]
 
 
+def test_cli_normalizes_blank_model_to_default() -> None:
+    assert cli_module._normalize_model("  ") == cli_module.DEFAULT_MODEL
+    assert cli_module._normalize_model(" custom-model ") == "custom-model"
+
+
+def test_cli_sends_normalized_model_to_provider(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    class FakeDraft:
+        def to_dict(self) -> dict[str, object]:
+            return {"title": "The Locked Room"}
+
+    class FakeProviderStatus:
+        remote = True
+        message = ""
+
+    class FakeConversion:
+        draft = FakeDraft()
+        provider_status = FakeProviderStatus()
+
+    captured: dict[str, str] = {}
+
+    def convert_with_status(
+        *,
+        text: str,
+        title: str | None,
+        provider: str,
+        model: str,
+    ) -> FakeConversion:
+        captured["model"] = model
+        captured["provider"] = provider
+        return FakeConversion()
+
+    input_path = tmp_path / "novel.txt"
+    input_path.write_text(MANUSCRIPT, encoding="utf-8")
+    monkeypatch.setattr(cli_module, "convert_with_provider_status", convert_with_status)
+
+    exit_code = main([str(input_path), "--provider", "openai", "--model", "  "])
+
+    assert exit_code == 0
+    assert captured == {"model": cli_module.DEFAULT_MODEL, "provider": "openai"}
+
+
 def test_cli_writes_validated_yaml_to_nested_output_path(tmp_path: Path) -> None:
     input_path = tmp_path / "novel.txt"
     output_path = tmp_path / "build" / "draft.yaml"
