@@ -71,3 +71,26 @@ def test_issue_templates_collect_reproducible_bug_and_feature_context() -> None:
     assert "## Output Impact" in feature_request
     assert "YAML schema" in feature_request
     assert "optional AI behavior" in feature_request
+
+
+def test_documented_local_commands_are_cross_shell_safe() -> None:
+    readme = (ROOT / "README.md").read_text(encoding="utf-8")
+    release_checklist = (ROOT / "docs" / "release_checklist.md").read_text(
+        encoding="utf-8"
+    )
+
+    assert 'python -m pip install -e ".[dev]"' in readme
+    assert "python -m pip install -e .[dev]" not in readme
+    assert 'python -m pip install -e ".[dev,release,security]"' in release_checklist
+    assert "python -m pip install -e .[dev,release,security]" not in release_checklist
+
+    documented_commands = readme + "\n" + release_checklist
+    assert "python -m novel2script.cli" not in documented_commands
+    assert (
+        "python -m novel2script examples/three_chapters.txt "
+        "--output outputs/release-smoke.yaml --validate"
+    ) in release_checklist
+    assert (
+        "python -m novel2script examples/three_chapters.txt "
+        "--format fountain --output outputs/release-smoke.fountain"
+    ) in release_checklist
