@@ -1,5 +1,7 @@
 from importlib.metadata import version
 from pathlib import Path
+import subprocess
+import sys
 
 import pytest
 import yaml
@@ -34,6 +36,18 @@ def test_cli_version_option_reports_package_version(
 
     assert exc_info.value.code == 0
     assert capsys.readouterr().out.strip() == f"novel2script {novel2script.__version__}"
+
+
+def test_module_entrypoint_reports_package_version() -> None:
+    result = subprocess.run(
+        [sys.executable, "-m", "novel2script", "--version"],
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+
+    assert result.stdout.strip() == f"novel2script {novel2script.__version__}"
+    assert result.stderr == ""
 
 
 def test_cli_writes_validated_yaml_to_nested_output_path(tmp_path: Path) -> None:
