@@ -49,6 +49,9 @@ def main(argv: list[str] | None = None) -> int:
     args = parser.parse_args(argv)
 
     try:
+        if args.output:
+            _validate_output_path(args.output)
+
         text = _read_input_text(args.input)
         draft = convert_with_optional_ai(
             text=text,
@@ -59,9 +62,6 @@ def main(argv: list[str] | None = None) -> int:
         data = draft.to_dict()
         if args.validate:
             validate_script(data)
-
-        if args.output:
-            _validate_output_path(args.output)
 
         if args.output and args.format == "yaml":
             write_yaml(draft, args.output)
