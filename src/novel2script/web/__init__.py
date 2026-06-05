@@ -58,7 +58,7 @@ def convert_payload(payload: dict[str, Any]) -> dict[str, Any]:
     )
     draft = conversion.draft
     data = draft.to_dict()
-    if bool(payload.get("validate", True)):
+    if _optional_bool(payload, "validate", default=True):
         validate_script(data)
 
     output = draft_to_fountain(draft) if output_format == "fountain" else draft_to_yaml(draft)
@@ -385,6 +385,13 @@ def _required_string(payload: dict[str, Any], key: str) -> str:
     value = payload.get(key)
     if not isinstance(value, str):
         raise ValueError(f"{key} must be a string.")
+    return value
+
+
+def _optional_bool(payload: dict[str, Any], key: str, *, default: bool) -> bool:
+    value = payload.get(key, default)
+    if not isinstance(value, bool):
+        raise ValueError(f"{key} must be a boolean.")
     return value
 
 
