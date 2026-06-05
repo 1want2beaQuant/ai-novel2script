@@ -607,13 +607,13 @@ function textFingerprint(text) {
 
 function updateExportStatus() {
   const formatLabel = elements.format.value === "fountain" ? "Fountain" : "YAML";
-  const outputLabel = state.format === "fountain" ? "Fountain" : "YAML";
   const validationLabel = elements.validate.checked ? "Schema 校验开启" : "Schema 校验关闭";
 
   if (state.output) {
-    if (state.format !== elements.format.value) {
+    const staleReason = currentOutputStaleReason();
+    if (staleReason) {
       elements.exportState.textContent = "需重新转换";
-      elements.exportMeta.textContent = `当前结果仍是 ${outputLabel}，重新转换后生成 ${formatLabel}。`;
+      elements.exportMeta.textContent = `${staleReason.exportDetail} 重新转换后再复制或下载。`;
       setStatusTone(elements.exportState.parentElement, "warn");
       return;
     }
@@ -627,6 +627,59 @@ function updateExportStatus() {
   elements.exportState.textContent = "未生成";
   elements.exportMeta.textContent = `${formatLabel} / ${validationLabel}。`;
   setStatusTone(elements.exportState.parentElement, "neutral");
+}
+
+function currentOutputStaleReason() {
+  const formatLabel = elements.format.value === "fountain" ? "Fountain" : "YAML";
+  const outputLabel = state.format === "fountain" ? "Fountain" : "YAML";
+
+  if (isCurrentRequestTooLarge()) {
+    return null;
+  }
+
+  if (elements.manuscript.value !== state.lastConvertedInput) {
+    return {
+      conversionDetail: "手稿已变更，当前结果可能不是最新。",
+      exportDetail: "手稿已变更，当前导出可能不是最新。"
+    };
+  }
+
+  if (elements.title.value !== state.lastTitle) {
+    return {
+      conversionDetail: "片名已变更，重新转换后写入输出。",
+      exportDetail: "片名已变更，当前导出仍使用旧片名。"
+    };
+  }
+
+  if (elements.provider.value !== state.lastProvider) {
+    return {
+      conversionDetail: "处理模式已变更，重新转换后生效。",
+      exportDetail: "处理模式已变更，当前导出仍使用旧结果。"
+    };
+  }
+
+  if (elements.format.value !== state.lastFormat) {
+    return {
+      conversionDetail: "输出格式已变更，重新转换后生成当前格式。",
+      exportDetail: `当前结果仍是 ${outputLabel}，目标导出为 ${formatLabel}。`
+    };
+  }
+
+  if (elements.validate.checked !== state.lastValidate) {
+    return {
+      conversionDetail: "Schema 校验设置已变更，重新转换后生效。",
+      exportDetail: "Schema 校验设置已变更，当前导出仍使用旧设置。"
+    };
+  }
+
+  if (elements.provider.value === "openai" && normalizedModel() !== state.lastModel) {
+    return {
+      conversionDetail: "OpenAI 模型已变更，重新转换后生效。",
+      exportDetail: "OpenAI 模型已变更，当前导出仍使用旧模型结果。"
+    };
+  }
+
+  return null;
 }
 
 function setConversionStatus(label, detail, tone) {
@@ -644,33 +697,9 @@ function updateConversionFreshness() {
     return;
   }
 
-  if (elements.manuscript.value !== state.lastConvertedInput) {
-    setConversionStatus("需重新转换", "手稿已变更，当前结果可能不是最新。", "warn");
-    return;
-  }
-
-  if (elements.title.value !== state.lastTitle) {
-    setConversionStatus("需重新转换", "片名已变更，重新转换后写入输出。", "warn");
-    return;
-  }
-
-  if (elements.provider.value !== state.lastProvider) {
-    setConversionStatus("需重新转换", "处理模式已变更，重新转换后生效。", "warn");
-    return;
-  }
-
-  if (elements.format.value !== state.lastFormat) {
-    setConversionStatus("需重新转换", "输出格式已变更，重新转换后生成当前格式。", "warn");
-    return;
-  }
-
-  if (elements.validate.checked !== state.lastValidate) {
-    setConversionStatus("需重新转换", "Schema 校验设置已变更，重新转换后生效。", "warn");
-    return;
-  }
-
-  if (elements.provider.value === "openai" && normalizedModel() !== state.lastModel) {
-    setConversionStatus("需重新转换", "OpenAI 模型已变更，重新转换后生效。", "warn");
+  const staleReason = currentOutputStaleReason();
+  if (staleReason) {
+    setConversionStatus("需重新转换", staleReason.conversionDetail, "warn");
     return;
   }
 
@@ -852,16 +881,19 @@ elements.file.addEventListener("change", loadFile);
 elements.title.addEventListener("input", () => {
   resetProviderRunStatus();
   syncConvertAvailability();
+  updateExportStatus();
   updateConversionFreshness();
 });
 elements.manuscript.addEventListener("input", updateInputStatus);
 elements.provider.addEventListener("change", () => {
   syncConvertAvailability();
+  updateExportStatus();
   updateProviderStatus();
 });
 elements.model.addEventListener("input", () => {
   resetProviderRunStatus();
   syncConvertAvailability();
+  updateExportStatus();
   updateConversionFreshness();
 });
 elements.format.addEventListener("change", () => {
