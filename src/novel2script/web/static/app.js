@@ -10,13 +10,16 @@ Mara and Jon played the tape together. The hidden name finally connected every c
 const maxRequestBytes = 2000000;
 const defaultModel = "gpt-4.1-mini";
 const textEncoder = new TextEncoder();
+const crc32Table = buildCrc32Table();
 
 const state = {
   output: "",
+  exports: null,
   format: "yaml",
   isWorking: false,
   copyLabelTimer: 0,
   downloadLabelTimer: 0,
+  bundleLabelTimer: 0,
   previewLabelTimer: 0,
   previewRequestId: 0,
   previewInput: "",
@@ -65,6 +68,7 @@ const elements = {
   fileButton: document.querySelector("#fileButton"),
   copy: document.querySelector("#copyButton"),
   download: document.querySelector("#downloadButton"),
+  bundle: document.querySelector("#bundleButton"),
   serverStatus: document.querySelector("#serverStatus"),
   inputSize: document.querySelector("#inputSize"),
   inputHint: document.querySelector("#inputHint"),
@@ -152,6 +156,7 @@ async function convertManuscript() {
     }
 
     state.output = result.output;
+    state.exports = normalizeExports(result);
     state.format = result.format;
     state.lastConvertedInput = payload.text;
     state.lastTitle = payload.title;
@@ -176,6 +181,7 @@ async function convertManuscript() {
     updateConversionFreshness();
   } catch (error) {
     state.output = "";
+    state.exports = null;
     state.lastProviderStatus = null;
     elements.output.classList.add("is-error");
     elements.output.textContent = error instanceof Error ? error.message : String(error);
@@ -685,14 +691,14 @@ function updateExportStatus() {
     const staleReason = currentOutputStaleReason();
     if (staleReason) {
       elements.exportState.textContent = "需重新转换";
-      elements.exportMeta.textContent = `${staleReason.exportDetail} 重新转换后再复制或下载。`;
+      elements.exportMeta.textContent = `${staleReason.exportDetail} 重新转换后再复制、下载或打包。`;
       setStatusTone(elements.exportState.parentElement, "warn");
       setOutputActions(false);
       return;
     }
 
     elements.exportState.textContent = formatLabel;
-    elements.exportMeta.textContent = `${validationLabel} · 可复制或下载。`;
+    elements.exportMeta.textContent = `${validationLabel} · 可复制、下载或打包。`;
     setStatusTone(elements.exportState.parentElement, "ready");
     setOutputActions(true);
     return;
@@ -836,10 +842,49 @@ function providerStatusSummary(status) {
   return "本地转换";
 }
 
+function normalizeExports(result) {
+  const exports = result.exports || {};
+  return {
+    yaml:
+      typeof exports.yaml === "string"
+        ? exports.yaml
+        : result.format === "yaml"
+          ? result.output
+          : "",
+    fountain:
+      typeof exports.fountain === "string"
+        ? exports.fountain
+        : result.format === "fountain"
+          ? result.output
+          : "",
+    draftJson:
+      typeof exports.draft_json === "string"
+        ? exports.draft_json
+        : `${JSON.stringify(result.draft || {}, null, 2)}\n`,
+    summaryJson:
+      typeof exports.summary_json === "string"
+        ? exports.summary_json
+        : `${JSON.stringify(result.summary || {}, null, 2)}\n`
+  };
+}
+
 function downloadBaseName() {
   const title = elements.title.value.trim() || state.lastSummary?.title || "";
   const safeTitle = safeFilenameSegment(title);
   return safeTitle || "novel2script-draft";
+}
+
+function exportBundleFiles() {
+  if (!state.exports) {
+    return [];
+  }
+  const baseName = downloadBaseName();
+  return [
+    { name: `${baseName}.yaml`, content: state.exports.yaml || "" },
+    { name: `${baseName}.fountain`, content: state.exports.fountain || "" },
+    { name: `${baseName}.draft.json`, content: state.exports.draftJson || "" },
+    { name: `${baseName}.summary.json`, content: state.exports.summaryJson || "" }
+  ];
 }
 
 function safeFilenameSegment(value) {
@@ -952,6 +997,136 @@ function downloadOutput() {
   }
 }
 
+function downloadBundle() {
+  if (!state.output || !state.exports) {
+    return;
+  }
+  const staleReason = currentOutputStaleReason();
+  if (staleReason) {
+    updateExportStatus();
+    setConversionStatus("需重新转换", staleReason.conversionDetail, "warn");
+    return;
+  }
+  clearTimeout(state.bundleLabelTimer);
+  let objectUrl = "";
+  try {
+    const blob = createZipBlob(exportBundleFiles());
+    const link = document.createElement("a");
+    objectUrl = URL.createObjectURL(blob);
+    link.href = objectUrl;
+    link.download = `${downloadBaseName()}-export.zip`;
+    link.click();
+    elements.bundle.textContent = "已打包";
+  } catch {
+    elements.bundle.textContent = "打包失败";
+    elements.exportState.textContent = "打包失败";
+    elements.exportMeta.textContent = "浏览器未能生成打包文件，请分别下载或复制结果。";
+    setStatusTone(elements.exportState.parentElement, "warn");
+  } finally {
+    if (objectUrl) {
+      URL.revokeObjectURL(objectUrl);
+    }
+    state.bundleLabelTimer = window.setTimeout(() => {
+      elements.bundle.textContent = "打包";
+    }, 1400);
+  }
+}
+
+function createZipBlob(files) {
+  const chunks = [];
+  const centralDirectory = [];
+  let offset = 0;
+  const timestamp = zipDosTimestamp(new Date());
+
+  for (const file of files) {
+    const nameBytes = textEncoder.encode(file.name);
+    const dataBytes = textEncoder.encode(file.content);
+    const crc = crc32(dataBytes);
+    const localHeader = new Uint8Array(30 + nameBytes.length);
+    const localView = new DataView(localHeader.buffer);
+    localView.setUint32(0, 0x04034b50, true);
+    localView.setUint16(4, 20, true);
+    localView.setUint16(6, 0x0800, true);
+    localView.setUint16(8, 0, true);
+    localView.setUint16(10, timestamp.time, true);
+    localView.setUint16(12, timestamp.date, true);
+    localView.setUint32(14, crc, true);
+    localView.setUint32(18, dataBytes.length, true);
+    localView.setUint32(22, dataBytes.length, true);
+    localView.setUint16(26, nameBytes.length, true);
+    localView.setUint16(28, 0, true);
+    localHeader.set(nameBytes, 30);
+
+    const centralHeader = new Uint8Array(46 + nameBytes.length);
+    const centralView = new DataView(centralHeader.buffer);
+    centralView.setUint32(0, 0x02014b50, true);
+    centralView.setUint16(4, 20, true);
+    centralView.setUint16(6, 20, true);
+    centralView.setUint16(8, 0x0800, true);
+    centralView.setUint16(10, 0, true);
+    centralView.setUint16(12, timestamp.time, true);
+    centralView.setUint16(14, timestamp.date, true);
+    centralView.setUint32(16, crc, true);
+    centralView.setUint32(20, dataBytes.length, true);
+    centralView.setUint32(24, dataBytes.length, true);
+    centralView.setUint16(28, nameBytes.length, true);
+    centralView.setUint16(30, 0, true);
+    centralView.setUint16(32, 0, true);
+    centralView.setUint16(34, 0, true);
+    centralView.setUint16(36, 0, true);
+    centralView.setUint32(38, 0, true);
+    centralView.setUint32(42, offset, true);
+    centralHeader.set(nameBytes, 46);
+
+    chunks.push(localHeader, dataBytes);
+    centralDirectory.push(centralHeader);
+    offset += localHeader.length + dataBytes.length;
+  }
+
+  const centralOffset = offset;
+  const centralSize = centralDirectory.reduce((size, header) => size + header.length, 0);
+  const endHeader = new Uint8Array(22);
+  const endView = new DataView(endHeader.buffer);
+  endView.setUint32(0, 0x06054b50, true);
+  endView.setUint16(4, 0, true);
+  endView.setUint16(6, 0, true);
+  endView.setUint16(8, files.length, true);
+  endView.setUint16(10, files.length, true);
+  endView.setUint32(12, centralSize, true);
+  endView.setUint32(16, centralOffset, true);
+  endView.setUint16(20, 0, true);
+
+  chunks.push(...centralDirectory, endHeader);
+  return new Blob(chunks, { type: "application/zip" });
+}
+
+function zipDosTimestamp(date) {
+  return {
+    time: (date.getHours() << 11) | (date.getMinutes() << 5) | Math.floor(date.getSeconds() / 2),
+    date: ((date.getFullYear() - 1980) << 9) | ((date.getMonth() + 1) << 5) | date.getDate()
+  };
+}
+
+function buildCrc32Table() {
+  const table = new Uint32Array(256);
+  for (let index = 0; index < table.length; index += 1) {
+    let value = index;
+    for (let bit = 0; bit < 8; bit += 1) {
+      value = value & 1 ? 0xedb88320 ^ (value >>> 1) : value >>> 1;
+    }
+    table[index] = value >>> 0;
+  }
+  return table;
+}
+
+function crc32(bytes) {
+  let crc = 0xffffffff;
+  for (const byte of bytes) {
+    crc = crc32Table[(crc ^ byte) & 0xff] ^ (crc >>> 8);
+  }
+  return (crc ^ 0xffffffff) >>> 0;
+}
+
 function setWorking(isWorking) {
   state.isWorking = isWorking;
   syncConvertAvailability();
@@ -968,6 +1143,7 @@ function syncConvertAvailability() {
 function setOutputActions(isEnabled) {
   elements.copy.disabled = !isEnabled;
   elements.download.disabled = !isEnabled;
+  elements.bundle.disabled = !isEnabled;
 }
 
 elements.sample.addEventListener("click", () => {
@@ -1009,5 +1185,6 @@ elements.validate.addEventListener("change", () => {
 elements.convert.addEventListener("click", convertManuscript);
 elements.copy.addEventListener("click", copyOutput);
 elements.download.addEventListener("click", downloadOutput);
+elements.bundle.addEventListener("click", downloadBundle);
 
 checkServer();

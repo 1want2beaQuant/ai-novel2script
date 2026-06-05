@@ -108,6 +108,10 @@ def test_convert_payload_returns_output_and_summary() -> None:
 
     assert result["format"] == "yaml"
     assert "title: The Locked Room" in result["output"]
+    assert result["exports"]["yaml"] == result["output"]
+    assert "Title: The Locked Room" in result["exports"]["fountain"]
+    assert json.loads(result["exports"]["draft_json"])["title"] == "The Locked Room"
+    assert json.loads(result["exports"]["summary_json"])["scene_count"] == 3
     assert result["provider_status"] == {
         "requested": "local",
         "actual": "local",
@@ -152,6 +156,8 @@ def test_convert_payload_supports_fountain_output() -> None:
     assert result["format"] == "fountain"
     assert "Title: The Locked Room" in result["output"]
     assert "// source_chapter: 3" in result["output"]
+    assert "title: The Locked Room" in result["exports"]["yaml"]
+    assert result["exports"]["fountain"] == result["output"]
 
 
 def test_convert_payload_reports_openai_local_fallback(
@@ -274,6 +280,8 @@ def test_web_server_serves_static_assets_and_conversion_api() -> None:
         assert 'id="chapterPreviewState"' in body
         assert 'id="chapterPreviewList"' in body
         assert "章节预检" in body
+        assert 'id="bundleButton"' in body
+        assert "打包下载所有导出文件" in body
         assert 'id="scoresList"' in body
         assert 'id="actionItems"' in body
 
@@ -316,6 +324,10 @@ def test_web_server_serves_static_assets_and_conversion_api() -> None:
         assert data["summary"]["chapter_coverage"]["coverage_ratio"] == 1
         assert data["summary"]["structure_beats"]
         assert data["summary"]["action_items"]
+        assert "title:" in data["exports"]["yaml"]
+        assert data["exports"]["fountain"] == data["output"]
+        assert json.loads(data["exports"]["draft_json"])["source"]["chapter_count"] == 3
+        assert json.loads(data["exports"]["summary_json"])["scene_count"] == 3
     finally:
         server.shutdown()
         server.server_close()
@@ -364,6 +376,7 @@ def test_web_static_assets_include_conversion_status_ui() -> None:
         assert "function currentOutputStaleReason" in script
         assert "setOutputActions(false)" in script
         assert "setOutputActions(true)" in script
+        assert "elements.bundle.disabled = !isEnabled" in script
         assert "model: normalizedModel()" in script
         assert "lastFormat" in script
         assert "lastValidate" in script
@@ -374,7 +387,7 @@ def test_web_static_assets_include_conversion_status_ui() -> None:
         assert "转换前会按当前手稿、片名和模型确认远程发送。" in script
         assert "OpenAI 模型已变更" in script
         assert "return elements.model.value.trim() || defaultModel" in script
-        assert "重新转换后再复制或下载。" in script
+        assert "重新转换后再复制、下载或打包。" in script
         assert "function renderProviderRunStatus" in script
         assert "function providerStatusSummary" in script
         assert "本地回退" in script
@@ -400,6 +413,20 @@ def test_web_static_assets_include_conversion_status_ui() -> None:
         assert "浏览器未允许写入剪贴板，请手动选中结果复制。" in script
         assert "function downloadOutput" in script
         assert "downloadLabelTimer" in script
+        assert "function downloadBundle" in script
+        assert "function createZipBlob" in script
+        assert "function exportBundleFiles" in script
+        assert "function buildCrc32Table" in script
+        assert "function crc32" in script
+        assert "const crc32Table = buildCrc32Table()" in script
+        assert "state.exports = normalizeExports(result)" in script
+        assert "state.exports = null" in script
+        assert 'link.download = `${downloadBaseName()}-export.zip`' in script
+        assert 'new Blob(chunks, { type: "application/zip" })' in script
+        assert "localView.setUint16(6, 0x0800, true)" in script
+        assert "centralView.setUint16(8, 0x0800, true)" in script
+        assert "elements.bundle.addEventListener(\"click\", downloadBundle)" in script
+        assert "浏览器未能生成打包文件，请分别下载或复制结果。" in script
         assert "function downloadBaseName" in script
         assert "function safeFilenameSegment" in script
         assert 'safeTitle || "novel2script-draft"' in script
