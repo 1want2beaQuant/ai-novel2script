@@ -55,6 +55,8 @@ const elements = {
   model: document.querySelector("#modelInput"),
   validate: document.querySelector("#validateInput"),
   manuscript: document.querySelector("#manuscriptInput"),
+  chapterPreviewState: document.querySelector("#chapterPreviewState"),
+  chapterPreviewList: document.querySelector("#chapterPreviewList"),
   output: document.querySelector("#outputBox"),
   convert: document.querySelector("#convertButton"),
   sample: document.querySelector("#sampleButton"),
@@ -331,6 +333,44 @@ function renderTextList(target, items) {
   );
 }
 
+function renderChapterPreview(status, chapters, options = {}) {
+  const chapterItems = Array.isArray(chapters) ? chapters : [];
+  const limit = options.limit ?? 8;
+  elements.chapterPreviewState.textContent = status;
+  setStatusTone(elements.chapterPreviewList.parentElement, options.tone || "neutral");
+
+  if (!chapterItems.length) {
+    const item = document.createElement("li");
+    item.className = "empty";
+    item.textContent = options.emptyMessage || "尚无章节";
+    elements.chapterPreviewList.replaceChildren(item);
+    return;
+  }
+
+  const rendered = chapterItems.slice(0, limit).map((chapter, index) => {
+    const item = document.createElement("li");
+
+    const marker = document.createElement("span");
+    const chapterIndex = chapter.index ?? index + 1;
+    marker.textContent = `第 ${chapterIndex} 章`;
+
+    const title = document.createElement("strong");
+    title.textContent = chapter.title || `章节 ${chapterIndex}`;
+
+    item.append(marker, title);
+    return item;
+  });
+
+  if (chapterItems.length > limit) {
+    const overflow = document.createElement("li");
+    overflow.className = "empty";
+    overflow.textContent = `还有 ${chapterItems.length - limit} 章未显示`;
+    rendered.push(overflow);
+  }
+
+  elements.chapterPreviewList.replaceChildren(...rendered);
+}
+
 function updateInputStatus() {
   resetProviderRunStatus();
   const text = elements.manuscript.value;
@@ -356,6 +396,10 @@ function updateInputStatus() {
     elements.inputHint.textContent = "至少 3 章后开始转换。";
     setStatusTone(elements.inputSize.parentElement, "neutral");
     elements.inputSize.textContent = "0 字 / 0 章";
+    renderChapterPreview("等待输入", [], {
+      emptyMessage: "尚无章节",
+      tone: "neutral"
+    });
     syncConvertAvailability();
     updateExportStatus();
     updateConversionFreshness();
@@ -364,6 +408,10 @@ function updateInputStatus() {
 
   elements.inputHint.textContent = "正在用后端章节解析器预检。";
   setStatusTone(elements.inputSize.parentElement, "active");
+  renderChapterPreview("预检中", [], {
+    emptyMessage: "正在解析章节",
+    tone: "active"
+  });
   state.isPreviewPending = true;
   schedulePreview(text);
   syncConvertAvailability();
@@ -427,6 +475,10 @@ function showRequestSizeError() {
   )}`;
   elements.inputHint.textContent = "手稿过大，请拆分后再预检或转换。";
   setStatusTone(elements.inputSize.parentElement, "error");
+  renderChapterPreview("无法预检", [], {
+    emptyMessage: "手稿超过 Web 请求上限",
+    tone: "error"
+  });
   setConversionStatus("无法转换", "当前手稿超过 Web 请求上限。", "error");
   syncConvertAvailability();
   updateExportStatus();
@@ -441,6 +493,10 @@ function showFileImportSizeError(file) {
   )}`;
   elements.inputHint.textContent = "文件过大，未导入。请拆分后再导入或粘贴较小片段。";
   setStatusTone(elements.inputSize.parentElement, "error");
+  renderChapterPreview("无法导入", [], {
+    emptyMessage: "所选文件超过 Web 请求上限",
+    tone: "error"
+  });
   setConversionStatus("无法导入", "所选文件会超过 Web 请求上限。", "error");
   syncConvertAvailability();
   updateExportStatus();
@@ -451,6 +507,10 @@ function showFileImportReadError(file) {
   state.isPreviewReady = false;
   elements.inputHint.textContent = "文件读取失败，当前手稿已保留。请重新选择或粘贴文本。";
   setStatusTone(elements.inputSize.parentElement, "warn");
+  renderChapterPreview("读取失败", [], {
+    emptyMessage: "当前章节预检未更新",
+    tone: "warn"
+  });
   setConversionStatus("导入失败", `${file.name} 无法读取。`, "warn");
   syncConvertAvailability();
   updateExportStatus();
@@ -490,6 +550,10 @@ async function runPreview(text, requestId) {
     elements.inputSize.textContent = `${formatNumber(characterCount)} 字 / ? 章`;
     elements.inputHint.textContent = `预检失败：${message}`;
     setStatusTone(elements.inputSize.parentElement, "warn");
+    renderChapterPreview("预检失败", [], {
+      emptyMessage: message,
+      tone: "warn"
+    });
     setConversionStatus("预检失败", `${message} 请刷新页面或稍后重试。`, "warn");
     syncConvertAvailability();
   }
@@ -502,6 +566,10 @@ function renderPreview(preview) {
   state.isPreviewReady = Boolean(preview.ready);
   elements.inputSize.textContent = `${formatNumber(characterCount)} 字 / ${chapterCount} 章`;
   elements.inputHint.textContent = preview.message || "转换时会再次校验。";
+  renderChapterPreview(preview.ready ? "已通过" : "未通过", preview.chapters || [], {
+    emptyMessage: "未检测到章节",
+    tone: preview.ready ? "ready" : "warn"
+  });
 
   if (preview.ready) {
     setStatusTone(elements.inputSize.parentElement, "ready");

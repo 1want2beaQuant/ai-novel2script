@@ -72,7 +72,7 @@
         </section>
 
         <section class="panes">
-          <div class="pane">
+          <div class="pane input-pane">
             <div class="pane-head">
               <h2>原文</h2>
               <div class="button-row">
@@ -82,6 +82,13 @@
               </div>
             </div>
             <textarea id="manuscriptInput" spellcheck="false"></textarea>
+            <div class="chapter-preview" aria-label="章节预检">
+              <div class="chapter-preview-head">
+                <span>章节预检</span>
+                <strong id="chapterPreviewState">等待输入</strong>
+              </div>
+              <ol id="chapterPreviewList" class="chapter-preview-list"></ol>
+            </div>
           </div>
 
           <div class="pane result-pane">

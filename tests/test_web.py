@@ -269,6 +269,10 @@ def test_web_server_serves_static_assets_and_conversion_api() -> None:
         assert 'id="providerMode"' in body
         assert 'id="conversionState"' in body
         assert 'id="exportState"' in body
+        assert 'class="pane input-pane"' in body
+        assert 'id="chapterPreviewState"' in body
+        assert 'id="chapterPreviewList"' in body
+        assert "章节预检" in body
         assert 'id="scoresList"' in body
         assert 'id="actionItems"' in body
 
@@ -341,6 +345,12 @@ def test_web_static_assets_include_conversion_status_ui() -> None:
         assert "isPreviewReady" in script
         assert "textFingerprint(text)" in script
         assert "function showPreflightBlockedConversion" in script
+        assert "function renderChapterPreview" in script
+        assert "chapterPreviewState" in script
+        assert "chapterPreviewList" in script
+        assert "preview.chapters || []" in script
+        assert "还有 ${chapterItems.length - limit} 章未显示" in script
+        assert "正在解析章节" in script
         assert "const payload = conversionPayload()" in script
         assert "state.lastConvertedInput = payload.text" in script
         assert "updateConversionFreshness()" in script
@@ -400,6 +410,10 @@ def test_web_static_assets_include_conversion_status_ui() -> None:
         assert ".status-grid" in stylesheet
         assert ".status-card.is-warn strong" in stylesheet
         assert ".status-card.is-error strong" in stylesheet
+        assert ".input-pane" in stylesheet
+        assert ".chapter-preview" in stylesheet
+        assert ".chapter-preview-list li" in stylesheet
+        assert ".chapter-preview.is-ready .chapter-preview-head strong" in stylesheet
     finally:
         server.shutdown()
         server.server_close()
