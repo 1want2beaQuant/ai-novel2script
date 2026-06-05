@@ -189,6 +189,11 @@ def test_convert_payload_rejects_missing_text() -> None:
         raise AssertionError("Expected ValueError")
 
 
+def test_convert_payload_rejects_non_boolean_validate() -> None:
+    with pytest.raises(ValueError, match="validate must be a boolean"):
+        convert_payload({"text": MANUSCRIPT, "format": "yaml", "validate": "false"})
+
+
 def test_preview_payload_reports_authoritative_chapter_preflight() -> None:
     two_chapters = """
 第 1 章
