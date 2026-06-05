@@ -51,6 +51,25 @@ def test_module_entrypoint_reports_package_version() -> None:
     assert result.stderr == ""
 
 
+def test_cli_configures_stdout_and_stderr_as_utf8(monkeypatch: pytest.MonkeyPatch) -> None:
+    class FakeStream:
+        def __init__(self) -> None:
+            self.encodings: list[str] = []
+
+        def reconfigure(self, *, encoding: str) -> None:
+            self.encodings.append(encoding)
+
+    stdout = FakeStream()
+    stderr = FakeStream()
+    monkeypatch.setattr(cli_module.sys, "stdout", stdout)
+    monkeypatch.setattr(cli_module.sys, "stderr", stderr)
+
+    cli_module._configure_stdio()
+
+    assert stdout.encodings == ["utf-8"]
+    assert stderr.encodings == ["utf-8"]
+
+
 def test_cli_writes_validated_yaml_to_nested_output_path(tmp_path: Path) -> None:
     input_path = tmp_path / "novel.txt"
     output_path = tmp_path / "build" / "draft.yaml"

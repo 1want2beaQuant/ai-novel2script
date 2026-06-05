@@ -42,8 +42,7 @@ def build_parser() -> argparse.ArgumentParser:
 
 
 def main(argv: list[str] | None = None) -> int:
-    if hasattr(sys.stdout, "reconfigure"):
-        sys.stdout.reconfigure(encoding="utf-8")
+    _configure_stdio()
 
     parser = build_parser()
     args = parser.parse_args(argv)
@@ -83,6 +82,12 @@ def _read_input_text(input_path: Path) -> str:
     if input_path.is_dir():
         raise ValueError(f"Input path is a directory, expected a UTF-8 text file: {input_path}")
     return input_path.read_text(encoding="utf-8")
+
+
+def _configure_stdio() -> None:
+    for stream in (sys.stdout, sys.stderr):
+        if hasattr(stream, "reconfigure"):
+            stream.reconfigure(encoding="utf-8")
 
 
 def _validate_output_path(output_path: Path) -> None:
