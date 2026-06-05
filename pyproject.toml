@@ -9,8 +9,33 @@ description = "AI-assisted tool for converting multi-chapter novels into editabl
 readme = "README.md"
 requires-python = ">=3.10"
 license = "MIT"
+keywords = [
+  "novel",
+  "screenplay",
+  "scriptwriting",
+  "fountain",
+  "yaml",
+  "adaptation",
+  "creative-writing"
+]
 authors = [
   { name = "1want2beaQuant" }
+]
+classifiers = [
+  "Development Status :: 3 - Alpha",
+  "Environment :: Console",
+  "Intended Audience :: End Users/Desktop",
+  "Intended Audience :: Developers",
+  "Natural Language :: Chinese (Simplified)",
+  "Natural Language :: English",
+  "Operating System :: OS Independent",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Topic :: Artistic Software",
+  "Topic :: Text Processing",
+  "Topic :: Utilities"
 ]
 dependencies = [
   "jsonschema>=4.22.0",
