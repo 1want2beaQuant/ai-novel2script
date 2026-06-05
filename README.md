@@ -10,6 +10,7 @@
 - 输出可编辑 YAML，并提供 JSON Schema 校验。
 - 生成 `story_bible`，整理人物连续性、地点、道具/线索和待解问题。
 - 生成 `adaptation_report`，汇总章节覆盖、场景映射、结构指标、质量风险和修订清单。
+- 支持 Fountain 剧本文本导出，便于进入专业剧本编辑器继续打磨。
 - 支持 CLI 批处理，适合持续迭代剧本初稿。
 
 ## 安装
@@ -28,6 +29,12 @@ python -m novel2script.cli examples/three_chapters.txt --output outputs/fog-city
 
 ```powershell
 python -m novel2script.cli examples/three_chapters.txt --output outputs/fog-city.yaml --validate
+```
+
+需要导出剧本文本时，可以选择 Fountain：
+
+```powershell
+python -m novel2script.cli examples/three_chapters.txt --format fountain --output outputs/fog-city.fountain
 ```
 
 ## 可选 AI 增强

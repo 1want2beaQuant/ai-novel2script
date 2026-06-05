@@ -15,6 +15,7 @@
 | Celtx | 官网强调剧本编辑、制片管理、协作和前期制作流程。 | 强在制片前期管理，适合已有剧本后的生产流程；小说到剧本初稿的章节覆盖和质量检查仍可作为本项目差异化。 |
 | FinalBit / NolanAI | 官网定位为 AI screenwriting、budgeting 与 pre-production 的一体化平台。 | 强在影视生产链路整合，但公开页面重点是编剧、预算和前期制作，没有展示小说章节改编的 YAML Schema 与覆盖报告。 |
 | StudioBinder | 官网强调 script breakdown、shooting schedule、call sheet、shot list 和 storyboard 等制片管理能力。 | 强在已有剧本后的拆解和生产排期，但并不解决小说原文到剧本初稿阶段的人物、地点、道具/线索资料沉淀。 |
+| WriterDuet / Arc Studio 等剧本编辑器 | 同类剧本编辑器通常强调专业排版、多人协作、云端编辑和导入导出。 | 作者拿到 YAML 后仍需要一个能进入专业剧本编辑器的文本稿，因此结构化输出之外还需要轻量格式互操作。 |
 
 ## 发现的不足
 
@@ -23,6 +24,7 @@
 3. **缺少可机器校验的中间产物**：常见输出是富文本、编辑器文档或完整剧本，而不是可由 CI/脚本校验的 YAML。
 4. **缺少面向二次打磨的质检清单**：生成初稿后，作者仍需要知道哪里对白太少、地点不明确、场景数量不足。
 5. **缺少改编资产沉淀**：影视改编不只需要剧本文本，还需要人物连续性、地点、美术线索、关键道具和未解决问题的资料库；这类能力通常分散在小说资料库工具或制片拆解工具中。
+6. **缺少格式互操作**：结构化 YAML 适合校验和二次处理，但作者也需要可导入或复制到专业剧本工具的纯文本剧本格式。
 
 ## 已落地改进
 
@@ -43,6 +45,12 @@
 - `props`：记录道具/线索、来源章节和戏剧功能，避免关键物件在改编中丢失。
 - `open_questions`：列出作者需要继续回答的结构问题。
 
+再进一步调研剧本编辑器后，本项目新增 Fountain 导出：
+
+- 保留 YAML 作为可校验的结构化源文件。
+- 通过 `--format fountain` 输出剧本文本，包含标题、logline、场景标题、来源章节注释、动作、对白和转场。
+- 让作者可以把初稿带入专业剧本写作工具继续排版、协作和润色。
+
 ## 参考来源
 
 - Sudowrite Features: https://docs.sudowrite.com/getting-started/dQph1snuwbfMWG9wRjsNug/features/dq7YUMNy5ZMvKUJiRAisyT
@@ -52,3 +60,5 @@
 - Celtx: https://www.celtx.com/
 - FinalBit / NolanAI: https://www.finalbitai.com/
 - StudioBinder: https://www.studiobinder.com/
+- WriterDuet: https://www.writerduet.com/
+- Arc Studio: https://www.arcstudiopro.com/
