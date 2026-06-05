@@ -24,7 +24,9 @@ python -m novel2script.cli examples/three_chapters.txt --format fountain --outpu
 cmd /c fc /b schemas\script.schema.json src\novel2script\schemas\script.schema.json
 ```
 
-5. 在 PyPI 项目中配置 Trusted Publishing：
+5. 首次发布前，在 PyPI 账号的 **Publishing** 页面创建 pending publisher。`novel2script`
+   目前尚未在 PyPI 创建项目，pending publisher 会在第一次成功发布时创建项目；它不会提前保留项目名。
+   - PyPI project name：`novel2script`
    - Owner：`1want2beaQuant`
    - Repository：`ai-novel2script`
    - Workflow：`release.yml`
