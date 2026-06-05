@@ -10,7 +10,7 @@
 4. 本地执行：
 
 ```powershell
-python -m pip install -e .[dev,release,security]
+python -m pip install -e ".[dev,release,security]"
 python -m pytest
 python -m ruff check .
 python -m pip_audit --skip-editable
@@ -19,8 +19,8 @@ python -m build
 python -m twine check dist\*
 novel2script --version
 python -m novel2script --version
-python -m novel2script.cli examples/three_chapters.txt --output outputs/release-smoke.yaml --validate
-python -m novel2script.cli examples/three_chapters.txt --format fountain --output outputs/release-smoke.fountain
+python -m novel2script examples/three_chapters.txt --output outputs/release-smoke.yaml --validate
+python -m novel2script examples/three_chapters.txt --format fountain --output outputs/release-smoke.fountain
 cmd /c fc /b schemas\script.schema.json src\novel2script\schemas\script.schema.json
 ```
 

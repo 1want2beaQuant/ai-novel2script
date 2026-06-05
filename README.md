@@ -32,7 +32,7 @@ python -m pip install "novel2script[ai]"
 本地开发：
 
 ```powershell
-python -m pip install -e .[dev]
+python -m pip install -e ".[dev]"
 ```
 
 安装后可直接使用 CLI 或模块入口：
