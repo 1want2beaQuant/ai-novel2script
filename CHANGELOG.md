@@ -22,6 +22,7 @@ Initial release candidate.
 - Local Web JSON API responses use `Cache-Control: no-store` and reject malformed request lengths.
 - Local Web UI reports readable conversion and preflight errors when API responses are not valid JSON.
 - Local Web export status marks generated output stale when inputs or conversion settings change.
+- Local Web copy and download actions are disabled for stale generated output.
 - Local Web conversion and preflight APIs return 413 for oversized requests, and the browser workbench warns before sending manuscripts over the 2 MB request limit.
 - Local Web file import refuses oversized manuscripts before reading them into the workbench.
 - Local Web file import reports local read failures without replacing the current manuscript.

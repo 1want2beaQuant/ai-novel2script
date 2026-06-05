@@ -324,6 +324,8 @@ def test_web_static_assets_include_conversion_status_ui() -> None:
         assert "未确认远程发送" in script
         assert "需重新转换" in script
         assert "function currentOutputStaleReason" in script
+        assert "setOutputActions(false)" in script
+        assert "setOutputActions(true)" in script
         assert "lastFormat" in script
         assert "lastValidate" in script
         assert "输出格式已变更" in script
@@ -349,6 +351,7 @@ def test_web_static_assets_include_conversion_status_ui() -> None:
         assert "elements.file.value = \"\"" in script
         assert "function copyOutput" in script
         assert "navigator.clipboard?.writeText" in script
+        assert "const staleReason = currentOutputStaleReason()" in script
         assert "复制失败" in script
         assert "浏览器未允许写入剪贴板，请手动选中结果复制。" in script
         assert "function downloadOutput" in script
