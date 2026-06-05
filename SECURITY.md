@@ -27,3 +27,6 @@ only on trusted networks and stop the process when finished.
 The preflight and conversion APIs accept `application/json` requests only and decode UTF-8 JSON,
 including payloads with a UTF-8 BOM. Browser requests carrying an `Origin` header are rejected
 unless the origin matches the current local Web UI host.
+
+Static assets and JSON API responses include `Cache-Control: no-store`; malformed or oversized
+request bodies are rejected before conversion.

@@ -52,6 +52,8 @@ When using the Web UI:
 - if OpenAI mode falls back because no API key is configured, the provider status card shows
   `本地回退` and no remote AI service is called;
 - generated YAML or Fountain text remains in the browser until you copy or download it.
+- static assets and JSON API responses are sent with `Cache-Control: no-store` to reduce
+  browser or intermediary caching of manuscript-derived responses.
 
 Binding the Web UI to a non-loopback host requires `--allow-remote`. That can expose manuscript text,
 generated output, and provider choices to other devices on the network. Use it only on trusted networks

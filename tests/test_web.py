@@ -229,6 +229,7 @@ def test_web_server_serves_static_assets_and_conversion_api() -> None:
         assert response.status == HTTPStatus.OK
         assert response.getheader("X-Content-Type-Options") == "nosniff"
         assert response.getheader("Referrer-Policy") == "no-referrer"
+        assert response.getheader("Cache-Control") == "no-store"
         assert "default-src 'self'" in (response.getheader("Content-Security-Policy") or "")
         assert "novel2script Studio" in body
         assert 'id="fileButton"' in body
@@ -254,6 +255,7 @@ def test_web_server_serves_static_assets_and_conversion_api() -> None:
         response = connection.getresponse()
         preview = json.loads(response.read().decode("utf-8"))
         assert response.status == HTTPStatus.OK
+        assert response.getheader("Cache-Control") == "no-store"
         assert preview["ready"] is True
         assert preview["chapter_count"] == 3
         assert preview["chapters"][0]["title"] == "Chapter 1 The Locked Room"
@@ -273,6 +275,7 @@ def test_web_server_serves_static_assets_and_conversion_api() -> None:
         assert response.status == HTTPStatus.OK
         assert response.getheader("X-Content-Type-Options") == "nosniff"
         assert response.getheader("Referrer-Policy") == "no-referrer"
+        assert response.getheader("Cache-Control") == "no-store"
         assert data["format"] == "fountain"
         assert data["summary"]["scene_count"] == 3
         assert data["summary"]["chapter_coverage"]["coverage_ratio"] == 1
@@ -372,6 +375,7 @@ def test_web_server_rejects_non_json_convert_request() -> None:
         data = json.loads(response.read().decode("utf-8"))
 
         assert response.status == HTTPStatus.BAD_REQUEST
+        assert response.getheader("Cache-Control") == "no-store"
         assert data == {"error": "Request Content-Type must be application/json."}
     finally:
         server.shutdown()
@@ -399,6 +403,32 @@ def test_web_server_accepts_utf8_bom_json_payload() -> None:
 
         assert response.status == HTTPStatus.OK
         assert data["summary"]["chapter_count"] == 3
+    finally:
+        server.shutdown()
+        server.server_close()
+        thread.join(timeout=5)
+
+
+def test_web_server_rejects_invalid_content_length() -> None:
+    server = create_server(port=0)
+    thread = Thread(target=server.serve_forever, daemon=True)
+    thread.start()
+    host, port = server.server_address
+
+    try:
+        for content_length in ("not-a-number", "-1"):
+            connection = HTTPConnection(host, port, timeout=10)
+            connection.putrequest("POST", "/api/preview")
+            connection.putheader("Content-Type", "application/json")
+            connection.putheader("Content-Length", content_length)
+            connection.endheaders()
+            response = connection.getresponse()
+            data = json.loads(response.read().decode("utf-8"))
+
+            assert response.status == HTTPStatus.BAD_REQUEST
+            assert response.getheader("Cache-Control") == "no-store"
+            assert data == {"error": "Invalid request length."}
+            connection.close()
     finally:
         server.shutdown()
         server.server_close()
