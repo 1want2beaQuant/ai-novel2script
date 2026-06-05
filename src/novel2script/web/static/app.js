@@ -458,16 +458,18 @@ async function runPreview(text, requestId) {
       throw new Error(preview.error || "Preview failed.");
     }
     renderPreview(preview);
-  } catch {
+  } catch (error) {
     if (requestId !== state.previewRequestId || text !== elements.manuscript.value) {
       return;
     }
+    const message = error instanceof Error ? error.message : String(error);
     state.isPreviewPending = false;
     state.isPreviewReady = false;
     const characterCount = countCharacters(text);
     elements.inputSize.textContent = `${formatNumber(characterCount)} 字 / ? 章`;
-    elements.inputHint.textContent = "预检暂不可用，刷新页面或稍后重试。";
+    elements.inputHint.textContent = `预检失败：${message}`;
     setStatusTone(elements.inputSize.parentElement, "warn");
+    setConversionStatus("预检失败", `${message} 请刷新页面或稍后重试。`, "warn");
     syncConvertAvailability();
   }
 }

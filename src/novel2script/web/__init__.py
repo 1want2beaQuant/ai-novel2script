@@ -301,8 +301,13 @@ class Novel2ScriptWebHandler(BaseHTTPRequestHandler):
             self._send_json({"error": str(exc)}, status=HTTPStatus.BAD_REQUEST)
             return
         except Exception:
+            message = (
+                "Preview failed unexpectedly."
+                if path == "/api/preview"
+                else "Conversion failed unexpectedly."
+            )
             self._send_json(
-                {"error": "Conversion failed unexpectedly."},
+                {"error": message},
                 status=HTTPStatus.INTERNAL_SERVER_ERROR,
             )
             return
