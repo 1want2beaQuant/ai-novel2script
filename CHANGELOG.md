@@ -17,3 +17,4 @@ Initial release candidate.
 - Release workflow for tagged PyPI publishing through Trusted Publishing.
 - CI matrix for Python 3.10, 3.11, and 3.12.
 - Build, wheel smoke, release tag, and dependency security audit guards.
+- Repository governance, contribution, security, privacy, issue, and pull request documentation.

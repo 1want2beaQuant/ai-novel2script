@@ -6,7 +6,8 @@
 
 1. 确认 `main` 分支 CI 全绿。
 2. 更新 `pyproject.toml` 中的 `version`。
-3. 本地执行：
+3. 如本次发布调整了 AI provider、远程请求 payload、输出文件或 API Key 处理方式，同步更新 `PRIVACY.md`。
+4. 本地执行：
 
 ```powershell
 python -m pip install -e .[dev,release,security]
@@ -22,7 +23,7 @@ python -m novel2script.cli examples/three_chapters.txt --format fountain --outpu
 cmd /c fc /b schemas\script.schema.json src\novel2script\schemas\script.schema.json
 ```
 
-4. 在 PyPI 项目中配置 Trusted Publishing：
+5. 在 PyPI 项目中配置 Trusted Publishing：
    - Owner：`1want2beaQuant`
    - Repository：`ai-novel2script`
    - Workflow：`release.yml`

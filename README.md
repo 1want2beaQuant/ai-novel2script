@@ -58,6 +58,10 @@ python -m novel2script.cli examples/three_chapters.txt --provider openai --model
 
 如果没有配置 Key，工具会自动回退到本地启发式引擎。
 
+默认本地模式不会调用外部 AI 服务。启用 `--provider openai` 且设置 `OPENAI_API_KEY`
+后，工具会把截断后的章节摘要和本地生成的 baseline JSON 发送给 OpenAI 兼容接口；
+处理私有手稿前请先阅读 [隐私说明](PRIVACY.md)。
+
 ## 依赖与原创说明
 
 第三方依赖：
@@ -76,6 +80,7 @@ python -m novel2script.cli examples/three_chapters.txt --provider openai --model
 - [发布检查清单](docs/release_checklist.md)
 - [变更日志](CHANGELOG.md)
 - [贡献指南](CONTRIBUTING.md)
+- [隐私说明](PRIVACY.md)
 - [安全策略](SECURITY.md)
 - [JSON Schema 文件](schemas/script.schema.json)
 
