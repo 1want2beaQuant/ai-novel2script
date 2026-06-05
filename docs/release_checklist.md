@@ -9,9 +9,10 @@
 3. 本地执行：
 
 ```powershell
-python -m pip install -e .[dev,release]
+python -m pip install -e .[dev,release,security]
 python -m pytest
 python -m ruff check .
+python -m pip_audit --skip-editable
 python scripts\check_release_tag.py v0.1.0
 python -m build
 python -m twine check dist\*
