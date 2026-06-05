@@ -12,6 +12,7 @@ from typing import Any
 from urllib.parse import unquote
 import webbrowser
 
+from novel2script import __version__
 from novel2script.ai_provider import convert_with_optional_ai
 from novel2script.fountain import draft_to_fountain
 from novel2script.schema import validate_script
@@ -118,6 +119,7 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--host", default="127.0.0.1", help="Host interface to bind.")
     parser.add_argument("--port", type=int, default=8765, help="Port to listen on.")
     parser.add_argument("--no-open", action="store_true", help="Do not open a browser tab.")
+    parser.add_argument("--version", action="version", version=f"%(prog)s {__version__}")
     args = parser.parse_args(argv)
 
     serve(host=args.host, port=args.port, open_browser=not args.no_open)

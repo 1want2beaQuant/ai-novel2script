@@ -1,8 +1,13 @@
 from http import HTTPStatus
 from http.client import HTTPConnection
 import json
+import subprocess
+import sys
 from threading import Thread
 
+import pytest
+
+import novel2script
 from novel2script.web import convert_payload, create_server
 import novel2script.web as web_module
 
@@ -17,6 +22,28 @@ Jon arrived before dawn and saw fresh footprints crossing the hall.
 Chapter 3 The Last Tape
 Mara and Jon played the tape together. The hidden name finally connected every clue.
 """
+
+
+def test_web_version_option_reports_package_version(
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    with pytest.raises(SystemExit) as exc_info:
+        web_module.main(["--version"])
+
+    assert exc_info.value.code == 0
+    assert capsys.readouterr().out.strip() == f"novel2script-web {novel2script.__version__}"
+
+
+def test_web_module_entrypoint_reports_package_version() -> None:
+    result = subprocess.run(
+        [sys.executable, "-m", "novel2script.web", "--version"],
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+
+    assert result.stdout.strip() == f"novel2script-web {novel2script.__version__}"
+    assert result.stderr == ""
 
 
 def test_convert_payload_returns_output_and_summary() -> None:

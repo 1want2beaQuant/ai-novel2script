@@ -40,6 +40,11 @@ def test_release_workflow_requires_tagged_releases_and_trusted_publishing() -> N
     assert tag_check["if"] == "github.event_name == 'push'"
     assert step_runs(test_job, "python -m pip_audit --skip-editable")
     assert step_runs(test_job, "python -m pytest")
+    web_smoke = next(step for step in test_job["steps"] if step["name"] == "Smoke test Web entrypoint")
+    assert "novel2script-web --version" in web_smoke["run"]
+    assert "novel2script-web --help" in web_smoke["run"]
+    assert "python -m novel2script.web --version" in web_smoke["run"]
+    assert "python -m novel2script.web --help" in web_smoke["run"]
 
     publish_job = jobs["publish"]
     assert publish_job["needs"] == "build"
@@ -47,6 +52,23 @@ def test_release_workflow_requires_tagged_releases_and_trusted_publishing() -> N
     assert publish_job["environment"]["name"] == "pypi"
     assert publish_job["permissions"]["id-token"] == "write"
     assert step_uses(publish_job, "pypa/gh-action-pypi-publish@release/v1")
+
+
+def test_release_workflow_smokes_web_entrypoints_in_distributions() -> None:
+    workflow = load_workflow("release.yml")
+    build_job = workflow["jobs"]["build"]
+
+    wheel_smoke = next(step for step in build_job["steps"] if step["name"] == "Smoke test installed wheel")
+    assert ".venv-wheel/bin/novel2script-web --version" in wheel_smoke["run"]
+    assert ".venv-wheel/bin/novel2script-web --help" in wheel_smoke["run"]
+    assert ".venv-wheel/bin/python -m novel2script.web --version" in wheel_smoke["run"]
+    assert ".venv-wheel/bin/python -m novel2script.web --help" in wheel_smoke["run"]
+
+    sdist_smoke = next(step for step in build_job["steps"] if step["name"] == "Smoke test installed sdist")
+    assert ".venv-sdist/bin/novel2script-web --version" in sdist_smoke["run"]
+    assert ".venv-sdist/bin/novel2script-web --help" in sdist_smoke["run"]
+    assert ".venv-sdist/bin/python -m novel2script.web --version" in sdist_smoke["run"]
+    assert ".venv-sdist/bin/python -m novel2script.web --help" in sdist_smoke["run"]
 
 
 def test_release_workflow_creates_github_release_after_pypi_publish() -> None:
@@ -80,16 +102,31 @@ def test_ci_workflow_smokes_linux_distributions_and_windows_cli() -> None:
     build_job = jobs["build"]
     wheel_smoke = next(step for step in build_job["steps"] if step["name"] == "Smoke test installed wheel")
     assert ".venv-wheel/bin/novel2script --help" in wheel_smoke["run"]
+    assert ".venv-wheel/bin/novel2script-web --version" in wheel_smoke["run"]
+    assert ".venv-wheel/bin/novel2script-web --help" in wheel_smoke["run"]
     assert ".venv-wheel/bin/python -m novel2script --version" in wheel_smoke["run"]
+    assert ".venv-wheel/bin/python -m novel2script.web --version" in wheel_smoke["run"]
+    assert ".venv-wheel/bin/python -m novel2script.web --help" in wheel_smoke["run"]
 
     sdist_smoke = next(step for step in build_job["steps"] if step["name"] == "Smoke test installed sdist")
     assert ".venv-sdist/bin/novel2script --help" in sdist_smoke["run"]
+    assert ".venv-sdist/bin/novel2script-web --version" in sdist_smoke["run"]
+    assert ".venv-sdist/bin/novel2script-web --help" in sdist_smoke["run"]
     assert ".venv-sdist/bin/python -m novel2script --version" in sdist_smoke["run"]
+    assert ".venv-sdist/bin/python -m novel2script.web --version" in sdist_smoke["run"]
+    assert ".venv-sdist/bin/python -m novel2script.web --help" in sdist_smoke["run"]
 
     windows_job = jobs["windows-smoke"]
     assert windows_job["runs-on"] == "windows-latest"
     assert step_runs(windows_job, "novel2script --version")
     assert step_runs(windows_job, "python -m novel2script --version")
+    windows_web_smoke = next(
+        step for step in windows_job["steps"] if step["name"] == "Smoke test Web entrypoint"
+    )
+    assert "novel2script-web --version" in windows_web_smoke["run"]
+    assert "novel2script-web --help" in windows_web_smoke["run"]
+    assert "python -m novel2script.web --version" in windows_web_smoke["run"]
+    assert "python -m novel2script.web --help" in windows_web_smoke["run"]
     assert step_runs(
         windows_job,
         r"cmd /c fc /b schemas\script.schema.json src\novel2script\schemas\script.schema.json",

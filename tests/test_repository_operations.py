@@ -95,6 +95,8 @@ def test_documented_local_commands_are_cross_shell_safe() -> None:
         "python -m novel2script examples/three_chapters.txt "
         "--format fountain --output outputs/release-smoke.fountain"
     ) in release_checklist
+    assert "novel2script-web --version" in release_checklist
+    assert "python -m novel2script.web --version" in release_checklist
 
 
 def test_local_validation_docs_clean_stale_distribution_artifacts_before_build() -> None:
