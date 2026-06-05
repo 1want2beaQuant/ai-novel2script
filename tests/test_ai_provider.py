@@ -83,6 +83,17 @@ def test_openai_provider_uses_successful_enhancement(monkeypatch: pytest.MonkeyP
     assert "Title: AI Enhanced Title" in draft_to_fountain(draft)
 
 
+def test_openai_provider_rejects_invalid_enhancement(monkeypatch: pytest.MonkeyPatch) -> None:
+    def invalid_enhancement(*args: object, **kwargs: object) -> dict[str, object]:
+        return {"title": "Incomplete AI Draft"}
+
+    monkeypatch.setenv("OPENAI_API_KEY", "test-key")
+    monkeypatch.setattr(ai_provider, "_enhance_with_openai", invalid_enhancement)
+
+    with pytest.raises(ValueError, match="<root>"):
+        convert_with_optional_ai(SAMPLE, title="雾城来信", provider="openai", model="test")
+
+
 def test_openai_provider_wraps_sdk_failures(monkeypatch: pytest.MonkeyPatch) -> None:
     def fail_enhancement(*args: object, **kwargs: object) -> dict[str, object]:
         raise RuntimeError("upstream unavailable")
