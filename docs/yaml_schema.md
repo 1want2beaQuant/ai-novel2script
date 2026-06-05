@@ -5,7 +5,7 @@
 ## 顶层结构
 
 ```yaml
-schema_version: 1.1.0
+schema_version: 1.2.0
 title: 雾城来信
 language: zh-CN
 generated_at: 2026-06-05T00:00:00+00:00
@@ -28,6 +28,24 @@ acts:
     title: 开端
     purpose: 建立人物、目标与改编世界。
     scenes: []
+story_bible:
+  characters:
+    - name: 林晚
+      role: protagonist
+      first_seen_scene: S001
+      continuity_note: 复核林晚在各章节中的目标、关系和称呼是否一致。
+  locations:
+    - name: 书房
+      scene_ids:
+        - S001
+      note: 可作为场景调度和美术设定线索。
+  props:
+    - name: 信
+      source_chapters:
+        - 1
+      dramatic_function: 承载线索、关系或转折，需要在后续剧本中保持出现和回收。
+  open_questions:
+    - 主角在每一幕的外在目标和内在需求是否已经明确？
 adaptation_report:
   chapter_coverage:
     total_chapters: 3
@@ -66,6 +84,7 @@ revision_notes:
 | `themes` | string[] | 主题标签，用于后续润色和检索。 |
 | `characters` | object[] | 人物表，描述角色功能及首次出现场景。 |
 | `acts` | object[] | 幕结构，每幕包含多个场景。 |
+| `story_bible` | object | 改编资料库，整理人物连续性、地点、道具/线索和待解问题。 |
 | `adaptation_report` | object | 改编质检报告，说明章节覆盖、场景映射、结构指标、质量风险和修订清单。 |
 | `revision_notes` | string[] | 自动改编后的修订提醒。 |
 
@@ -105,6 +124,15 @@ revision_notes:
 - `quality_flags` 给出自动发现的结构风险，例如对白过少或地点待定。
 - `revision_checklist` 给出下一轮人工打磨建议。
 
+## 改编资料库结构
+
+`story_bible` 用于把剧本初稿沉淀成可继续开发的资料库：
+
+- `characters` 记录人物名称、角色功能、首次出现场景和连续性复核提示。
+- `locations` 记录场景地点、关联场景 ID 和美术/调度提示。
+- `props` 记录道具或线索、来源章节和戏剧功能，避免关键线索丢失。
+- `open_questions` 汇总需要作者继续回答的改编问题。
+
 ## 设计原因
 
 1. **面向编辑而不是终稿排版**：YAML 比传统剧本排版更容易被作者、编辑器和 AI 工具继续修改，因此 Schema 保留结构化字段，而不是直接生成固定版式。
@@ -112,4 +140,5 @@ revision_notes:
 3. **兼顾编剧工作流**：`acts -> scenes -> blocks` 对应从宏观结构到场景执行的常见剧本工作方式，便于逐层修改。
 4. **允许 AI 与人工协作**：`summary`、`beats`、`revision_notes` 明确标记 AI 生成的中间判断，作者可以选择接受、删除或重写。
 5. **补足改编质检**：`adaptation_report` 让作者知道哪些章节已经被改成场景、哪里还缺对白或具体地点，避免只拿到一个不可追溯的 AI 初稿。
-6. **便于程序校验**：字段采用稳定 ID、枚举类型和最小长度约束，可在 CLI 或 CI 中自动检查，避免生成半结构化、难以复用的 YAML。
+6. **沉淀改编资产**：`story_bible` 把人物、地点、道具和未解决问题独立出来，便于作者后续扩写、统一设定或进入制片拆解。
+7. **便于程序校验**：字段采用稳定 ID、枚举类型和最小长度约束，可在 CLI 或 CI 中自动检查，避免生成半结构化、难以复用的 YAML。

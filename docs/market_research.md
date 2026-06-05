@@ -14,6 +14,7 @@
 | Final Draft | 官方功能页强调专业剧本格式、Beat Board、Outline Editor 和 Structure Lines。 | 强在专业剧本写作、排版和大纲，不是小说改编工具，缺少从小说原文自动生成可追溯 YAML 的工作流。 |
 | Celtx | 官网强调剧本编辑、制片管理、协作和前期制作流程。 | 强在制片前期管理，适合已有剧本后的生产流程；小说到剧本初稿的章节覆盖和质量检查仍可作为本项目差异化。 |
 | FinalBit / NolanAI | 官网定位为 AI screenwriting、budgeting 与 pre-production 的一体化平台。 | 强在影视生产链路整合，但公开页面重点是编剧、预算和前期制作，没有展示小说章节改编的 YAML Schema 与覆盖报告。 |
+| StudioBinder | 官网强调 script breakdown、shooting schedule、call sheet、shot list 和 storyboard 等制片管理能力。 | 强在已有剧本后的拆解和生产排期，但并不解决小说原文到剧本初稿阶段的人物、地点、道具/线索资料沉淀。 |
 
 ## 发现的不足
 
@@ -21,6 +22,7 @@
 2. **缺少改编覆盖率**：作者很难判断 AI 是否漏掉某章、某条关键线索或某个转折。
 3. **缺少可机器校验的中间产物**：常见输出是富文本、编辑器文档或完整剧本，而不是可由 CI/脚本校验的 YAML。
 4. **缺少面向二次打磨的质检清单**：生成初稿后，作者仍需要知道哪里对白太少、地点不明确、场景数量不足。
+5. **缺少改编资产沉淀**：影视改编不只需要剧本文本，还需要人物连续性、地点、美术线索、关键道具和未解决问题的资料库；这类能力通常分散在小说资料库工具或制片拆解工具中。
 
 ## 已落地改进
 
@@ -34,6 +36,13 @@
 
 该改进让工具从“生成一个剧本初稿”升级为“生成一个可追溯、可校验、可继续打磨的改编包”。
 
+进一步调研后，本项目新增 `story_bible` 字段，补充可复用的改编资料库：
+
+- `characters`：记录角色功能、首次出现场景和连续性复核提示。
+- `locations`：记录地点和关联场景，帮助后续美术设定和场景调度。
+- `props`：记录道具/线索、来源章节和戏剧功能，避免关键物件在改编中丢失。
+- `open_questions`：列出作者需要继续回答的结构问题。
+
 ## 参考来源
 
 - Sudowrite Features: https://docs.sudowrite.com/getting-started/dQph1snuwbfMWG9wRjsNug/features/dq7YUMNy5ZMvKUJiRAisyT
@@ -42,3 +51,4 @@
 - Final Draft Features: https://www.finaldraft.com/products/features/
 - Celtx: https://www.celtx.com/
 - FinalBit / NolanAI: https://www.finalbitai.com/
+- StudioBinder: https://www.studiobinder.com/

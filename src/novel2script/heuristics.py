@@ -50,10 +50,12 @@ def build_script_from_chapters(chapters: list[Chapter], title: str | None = None
         themes=_infer_themes(chapters),
         characters=characters,
         acts=acts,
+        story_bible=_build_story_bible(chapters, scenes, characters),
         adaptation_report=_build_adaptation_report(chapters, scenes),
         revision_notes=[
             "本稿由本地启发式改编引擎生成，建议作者重点复核人物动机和对白语气。",
             "每个场景保留 source_chapter，便于回到原小说章节继续打磨。",
+            "story_bible 汇总人物、地点、道具/线索和待解问题，可作为后续改编资料库。",
             "adaptation_report 汇总章节覆盖、场景映射和质量风险，可作为下一轮修订清单。",
         ],
     )
@@ -169,6 +171,70 @@ def _build_logline(title: str, scenes: list[Scene], character_names: list[str]) 
     first_goal = scenes[0].summary if scenes else "面对新的命运转折"
     last_turn = scenes[-1].summary if scenes else "完成关键选择"
     return f"《{title}》讲述{lead}在{first_goal}后，被迫面对{last_turn}的故事。"
+
+
+def _build_story_bible(
+    chapters: list[Chapter],
+    scenes: list[Scene],
+    characters: list[Character],
+) -> dict[str, object]:
+    return {
+        "characters": [
+            {
+                "name": character.name,
+                "role": character.role,
+                "first_seen_scene": character.first_seen_scene,
+                "continuity_note": f"复核{character.name}在各章节中的目标、关系和称呼是否一致。",
+            }
+            for character in characters
+        ],
+        "locations": _story_locations(scenes),
+        "props": _story_props(chapters),
+        "open_questions": _story_open_questions(chapters, scenes),
+    }
+
+
+def _story_locations(scenes: list[Scene]) -> list[dict[str, object]]:
+    locations: dict[str, list[str]] = {}
+    for scene in scenes:
+        locations.setdefault(scene.location, []).append(scene.id)
+    return [
+        {
+            "name": location,
+            "scene_ids": scene_ids,
+            "note": "待补充空间特征和可拍摄视觉元素。" if location == "待定场景" else "可作为场景调度和美术设定线索。",
+        }
+        for location, scene_ids in locations.items()
+    ]
+
+
+def _story_props(chapters: list[Chapter]) -> list[dict[str, object]]:
+    prop_keywords = ("信", "照片", "录音笔", "钥匙", "钟", "线索", "日记", "戒指", "地图", "刀")
+    props: dict[str, set[int]] = {}
+    for chapter in chapters:
+        for keyword in prop_keywords:
+            if keyword in chapter.body:
+                props.setdefault(keyword, set()).add(chapter.index)
+    return [
+        {
+            "name": name,
+            "source_chapters": sorted(chapter_indexes),
+            "dramatic_function": "承载线索、关系或转折，需要在后续剧本中保持出现和回收。",
+        }
+        for name, chapter_indexes in props.items()
+    ]
+
+
+def _story_open_questions(chapters: list[Chapter], scenes: list[Scene]) -> list[str]:
+    questions = [
+        "主角在每一幕的外在目标和内在需求是否已经明确？",
+        "关键道具或线索是否在结尾前完成回收？",
+    ]
+    if any(scene.location == "待定场景" for scene in scenes):
+        questions.append("仍为待定的场景地点是否会影响视觉化改写？")
+    if not any("真相" in chapter.body or "秘密" in chapter.body for chapter in chapters):
+        questions.append("故事核心秘密或最终真相是否需要在剧本版中显性化？")
+    return questions
 
 
 def _build_adaptation_report(chapters: list[Chapter], scenes: list[Scene]) -> dict[str, object]:
