@@ -122,3 +122,31 @@ def test_cli_reports_conversion_errors(
     assert captured.out == ""
     assert "novel2script: error:" in captured.err
     assert "至少需要 3 个包含正文的章节" in captured.err
+
+
+def test_cli_reports_missing_input_file(
+    tmp_path: Path,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    input_path = tmp_path / "missing.txt"
+
+    exit_code = main([str(input_path)])
+
+    assert exit_code == 1
+    captured = capsys.readouterr()
+    assert captured.out == ""
+    assert "novel2script: error: Input file does not exist:" in captured.err
+    assert str(input_path) in captured.err
+
+
+def test_cli_reports_directory_input(
+    tmp_path: Path,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    exit_code = main([str(tmp_path)])
+
+    assert exit_code == 1
+    captured = capsys.readouterr()
+    assert captured.out == ""
+    assert "novel2script: error: Input path is a directory" in captured.err
+    assert str(tmp_path) in captured.err

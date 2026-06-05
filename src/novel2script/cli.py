@@ -49,7 +49,7 @@ def main(argv: list[str] | None = None) -> int:
     args = parser.parse_args(argv)
 
     try:
-        text = args.input.read_text(encoding="utf-8")
+        text = _read_input_text(args.input)
         draft = convert_with_optional_ai(
             text=text,
             title=args.title,
@@ -72,6 +72,14 @@ def main(argv: list[str] | None = None) -> int:
     except (OSError, ValueError, yaml.YAMLError) as exc:
         sys.stderr.write(f"novel2script: error: {exc}\n")
         return 1
+
+
+def _read_input_text(input_path: Path) -> str:
+    if not input_path.exists():
+        raise ValueError(f"Input file does not exist: {input_path}")
+    if input_path.is_dir():
+        raise ValueError(f"Input path is a directory, expected a UTF-8 text file: {input_path}")
+    return input_path.read_text(encoding="utf-8")
 
 
 if __name__ == "__main__":
