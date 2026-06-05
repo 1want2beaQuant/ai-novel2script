@@ -46,6 +46,8 @@ novel2script path\to\novel.txt --output outputs\script.yaml --validate
 
 ## 使用
 
+输入文件需要是 UTF-8 文本。
+
 ```powershell
 novel2script path\to\novel.txt --output outputs\script.yaml
 ```

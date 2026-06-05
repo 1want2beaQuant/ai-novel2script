@@ -191,6 +191,22 @@ def test_cli_reports_directory_input(
     assert str(tmp_path) in captured.err
 
 
+def test_cli_reports_non_utf8_input_file(
+    tmp_path: Path,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    input_path = tmp_path / "latin1.txt"
+    input_path.write_bytes("caf\xe9".encode("latin-1"))
+
+    exit_code = main([str(input_path)])
+
+    assert exit_code == 1
+    captured = capsys.readouterr()
+    assert captured.out == ""
+    assert "novel2script: error: Input file must be UTF-8 text:" in captured.err
+    assert str(input_path) in captured.err
+
+
 def test_cli_reports_directory_yaml_output(
     tmp_path: Path,
     capsys: pytest.CaptureFixture[str],

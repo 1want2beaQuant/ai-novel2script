@@ -84,7 +84,10 @@ def _read_input_text(input_path: Path) -> str:
         raise ValueError(f"Input file does not exist: {input_path}")
     if input_path.is_dir():
         raise ValueError(f"Input path is a directory, expected a UTF-8 text file: {input_path}")
-    return input_path.read_text(encoding="utf-8")
+    try:
+        return input_path.read_text(encoding="utf-8")
+    except UnicodeDecodeError as exc:
+        raise ValueError(f"Input file must be UTF-8 text: {input_path}") from exc
 
 
 def _configure_stdio() -> None:
