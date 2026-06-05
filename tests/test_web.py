@@ -1,6 +1,7 @@
 from http import HTTPStatus
 from http.client import HTTPConnection
 import json
+import shutil
 import subprocess
 import sys
 from threading import Thread
@@ -303,7 +304,12 @@ def test_web_static_assets_include_conversion_status_ui() -> None:
         assert "function remoteConfirmationKey" in script
         assert "function textFingerprint" in script
         assert "openAiConfirmedFor" in script
+        assert "isPreviewPending" in script
+        assert "isPreviewReady" in script
         assert "textFingerprint(text)" in script
+        assert "function showPreflightBlockedConversion" in script
+        assert "至少需要 3 章通过预检后才能转换。" in script
+        assert "state.isPreviewPending || !state.isPreviewReady" in script
         assert "未确认远程发送" in script
         assert "需重新转换" in script
         assert "转换前会按当前手稿、片名和模型确认远程发送。" in script
@@ -331,6 +337,21 @@ def test_web_static_assets_include_conversion_status_ui() -> None:
         server.shutdown()
         server.server_close()
         thread.join(timeout=5)
+
+
+def test_web_static_javascript_is_parseable() -> None:
+    node = shutil.which("node")
+    if node is None:
+        pytest.skip("Node.js is not available for static JavaScript syntax checks.")
+
+    result = subprocess.run(
+        [node, "--check", "src/novel2script/web/static/app.js"],
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+
+    assert result.returncode == 0, result.stderr
 
 
 def test_web_server_rejects_non_json_convert_request() -> None:

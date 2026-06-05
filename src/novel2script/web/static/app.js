@@ -18,6 +18,8 @@ const state = {
   previewLabelTimer: 0,
   previewRequestId: 0,
   previewInput: "",
+  isPreviewPending: false,
+  isPreviewReady: false,
   openAiConfirmedFor: "",
   lastConvertedInput: "",
   lastTitle: "",
@@ -105,6 +107,11 @@ async function convertManuscript() {
   if (isCurrentRequestTooLarge()) {
     showRequestSizeError();
     syncConvertAvailability();
+    return;
+  }
+
+  if (!state.isPreviewReady) {
+    showPreflightBlockedConversion();
     return;
   }
 
@@ -320,12 +327,15 @@ function renderTextList(target, items) {
 
 function updateInputStatus() {
   resetProviderRunStatus();
-  syncConvertAvailability();
   const text = elements.manuscript.value;
   const characterCount = countCharacters(text);
   elements.inputSize.textContent = `${formatNumber(characterCount)} 字 / 预检中`;
 
   clearTimeout(state.previewLabelTimer);
+  state.isPreviewPending = false;
+  state.isPreviewReady = false;
+  syncConvertAvailability();
+
   if (isCurrentRequestTooLarge()) {
     state.previewInput = "";
     state.previewRequestId += 1;
@@ -346,6 +356,7 @@ function updateInputStatus() {
 
   elements.inputHint.textContent = "正在用后端章节解析器预检。";
   setStatusTone(elements.inputSize.parentElement, "active");
+  state.isPreviewPending = true;
   schedulePreview(text);
   syncConvertAvailability();
   updateConversionFreshness();
@@ -354,6 +365,9 @@ function updateInputStatus() {
 function schedulePreview(text) {
   const requestId = ++state.previewRequestId;
   state.previewInput = text;
+  state.isPreviewPending = true;
+  state.isPreviewReady = false;
+  syncConvertAvailability();
   clearTimeout(state.previewLabelTimer);
   state.previewLabelTimer = window.setTimeout(() => {
     void runPreview(text, requestId);
@@ -387,6 +401,8 @@ function requestByteLength(payload) {
 }
 
 function showRequestSizeError() {
+  state.isPreviewPending = false;
+  state.isPreviewReady = false;
   const requestSize = currentRequestByteLength();
   elements.inputSize.textContent = `${formatFileSize(requestSize)} / 上限 ${formatFileSize(
     maxRequestBytes
@@ -394,6 +410,15 @@ function showRequestSizeError() {
   elements.inputHint.textContent = "手稿过大，请拆分后再预检或转换。";
   setStatusTone(elements.inputSize.parentElement, "error");
   setConversionStatus("无法转换", "当前手稿超过 Web 请求上限。", "error");
+  syncConvertAvailability();
+}
+
+function showPreflightBlockedConversion() {
+  const detail = state.isPreviewPending
+    ? "等待章节预检完成后再转换。"
+    : "至少需要 3 章通过预检后才能转换。";
+  setConversionStatus("无法转换", detail, "warn");
+  syncConvertAvailability();
 }
 
 async function runPreview(text, requestId) {
@@ -415,16 +440,21 @@ async function runPreview(text, requestId) {
     if (requestId !== state.previewRequestId || text !== elements.manuscript.value) {
       return;
     }
+    state.isPreviewPending = false;
+    state.isPreviewReady = false;
     const characterCount = countCharacters(text);
     elements.inputSize.textContent = `${formatNumber(characterCount)} 字 / ? 章`;
-    elements.inputHint.textContent = "预检暂不可用，转换时会再次校验。";
+    elements.inputHint.textContent = "预检暂不可用，刷新页面或稍后重试。";
     setStatusTone(elements.inputSize.parentElement, "warn");
+    syncConvertAvailability();
   }
 }
 
 function renderPreview(preview) {
   const characterCount = Number(preview.character_count || 0);
   const chapterCount = Number(preview.chapter_count || 0);
+  state.isPreviewPending = false;
+  state.isPreviewReady = Boolean(preview.ready);
   elements.inputSize.textContent = `${formatNumber(characterCount)} 字 / ${chapterCount} 章`;
   elements.inputHint.textContent = preview.message || "转换时会再次校验。";
 
@@ -435,6 +465,7 @@ function renderPreview(preview) {
   } else {
     setStatusTone(elements.inputSize.parentElement, "neutral");
   }
+  syncConvertAvailability();
 }
 
 function updateProviderStatus() {
@@ -710,7 +741,8 @@ function setWorking(isWorking) {
 }
 
 function syncConvertAvailability() {
-  elements.convert.disabled = state.isWorking || isCurrentRequestTooLarge();
+  elements.convert.disabled =
+    state.isWorking || state.isPreviewPending || !state.isPreviewReady || isCurrentRequestTooLarge();
 }
 
 function setOutputActions(isEnabled) {
@@ -728,16 +760,27 @@ elements.fileButton.addEventListener("click", () => {
 elements.file.addEventListener("change", loadFile);
 elements.title.addEventListener("input", () => {
   resetProviderRunStatus();
+  syncConvertAvailability();
   updateConversionFreshness();
 });
 elements.manuscript.addEventListener("input", updateInputStatus);
-elements.provider.addEventListener("change", updateProviderStatus);
+elements.provider.addEventListener("change", () => {
+  syncConvertAvailability();
+  updateProviderStatus();
+});
 elements.model.addEventListener("input", () => {
   resetProviderRunStatus();
+  syncConvertAvailability();
   updateConversionFreshness();
 });
-elements.format.addEventListener("change", updateExportStatus);
-elements.validate.addEventListener("change", updateExportStatus);
+elements.format.addEventListener("change", () => {
+  syncConvertAvailability();
+  updateExportStatus();
+});
+elements.validate.addEventListener("change", () => {
+  syncConvertAvailability();
+  updateExportStatus();
+});
 elements.convert.addEventListener("click", convertManuscript);
 elements.copy.addEventListener("click", copyOutput);
 elements.download.addEventListener("click", downloadOutput);
