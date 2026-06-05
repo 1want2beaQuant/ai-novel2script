@@ -97,14 +97,16 @@ def test_documented_local_commands_are_cross_shell_safe() -> None:
     ) in release_checklist
 
 
-def test_release_checklist_cleans_stale_distribution_artifacts_before_build() -> None:
+def test_local_validation_docs_clean_stale_distribution_artifacts_before_build() -> None:
+    contributing = (ROOT / "CONTRIBUTING.md").read_text(encoding="utf-8")
     release_checklist = (ROOT / "docs" / "release_checklist.md").read_text(
         encoding="utf-8"
     )
 
     cleanup = "Remove-Item -LiteralPath dist -Recurse -Force -ErrorAction SilentlyContinue"
-    assert cleanup in release_checklist
-    assert release_checklist.index(cleanup) < release_checklist.index("python -m build")
+    for document in (contributing, release_checklist):
+        assert cleanup in document
+        assert document.index(cleanup) < document.index("python -m build")
 
 
 def test_readme_local_links_point_to_existing_files() -> None:

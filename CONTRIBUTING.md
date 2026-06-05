@@ -17,6 +17,7 @@ python -m pytest
 python -m ruff check .
 python -m pip_audit --skip-editable
 python scripts\check_release_tag.py v0.1.0
+Remove-Item -LiteralPath dist -Recurse -Force -ErrorAction SilentlyContinue
 python -m build
 python -m twine check dist\*
 python -m novel2script --version
