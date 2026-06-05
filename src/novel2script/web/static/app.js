@@ -63,6 +63,7 @@ const elements = {
   output: document.querySelector("#outputBox"),
   convert: document.querySelector("#convertButton"),
   sample: document.querySelector("#sampleButton"),
+  clear: document.querySelector("#clearButton"),
   file: document.querySelector("#fileInput"),
   fileButton: document.querySelector("#fileButton"),
   copy: document.querySelector("#copyButton"),
@@ -1040,6 +1041,44 @@ function outputExtension(selection) {
   return "yaml";
 }
 
+function clearWorkbench() {
+  clearTimeout(state.previewLabelTimer);
+  clearTimeout(state.copyLabelTimer);
+  clearTimeout(state.downloadLabelTimer);
+  clearTimeout(state.bundleLabelTimer);
+  state.output = "";
+  state.exports = null;
+  state.selectedOutput = elements.format.value === "fountain" ? "fountain" : "yaml";
+  state.previewRequestId += 1;
+  state.previewInput = "";
+  state.isPreviewPending = false;
+  state.isPreviewReady = false;
+  state.openAiConfirmedFor = "";
+  state.lastConvertedInput = "";
+  state.lastTitle = "";
+  state.lastValidate = elements.validate.checked;
+  state.lastProvider = elements.provider.value;
+  state.lastModel = normalizedModel();
+  state.lastProviderStatus = null;
+  state.lastSummary = null;
+  state.lastDurationMs = 0;
+
+  elements.manuscript.value = "";
+  elements.title.value = "";
+  elements.file.value = "";
+  elements.output.classList.remove("is-error");
+  elements.output.textContent = "转换结果会显示在这里。";
+  elements.copy.textContent = "复制";
+  elements.download.textContent = "下载";
+  elements.bundle.textContent = "打包";
+  renderSummary(null);
+  renderProviderSelectionStatus();
+  renderOutputTabs();
+  updateInputStatus();
+  setConversionStatus("待转换", "工作台已清空，等待手稿输入。", "neutral");
+  updateExportStatus();
+}
+
 function downloadBundle() {
   if (!state.output || !state.exports) {
     return;
@@ -1176,6 +1215,7 @@ function setWorking(isWorking) {
   elements.convert.textContent = isWorking ? "转换中" : "转换";
   elements.fileButton.disabled = isWorking;
   elements.sample.disabled = isWorking;
+  elements.clear.disabled = isWorking;
 }
 
 function syncConvertAvailability() {
@@ -1196,6 +1236,7 @@ elements.sample.addEventListener("click", () => {
   elements.manuscript.value = sampleText;
   updateInputStatus();
 });
+elements.clear.addEventListener("click", clearWorkbench);
 elements.fileButton.addEventListener("click", () => {
   elements.file.click();
 });
