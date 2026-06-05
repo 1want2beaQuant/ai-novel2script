@@ -36,6 +36,7 @@ Initial release candidate.
 - Local Web file import resets the picker after a successful import so the same file can be selected again.
 - Local Web downloads use the screenplay title when naming exported YAML or Fountain files.
 - Local Web workbench can package YAML, Fountain, draft JSON, and summary JSON exports into one browser-generated zip.
+- Local Web result pane can switch between YAML, Fountain, draft JSON, and summary JSON views without rerunning conversion.
 - Local Web download action reports browser download failures and recovers its button label.
 - Installed Web server smoke validation covers health, static app assets, and preview parsing in CI and release distribution checks.
 - Flexible chapter heading detection for Chinese prologue/epilogue headings and English word, Roman numeral, and abbreviated chapter headings.

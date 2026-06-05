@@ -282,6 +282,11 @@ def test_web_server_serves_static_assets_and_conversion_api() -> None:
         assert "章节预检" in body
         assert 'id="bundleButton"' in body
         assert "打包下载所有导出文件" in body
+        assert 'class="output-tabs"' in body
+        assert 'data-output-format="yaml"' in body
+        assert 'data-output-format="fountain"' in body
+        assert 'data-output-format="draftJson"' in body
+        assert 'data-output-format="summaryJson"' in body
         assert 'id="scoresList"' in body
         assert 'id="actionItems"' in body
 
@@ -378,9 +383,7 @@ def test_web_static_assets_include_conversion_status_ui() -> None:
         assert "setOutputActions(true)" in script
         assert "elements.bundle.disabled = !isEnabled" in script
         assert "model: normalizedModel()" in script
-        assert "lastFormat" in script
         assert "lastValidate" in script
-        assert "输出格式已变更" in script
         assert "当前导出可能不是最新" in script
         assert "Schema 校验设置已变更" in script
         assert "Schema 校验设置已变更，当前导出仍使用旧设置。" in script
@@ -413,6 +416,21 @@ def test_web_static_assets_include_conversion_status_ui() -> None:
         assert "浏览器未允许写入剪贴板，请手动选中结果复制。" in script
         assert "function downloadOutput" in script
         assert "downloadLabelTimer" in script
+        assert "selectedOutput" in script
+        assert "function selectedOutputLabel" in script
+        assert "function outputForSelection" in script
+        assert "function selectOutput" in script
+        assert "function renderOutputTabs" in script
+        assert "function outputExtension" in script
+        assert "data-output-format" in script
+        assert "button.dataset.outputFormat" in script
+        assert "state.selectedOutput = result.format === \"fountain\" ? \"fountain\" : \"yaml\"" in script
+        assert "state.output = outputForSelection(state.selectedOutput)" in script
+        assert "selectOutput(selection)" in script
+        assert "draftJson" in script
+        assert "summaryJson" in script
+        assert 'return "draft.json"' in script
+        assert 'return "summary.json"' in script
         assert "function downloadBundle" in script
         assert "function createZipBlob" in script
         assert "function exportBundleFiles" in script
@@ -455,6 +473,8 @@ def test_web_static_assets_include_conversion_status_ui() -> None:
         assert ".chapter-preview" in stylesheet
         assert ".chapter-preview-list li" in stylesheet
         assert ".chapter-preview.is-ready .chapter-preview-head strong" in stylesheet
+        assert ".output-tabs" in stylesheet
+        assert ".output-tabs button.is-selected" in stylesheet
     finally:
         server.shutdown()
         server.server_close()
