@@ -24,6 +24,7 @@ Initial release candidate.
 - Local Web workbench preflights chapter detection through the backend parser before conversion.
 - Local Web OpenAI mode asks for confirmation before starting a remote conversion.
 - Local Web OpenAI confirmation is scoped to the current manuscript, title, and model, and model changes mark converted output stale.
+- CLI and Web conversions report the actual provider used, including local fallback when OpenAI is requested without `OPENAI_API_KEY`.
 - Structured `structure_map`, `story_bible`, `adaptation_report`, and `coverage_report` sections.
 - Optional OpenAI-compatible enhancement through the `novel2script[ai]` extra.
 - OpenAI-compatible enhancement responses are parsed as JSON objects, tolerate fenced JSON blocks, and are validated against the bundled schema before use.

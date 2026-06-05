@@ -14,7 +14,7 @@ from urllib.parse import unquote, urlsplit
 import webbrowser
 
 from novel2script import __version__
-from novel2script.ai_provider import convert_with_optional_ai
+from novel2script.ai_provider import convert_with_provider_status
 from novel2script.chapter_parser import parse_chapter_candidates
 from novel2script.fountain import draft_to_fountain
 from novel2script.schema import validate_script
@@ -46,12 +46,13 @@ def convert_payload(payload: dict[str, Any]) -> dict[str, Any]:
     if not isinstance(model, str) or not model.strip():
         raise ValueError("Model must be a non-empty string.")
 
-    draft = convert_with_optional_ai(
+    conversion = convert_with_provider_status(
         text=text,
         title=title,
         provider=provider,
         model=model.strip(),
     )
+    draft = conversion.draft
     data = draft.to_dict()
     if bool(payload.get("validate", True)):
         validate_script(data)
@@ -62,6 +63,7 @@ def convert_payload(payload: dict[str, Any]) -> dict[str, Any]:
         "output": output,
         "summary": summarize_script(data),
         "draft": data,
+        "provider_status": conversion.provider_status.to_dict(),
     }
 
 

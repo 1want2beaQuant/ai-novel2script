@@ -99,6 +99,14 @@ def test_convert_payload_returns_output_and_summary() -> None:
 
     assert result["format"] == "yaml"
     assert "title: The Locked Room" in result["output"]
+    assert result["provider_status"] == {
+        "requested": "local",
+        "actual": "local",
+        "model": "gpt-4.1-mini",
+        "remote": False,
+        "reason": "local_selected",
+        "message": "Used the local heuristic provider.",
+    }
     assert result["summary"]["title"] == "The Locked Room"
     assert result["summary"]["chapter_count"] == 3
     assert result["summary"]["scene_count"] == 3
@@ -135,6 +143,32 @@ def test_convert_payload_supports_fountain_output() -> None:
     assert result["format"] == "fountain"
     assert "Title: The Locked Room" in result["output"]
     assert "// source_chapter: 3" in result["output"]
+
+
+def test_convert_payload_reports_openai_local_fallback(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.delenv("OPENAI_API_KEY", raising=False)
+
+    result = convert_payload(
+        {
+            "text": MANUSCRIPT,
+            "title": "The Locked Room",
+            "format": "yaml",
+            "provider": "openai",
+            "model": "gpt-test",
+        }
+    )
+
+    assert result["provider_status"] == {
+        "requested": "openai",
+        "actual": "local",
+        "model": "gpt-test",
+        "remote": False,
+        "reason": "missing_api_key",
+        "message": "OPENAI_API_KEY is not set; used the local heuristic provider.",
+    }
+    assert result["summary"]["title"] == "The Locked Room"
 
 
 def test_convert_payload_rejects_missing_text() -> None:
@@ -266,6 +300,10 @@ def test_web_static_assets_include_conversion_status_ui() -> None:
         assert "需重新转换" in script
         assert "转换前会按当前手稿、片名和模型确认远程发送。" in script
         assert "OpenAI 模型已变更" in script
+        assert "function renderProviderRunStatus" in script
+        assert "function providerStatusSummary" in script
+        assert "本地回退" in script
+        assert "OPENAI_API_KEY 未设置，实际使用本地转换。" in script
         assert "conversionSummary" in script
 
         connection.request("GET", "/app.css")
