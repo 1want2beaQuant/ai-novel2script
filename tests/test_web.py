@@ -332,6 +332,7 @@ def test_web_static_assets_include_conversion_status_ui() -> None:
         connection.request("GET", "/app.js")
         response = connection.getresponse()
         script = response.read().decode("utf-8")
+        normalized_script = script.replace("\r\n", "\n")
 
         assert response.status == HTTPStatus.OK
         assert 'fetch("/api/preview"' in script
@@ -387,6 +388,10 @@ def test_web_static_assets_include_conversion_status_ui() -> None:
         assert "文件读取失败，当前手稿已保留" in script
         assert "setConversionStatus(\"导入失败\"" in script
         assert "elements.file.value = \"\"" in script
+        assert (
+            'elements.manuscript.value = text;\n  elements.file.value = "";\n  if (!elements.title.value)'
+            in normalized_script
+        )
         assert "function copyOutput" in script
         assert "navigator.clipboard?.writeText" in script
         assert "const staleReason = currentOutputStaleReason()" in script

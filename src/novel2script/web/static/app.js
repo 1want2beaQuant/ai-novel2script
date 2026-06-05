@@ -882,6 +882,7 @@ async function loadFile() {
     return;
   }
   elements.manuscript.value = text;
+  elements.file.value = "";
   if (!elements.title.value) {
     elements.title.value = file.name.replace(/\.[^.]+$/, "");
   }
