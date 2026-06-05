@@ -130,6 +130,11 @@ def test_local_web_workbench_is_documented_for_release() -> None:
     assert "结构节拍" in readme
     assert "优先修订动作" in readme
     assert "实际处理方式" in readme
+    assert "Draft JSON" in readme
+    assert "Summary JSON" in readme
+    assert "结果区可在 YAML、Fountain、Draft JSON 和 Summary JSON 之间切换" in readme
+    assert "打包下载会生成包含全部导出文件的 zip" in readme
+    assert "清空按钮会移除当前手稿、标题、生成结果、诊断状态、选中文件引用和远程确认状态" in readme
     assert "Web 页面会在开始远程转换前按当前手稿、片名和模型要求确认" in readme
     assert "Web 工作台会在处理模式卡片显示“本地回退”" in readme
     assert "转换 API 只接受 JSON 请求" in readme
