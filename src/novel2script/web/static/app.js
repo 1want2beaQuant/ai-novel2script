@@ -385,6 +385,15 @@ function currentRequestByteLength() {
   );
 }
 
+function importedFileRequestByteLength(file) {
+  const payload = {
+    ...conversionPayload(),
+    text: "",
+    title: elements.title.value || file.name.replace(/\.[^.]+$/, "")
+  };
+  return requestByteLength(payload) + file.size;
+}
+
 function conversionPayload() {
   return {
     text: elements.manuscript.value,
@@ -410,6 +419,19 @@ function showRequestSizeError() {
   elements.inputHint.textContent = "手稿过大，请拆分后再预检或转换。";
   setStatusTone(elements.inputSize.parentElement, "error");
   setConversionStatus("无法转换", "当前手稿超过 Web 请求上限。", "error");
+  syncConvertAvailability();
+}
+
+function showFileImportSizeError(file) {
+  state.isPreviewPending = false;
+  state.isPreviewReady = false;
+  const requestSize = importedFileRequestByteLength(file);
+  elements.inputSize.textContent = `${formatFileSize(requestSize)} / 上限 ${formatFileSize(
+    maxRequestBytes
+  )}`;
+  elements.inputHint.textContent = "文件过大，未导入。请拆分后再导入或粘贴较小片段。";
+  setStatusTone(elements.inputSize.parentElement, "error");
+  setConversionStatus("无法导入", "所选文件会超过 Web 请求上限。", "error");
   syncConvertAvailability();
 }
 
@@ -700,10 +722,16 @@ async function loadFile() {
   if (!file) {
     return;
   }
+  if (importedFileRequestByteLength(file) > maxRequestBytes) {
+    elements.file.value = "";
+    showFileImportSizeError(file);
+    return;
+  }
   elements.manuscript.value = await file.text();
   if (!elements.title.value) {
     elements.title.value = file.name.replace(/\.[^.]+$/, "");
   }
+  setConversionStatus("待转换", `已导入 ${file.name}，等待章节预检。`, "active");
   updateInputStatus();
 }
 
