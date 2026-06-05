@@ -101,10 +101,9 @@ def test_cli_reports_conversion_errors(
     input_path = tmp_path / "too-short.txt"
     input_path.write_text("Chapter 1 Opening\nOnly one chapter has body text.", encoding="utf-8")
 
-    with pytest.raises(SystemExit) as exc_info:
-        main([str(input_path)])
+    exit_code = main([str(input_path)])
 
-    assert exc_info.value.code == 1
+    assert exit_code == 1
     captured = capsys.readouterr()
     assert captured.out == ""
     assert "novel2script: error:" in captured.err
