@@ -79,6 +79,7 @@ jobs:
       - name: Smoke test installed wheel
         run: |
           .venv-wheel/bin/novel2script --version
+          .venv-wheel/bin/novel2script --help
           .venv-wheel/bin/python -m novel2script --version
           .venv-wheel/bin/novel2script examples/three_chapters.txt --output outputs/wheel-smoke.yaml --validate
           .venv-wheel/bin/novel2script examples/three_chapters.txt --format fountain --output outputs/wheel-smoke.fountain
@@ -92,6 +93,7 @@ jobs:
       - name: Smoke test installed sdist
         run: |
           .venv-sdist/bin/novel2script --version
+          .venv-sdist/bin/novel2script --help
           .venv-sdist/bin/python -m novel2script --version
           .venv-sdist/bin/novel2script examples/three_chapters.txt --output outputs/sdist-smoke.yaml --validate
           .venv-sdist/bin/novel2script examples/three_chapters.txt --format fountain --output outputs/sdist-smoke.fountain
