@@ -10,7 +10,12 @@ Mara and Jon played the tape together. The hidden name finally connected every c
 const state = {
   output: "",
   format: "yaml",
-  copyLabelTimer: 0
+  copyLabelTimer: 0,
+  lastConvertedInput: "",
+  lastTitle: "",
+  lastProvider: "local",
+  lastSummary: null,
+  lastDurationMs: 0
 };
 
 const scoreLabels = {
@@ -43,6 +48,14 @@ const elements = {
   copy: document.querySelector("#copyButton"),
   download: document.querySelector("#downloadButton"),
   serverStatus: document.querySelector("#serverStatus"),
+  inputSize: document.querySelector("#inputSize"),
+  inputHint: document.querySelector("#inputHint"),
+  providerMode: document.querySelector("#providerMode"),
+  privacyHint: document.querySelector("#privacyHint"),
+  conversionState: document.querySelector("#conversionState"),
+  conversionMeta: document.querySelector("#conversionMeta"),
+  exportState: document.querySelector("#exportState"),
+  exportMeta: document.querySelector("#exportMeta"),
   coverageRatio: document.querySelector("#coverageRatio"),
   chapterCount: document.querySelector("#chapterCount"),
   sceneCount: document.querySelector("#sceneCount"),
@@ -65,6 +78,9 @@ elements.manuscript.value = sampleText;
 elements.output.textContent = "转换结果会显示在这里。";
 setOutputActions(false);
 renderSummary(null);
+updateInputStatus();
+updateProviderStatus();
+updateExportStatus();
 
 async function checkServer() {
   try {
@@ -76,9 +92,11 @@ async function checkServer() {
 }
 
 async function convertManuscript() {
+  const startedAt = performance.now();
   setWorking(true);
+  setConversionStatus("转换中", "正在生成剧本草稿。", "active");
   elements.output.classList.remove("is-error");
-  elements.output.textContent = "Converting...";
+  elements.output.textContent = "转换中...";
 
   try {
     const response = await fetch("/api/convert", {
@@ -100,15 +118,32 @@ async function convertManuscript() {
 
     state.output = payload.output;
     state.format = payload.format;
+    state.lastConvertedInput = elements.manuscript.value;
+    state.lastTitle = elements.title.value;
+    state.lastProvider = elements.provider.value;
+    state.lastSummary = payload.summary;
+    state.lastDurationMs = Math.max(0, Math.round(performance.now() - startedAt));
     elements.output.textContent = payload.output;
     renderSummary(payload.summary);
     setOutputActions(true);
+    updateExportStatus();
+    setConversionStatus(
+      "已完成",
+      `${formatDuration(state.lastDurationMs)} · ${conversionSummary(payload.summary)}`,
+      "ready"
+    );
   } catch (error) {
     state.output = "";
     elements.output.classList.add("is-error");
     elements.output.textContent = error instanceof Error ? error.message : String(error);
     renderSummary(null);
     setOutputActions(false);
+    updateExportStatus();
+    setConversionStatus(
+      "转换失败",
+      error instanceof Error ? error.message : String(error),
+      "error"
+    );
   } finally {
     setWorking(false);
   }
@@ -256,6 +291,136 @@ function renderTextList(target, items) {
   );
 }
 
+function updateInputStatus() {
+  const stats = measureInput(elements.manuscript.value);
+  elements.inputSize.textContent = `${formatNumber(stats.characterCount)} 字 / ${stats.chapterCount} 章`;
+
+  if (!stats.characterCount) {
+    elements.inputHint.textContent = "至少 3 章后开始转换。";
+    setStatusTone(elements.inputSize.parentElement, "neutral");
+  } else if (stats.chapterCount >= 3) {
+    elements.inputHint.textContent = "符合三章以上输入要求。";
+    setStatusTone(elements.inputSize.parentElement, "ready");
+  } else if (stats.chapterCount > 0) {
+    elements.inputHint.textContent = "章节可能不足，转换时会再次校验。";
+    setStatusTone(elements.inputSize.parentElement, "warn");
+  } else {
+    elements.inputHint.textContent = "未识别章节标题，建议补充章名。";
+    setStatusTone(elements.inputSize.parentElement, "warn");
+  }
+
+  updateConversionFreshness();
+}
+
+function updateProviderStatus() {
+  const isOpenAI = elements.provider.value === "openai";
+  elements.providerMode.textContent = isOpenAI ? "OpenAI" : "本地";
+  elements.privacyHint.textContent = isOpenAI ? "会按配置调用远程模型。" : "仅在本机转换。";
+  setStatusTone(elements.providerMode.parentElement, isOpenAI ? "warn" : "ready");
+  updateConversionFreshness();
+}
+
+function updateExportStatus() {
+  const formatLabel = elements.format.value === "fountain" ? "Fountain" : "YAML";
+  const outputLabel = state.format === "fountain" ? "Fountain" : "YAML";
+  const validationLabel = elements.validate.checked ? "Schema 校验开启" : "Schema 校验关闭";
+
+  if (state.output) {
+    if (state.format !== elements.format.value) {
+      elements.exportState.textContent = "需重新转换";
+      elements.exportMeta.textContent = `当前结果仍是 ${outputLabel}，重新转换后生成 ${formatLabel}。`;
+      setStatusTone(elements.exportState.parentElement, "warn");
+      return;
+    }
+
+    elements.exportState.textContent = formatLabel;
+    elements.exportMeta.textContent = `${validationLabel} · 可复制或下载。`;
+    setStatusTone(elements.exportState.parentElement, "ready");
+    return;
+  }
+
+  elements.exportState.textContent = "未生成";
+  elements.exportMeta.textContent = `${formatLabel} / ${validationLabel}。`;
+  setStatusTone(elements.exportState.parentElement, "neutral");
+}
+
+function setConversionStatus(label, detail, tone) {
+  elements.conversionState.textContent = label;
+  elements.conversionMeta.textContent = detail;
+  setStatusTone(elements.conversionState.parentElement, tone);
+}
+
+function updateConversionFreshness() {
+  if (!state.output) {
+    return;
+  }
+
+  if (elements.manuscript.value !== state.lastConvertedInput) {
+    setConversionStatus("需重新转换", "手稿已变更，当前结果可能不是最新。", "warn");
+    return;
+  }
+
+  if (elements.title.value !== state.lastTitle) {
+    setConversionStatus("需重新转换", "片名已变更，重新转换后写入输出。", "warn");
+    return;
+  }
+
+  if (elements.provider.value !== state.lastProvider) {
+    setConversionStatus("需重新转换", "处理模式已变更，重新转换后生效。", "warn");
+    return;
+  }
+
+  setConversionStatus(
+    "已完成",
+    `${formatDuration(state.lastDurationMs)} · ${conversionSummary(state.lastSummary)}`,
+    "ready"
+  );
+}
+
+function setStatusTone(element, tone) {
+  element.classList.remove("is-active", "is-error", "is-ready", "is-warn");
+  if (tone && tone !== "neutral") {
+    element.classList.add(`is-${tone}`);
+  }
+}
+
+function measureInput(text) {
+  return {
+    characterCount: Array.from(text.replace(/\s/g, "")).length,
+    chapterCount: estimateChapterCount(text)
+  };
+}
+
+function estimateChapterCount(text) {
+  const chapterHeading = /^(?:#{1,6}\s*)?(?:(?:第\s*[一二三四五六七八九十百千万零〇两\d]+\s*[章节回卷部篇])|(?:序章|楔子|尾声|后记|番外)|(?:(?:chapter|chap\.?|ch\.)\s+(?:\d+|[ivxlcdm]+|one|two|three|four|five|six|seven|eight|nine|ten)\b))/i;
+  return text
+    .split(/\r?\n/)
+    .map((line) => line.trim())
+    .filter((line) => chapterHeading.test(line)).length;
+}
+
+function formatNumber(value) {
+  return new Intl.NumberFormat("zh-CN").format(value);
+}
+
+function formatDuration(milliseconds) {
+  if (milliseconds < 1000) {
+    return `${milliseconds}ms`;
+  }
+  return `${(milliseconds / 1000).toFixed(1)}s`;
+}
+
+function conversionSummary(summary) {
+  if (!summary) {
+    return "已生成输出。";
+  }
+  const missing = summary.chapter_coverage?.missing_chapters || [];
+  if (missing.length) {
+    return `缺失章节：${missing.join("、")}`;
+  }
+  return `${summary.scene_count ?? 0} 场 · coverage ${summary.coverage_score ?? 0}`;
+}
+
 function withEmpty(items, message) {
   return Array.isArray(items) && items.length ? items : [message];
 }
@@ -276,6 +441,7 @@ async function loadFile() {
   if (!elements.title.value) {
     elements.title.value = file.name.replace(/\.[^.]+$/, "");
   }
+  updateInputStatus();
 }
 
 async function copyOutput() {
@@ -317,11 +483,17 @@ function setOutputActions(isEnabled) {
 
 elements.sample.addEventListener("click", () => {
   elements.manuscript.value = sampleText;
+  updateInputStatus();
 });
 elements.fileButton.addEventListener("click", () => {
   elements.file.click();
 });
 elements.file.addEventListener("change", loadFile);
+elements.title.addEventListener("input", updateConversionFreshness);
+elements.manuscript.addEventListener("input", updateInputStatus);
+elements.provider.addEventListener("change", updateProviderStatus);
+elements.format.addEventListener("change", updateExportStatus);
+elements.validate.addEventListener("change", updateExportStatus);
 elements.convert.addEventListener("click", convertManuscript);
 elements.copy.addEventListener("click", copyOutput);
 elements.download.addEventListener("click", downloadOutput);

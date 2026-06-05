@@ -48,6 +48,29 @@
           <button id="convertButton" type="button">转换</button>
         </section>
 
+        <section class="status-grid" aria-label="转换状态">
+          <div class="status-card">
+            <span>输入规模</span>
+            <strong id="inputSize">0 字 / 0 章</strong>
+            <p id="inputHint">至少 3 章后开始转换。</p>
+          </div>
+          <div class="status-card">
+            <span>处理模式</span>
+            <strong id="providerMode">本地</strong>
+            <p id="privacyHint">仅在本机转换。</p>
+          </div>
+          <div class="status-card">
+            <span>转换状态</span>
+            <strong id="conversionState">待转换</strong>
+            <p id="conversionMeta">等待手稿输入。</p>
+          </div>
+          <div class="status-card">
+            <span>导出状态</span>
+            <strong id="exportState">未生成</strong>
+            <p id="exportMeta">YAML / Schema 校验开启。</p>
+          </div>
+        </section>
+
         <section class="panes">
           <div class="pane">
             <div class="pane-head">

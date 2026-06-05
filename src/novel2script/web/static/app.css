@@ -92,6 +92,7 @@ button:disabled {
 
 .topbar,
 .controls,
+.status-grid,
 .pane,
 .inspector {
   border: 1px solid rgba(248, 243, 234, 0.18);
@@ -211,6 +212,63 @@ select {
 .checkline input {
   width: 16px;
   height: 16px;
+}
+
+.status-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  overflow: hidden;
+  background: var(--surface);
+}
+
+.status-card {
+  min-width: 0;
+  padding: 13px 14px;
+  border-right: 1px solid var(--line);
+  background:
+    linear-gradient(90deg, transparent, rgba(15, 113, 108, 0.05)),
+    var(--surface);
+}
+
+.status-card:last-child {
+  border-right: 0;
+}
+
+.status-card span {
+  display: block;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.status-card strong {
+  display: block;
+  margin-top: 5px;
+  color: var(--ink);
+  font-size: 20px;
+  line-height: 1.1;
+}
+
+.status-card p {
+  margin-top: 6px;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.35;
+}
+
+.status-card.is-ready strong {
+  color: var(--teal);
+}
+
+.status-card.is-warn strong {
+  color: var(--amber);
+}
+
+.status-card.is-error strong {
+  color: var(--accent-strong);
+}
+
+.status-card.is-active strong {
+  color: var(--blue);
 }
 
 .panes {
@@ -561,6 +619,7 @@ pre {
 
 @media (max-width: 1100px) {
   .controls,
+  .status-grid,
   .panes,
   .summary-strip,
   .diagnostic-grid,
@@ -587,6 +646,15 @@ pre {
   .logline {
     border-right: 0;
     border-bottom: 1px solid var(--line);
+  }
+
+  .status-card {
+    border-right: 0;
+    border-bottom: 1px solid var(--line);
+  }
+
+  .status-card:last-child {
+    border-bottom: 0;
   }
 
   .diagnostic-panel,

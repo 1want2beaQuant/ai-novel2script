@@ -164,6 +164,11 @@ def test_web_server_serves_static_assets_and_conversion_api() -> None:
         assert "novel2script Studio" in body
         assert 'id="fileButton"' in body
         assert "Adaptation Inspector" in body
+        assert 'aria-label="转换状态"' in body
+        assert 'id="inputSize"' in body
+        assert 'id="providerMode"' in body
+        assert 'id="conversionState"' in body
+        assert 'id="exportState"' in body
         assert 'id="scoresList"' in body
         assert 'id="actionItems"' in body
 
@@ -187,6 +192,38 @@ def test_web_server_serves_static_assets_and_conversion_api() -> None:
         assert data["summary"]["chapter_coverage"]["coverage_ratio"] == 1
         assert data["summary"]["structure_beats"]
         assert data["summary"]["action_items"]
+    finally:
+        server.shutdown()
+        server.server_close()
+        thread.join(timeout=5)
+
+
+def test_web_static_assets_include_conversion_status_ui() -> None:
+    server = create_server(port=0)
+    thread = Thread(target=server.serve_forever, daemon=True)
+    thread.start()
+    host, port = server.server_address
+
+    try:
+        connection = HTTPConnection(host, port, timeout=10)
+        connection.request("GET", "/app.js")
+        response = connection.getresponse()
+        script = response.read().decode("utf-8")
+
+        assert response.status == HTTPStatus.OK
+        assert "function estimateChapterCount" in script
+        assert "需重新转换" in script
+        assert "会按配置调用远程模型。" in script
+        assert "conversionSummary" in script
+
+        connection.request("GET", "/app.css")
+        response = connection.getresponse()
+        stylesheet = response.read().decode("utf-8")
+
+        assert response.status == HTTPStatus.OK
+        assert ".status-grid" in stylesheet
+        assert ".status-card.is-warn strong" in stylesheet
+        assert ".status-card.is-error strong" in stylesheet
     finally:
         server.shutdown()
         server.server_close()
