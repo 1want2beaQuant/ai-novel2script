@@ -150,3 +150,41 @@ def test_cli_reports_directory_input(
     assert captured.out == ""
     assert "novel2script: error: Input path is a directory" in captured.err
     assert str(tmp_path) in captured.err
+
+
+def test_cli_reports_directory_yaml_output(
+    tmp_path: Path,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    input_path = tmp_path / "novel.txt"
+    input_path.write_text(MANUSCRIPT, encoding="utf-8")
+    output_dir = tmp_path / "output"
+    output_dir.mkdir()
+
+    exit_code = main([str(input_path), "--output", str(output_dir)])
+
+    assert exit_code == 1
+    captured = capsys.readouterr()
+    assert captured.out == ""
+    assert "novel2script: error: Output path is a directory" in captured.err
+    assert str(output_dir) in captured.err
+
+
+def test_cli_reports_directory_fountain_output(
+    tmp_path: Path,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    input_path = tmp_path / "novel.txt"
+    input_path.write_text(MANUSCRIPT, encoding="utf-8")
+    output_dir = tmp_path / "output"
+    output_dir.mkdir()
+
+    exit_code = main(
+        [str(input_path), "--format", "fountain", "--output", str(output_dir)]
+    )
+
+    assert exit_code == 1
+    captured = capsys.readouterr()
+    assert captured.out == ""
+    assert "novel2script: error: Output path is a directory" in captured.err
+    assert str(output_dir) in captured.err

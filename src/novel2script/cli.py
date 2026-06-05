@@ -60,6 +60,9 @@ def main(argv: list[str] | None = None) -> int:
         if args.validate:
             validate_script(data)
 
+        if args.output:
+            _validate_output_path(args.output)
+
         if args.output and args.format == "yaml":
             write_yaml(draft, args.output)
         elif args.output and args.format == "fountain":
@@ -80,6 +83,11 @@ def _read_input_text(input_path: Path) -> str:
     if input_path.is_dir():
         raise ValueError(f"Input path is a directory, expected a UTF-8 text file: {input_path}")
     return input_path.read_text(encoding="utf-8")
+
+
+def _validate_output_path(output_path: Path) -> None:
+    if output_path.is_dir():
+        raise ValueError(f"Output path is a directory, expected a file path: {output_path}")
 
 
 if __name__ == "__main__":
