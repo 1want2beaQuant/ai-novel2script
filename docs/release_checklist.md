@@ -40,8 +40,8 @@ git push origin v0.1.0
 ```
 
 GitHub Actions 会校验标签与包版本一致、构建 wheel/sdist、在干净虚拟环境中分别安装
-wheel 和 sdist 并运行 CLI smoke test，然后通过 PyPI Trusted Publishing 发布，并创建包含
-wheel/sdist 资产的 GitHub Release。
+wheel 和 sdist 并运行 CLI smoke test，然后通过 PyPI Trusted Publishing 发布。PyPI 发布成功后，
+workflow 会创建包含 wheel/sdist 资产的 GitHub Release。
 
 ## 发布后
 
