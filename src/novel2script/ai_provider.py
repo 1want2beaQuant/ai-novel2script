@@ -68,7 +68,23 @@ def _enhance_with_openai(text: str, baseline: dict[str, Any], model: str) -> dic
         ],
     )
     content = response.output_text.strip()
-    return json.loads(content)
+    return _parse_response_json(content)
+
+
+def _parse_response_json(content: str) -> dict[str, Any]:
+    stripped = content.strip()
+    if stripped.startswith("```"):
+        lines = stripped.splitlines()
+        if lines and lines[0].strip().lower() in {"```", "```json"}:
+            lines = lines[1:]
+        if lines and lines[-1].strip() == "```":
+            lines = lines[:-1]
+        stripped = "\n".join(lines).strip()
+
+    loaded = json.loads(stripped)
+    if not isinstance(loaded, dict):
+        raise ValueError("OpenAI enhancement must return a JSON object.")
+    return loaded
 
 
 def _dict_to_draft(data: dict[str, Any], fallback: ScriptDraft) -> ScriptDraft:

@@ -3,7 +3,7 @@ import builtins
 import pytest
 
 import novel2script.ai_provider as ai_provider
-from novel2script.ai_provider import convert_with_optional_ai
+from novel2script.ai_provider import _parse_response_json, convert_with_optional_ai
 from novel2script.fountain import draft_to_fountain
 from novel2script.schema import validate_script
 from novel2script.yaml_io import draft_to_yaml
@@ -92,6 +92,21 @@ def test_openai_provider_rejects_invalid_enhancement(monkeypatch: pytest.MonkeyP
 
     with pytest.raises(ValueError, match="<root>"):
         convert_with_optional_ai(SAMPLE, title="雾城来信", provider="openai", model="test")
+
+
+def test_parse_response_json_accepts_raw_json_object() -> None:
+    assert _parse_response_json('{"title": "Enhanced"}') == {"title": "Enhanced"}
+
+
+def test_parse_response_json_accepts_markdown_json_fence() -> None:
+    assert _parse_response_json('```json\n{"title": "Enhanced"}\n```') == {
+        "title": "Enhanced"
+    }
+
+
+def test_parse_response_json_rejects_non_object_json() -> None:
+    with pytest.raises(ValueError, match="JSON object"):
+        _parse_response_json('[{"title": "Enhanced"}]')
 
 
 def test_openai_provider_wraps_sdk_failures(monkeypatch: pytest.MonkeyPatch) -> None:
