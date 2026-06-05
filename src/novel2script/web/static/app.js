@@ -15,6 +15,7 @@ const state = {
   format: "yaml",
   isWorking: false,
   copyLabelTimer: 0,
+  downloadLabelTimer: 0,
   previewLabelTimer: 0,
   previewRequestId: 0,
   previewInput: "",
@@ -792,13 +793,30 @@ function downloadOutput() {
   if (!state.output) {
     return;
   }
-  const extension = state.format === "fountain" ? "fountain" : "yaml";
-  const blob = new Blob([state.output], { type: "text/plain;charset=utf-8" });
-  const link = document.createElement("a");
-  link.href = URL.createObjectURL(blob);
-  link.download = `novel2script-draft.${extension}`;
-  link.click();
-  URL.revokeObjectURL(link.href);
+  clearTimeout(state.downloadLabelTimer);
+  let objectUrl = "";
+  try {
+    const extension = state.format === "fountain" ? "fountain" : "yaml";
+    const blob = new Blob([state.output], { type: "text/plain;charset=utf-8" });
+    const link = document.createElement("a");
+    objectUrl = URL.createObjectURL(blob);
+    link.href = objectUrl;
+    link.download = `novel2script-draft.${extension}`;
+    link.click();
+    elements.download.textContent = "已下载";
+  } catch {
+    elements.download.textContent = "下载失败";
+    elements.exportState.textContent = "下载失败";
+    elements.exportMeta.textContent = "浏览器未能启动下载，请复制结果后手动保存。";
+    setStatusTone(elements.exportState.parentElement, "warn");
+  } finally {
+    if (objectUrl) {
+      URL.revokeObjectURL(objectUrl);
+    }
+    state.downloadLabelTimer = window.setTimeout(() => {
+      elements.download.textContent = "下载";
+    }, 1400);
+  }
 }
 
 function setWorking(isWorking) {

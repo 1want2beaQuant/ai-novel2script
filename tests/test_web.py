@@ -339,6 +339,10 @@ def test_web_static_assets_include_conversion_status_ui() -> None:
         assert "navigator.clipboard?.writeText" in script
         assert "复制失败" in script
         assert "浏览器未允许写入剪贴板，请手动选中结果复制。" in script
+        assert "function downloadOutput" in script
+        assert "downloadLabelTimer" in script
+        assert "下载失败" in script
+        assert "浏览器未能启动下载，请复制结果后手动保存。" in script
         assert "function syncConvertAvailability" in script
         assert "手稿过大，请拆分后再预检或转换。" in script
         assert "预检失败：" in script
