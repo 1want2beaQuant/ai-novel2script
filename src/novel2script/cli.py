@@ -8,14 +8,11 @@ from pathlib import Path
 
 import yaml
 
-from novel2script import __version__
+from novel2script import DEFAULT_MODEL, __version__
 from novel2script.ai_provider import convert_with_provider_status
 from novel2script.fountain import draft_to_fountain, write_fountain
 from novel2script.schema import validate_script
 from novel2script.yaml_io import draft_to_yaml, write_yaml
-
-
-DEFAULT_MODEL = "gpt-4.1-mini"
 
 
 def build_parser() -> argparse.ArgumentParser:
