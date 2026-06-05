@@ -70,7 +70,8 @@ def main(argv: list[str] | None = None) -> int:
             sys.stdout.write(draft_to_fountain(draft))
         return 0
     except (OSError, ValueError, yaml.YAMLError) as exc:
-        parser.exit(1, f"novel2script: error: {exc}\n")
+        sys.stderr.write(f"novel2script: error: {exc}\n")
+        return 1
 
 
 if __name__ == "__main__":
