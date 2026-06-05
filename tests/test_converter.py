@@ -51,3 +51,20 @@ def test_convert_text_to_script_contains_traceable_scenes() -> None:
     assert report["scene_map"][0]["scene_id"] == "S001"
     assert report["metrics"]["scene_count"] == 3
     assert report["revision_checklist"]
+    coverage = data["coverage_report"]
+    assert coverage["model"] == "screenplay_coverage_v1"
+    assert coverage["verdict"] in {"draft", "revise", "consider"}
+    assert [score["area"] for score in coverage["scores"]] == [
+        "premise",
+        "structure",
+        "character",
+        "dialogue",
+        "visuality",
+        "adaptation_fidelity",
+    ]
+    assert 0 <= coverage["overall_score"] <= 100
+    if min(score["score"] for score in coverage["scores"]) < 70:
+        assert coverage["verdict"] != "consider"
+    assert coverage["strengths"]
+    assert coverage["weaknesses"]
+    assert coverage["action_items"][0]["priority"] in {"high", "medium", "low"}

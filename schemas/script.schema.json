@@ -16,6 +16,7 @@
     "structure_map",
     "story_bible",
     "adaptation_report",
+    "coverage_report",
     "revision_notes"
   ],
   "additionalProperties": false,
@@ -258,6 +259,120 @@
           }
         },
         "revision_checklist": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      }
+    },
+    "coverage_report": {
+      "type": "object",
+      "required": [
+        "model",
+        "verdict",
+        "overall_score",
+        "scores",
+        "strengths",
+        "weaknesses",
+        "action_items",
+        "review_notes"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "model": {
+          "type": "string",
+          "const": "screenplay_coverage_v1"
+        },
+        "verdict": {
+          "type": "string",
+          "enum": ["draft", "revise", "consider"]
+        },
+        "overall_score": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 100
+        },
+        "scores": {
+          "type": "array",
+          "minItems": 6,
+          "items": {
+            "type": "object",
+            "required": ["area", "score", "rationale"],
+            "additionalProperties": false,
+            "properties": {
+              "area": {
+                "type": "string",
+                "enum": [
+                  "premise",
+                  "structure",
+                  "character",
+                  "dialogue",
+                  "visuality",
+                  "adaptation_fidelity"
+                ]
+              },
+              "score": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 100
+              },
+              "rationale": {
+                "type": "string",
+                "minLength": 1
+              }
+            }
+          }
+        },
+        "strengths": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "weaknesses": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "action_items": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "required": ["priority", "area", "note"],
+            "additionalProperties": false,
+            "properties": {
+              "priority": {
+                "type": "string",
+                "enum": ["high", "medium", "low"]
+              },
+              "area": {
+                "type": "string",
+                "enum": [
+                  "premise",
+                  "structure",
+                  "character",
+                  "dialogue",
+                  "visuality",
+                  "adaptation_fidelity"
+                ]
+              },
+              "note": {
+                "type": "string",
+                "minLength": 1
+              }
+            }
+          }
+        },
+        "review_notes": {
           "type": "array",
           "minItems": 1,
           "items": {

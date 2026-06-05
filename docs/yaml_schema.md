@@ -5,7 +5,7 @@
 ## 顶层结构
 
 ```yaml
-schema_version: 1.3.0
+schema_version: 1.4.0
 title: 雾城来信
 language: zh-CN
 generated_at: 2026-06-05T00:00:00+00:00
@@ -79,6 +79,24 @@ adaptation_report:
     - 未发现结构性风险，建议进入人物动机和对白语气复核。
   revision_checklist:
     - 逐项核对 scene_map，确认每个小说章节都有对应剧本场景。
+coverage_report:
+  model: screenplay_coverage_v1
+  verdict: revise
+  overall_score: 72
+  scores:
+    - area: premise
+      score: 82
+      rationale: 故事前提、类型信号和一句话卖点的清晰度。
+  strengths:
+    - 章节覆盖和场景映射完整，便于作者逐章回到原文复核。
+  weaknesses:
+    - 对白维度偏弱，部分场景仍可能停留在小说摘要而非角色交锋。
+  action_items:
+    - priority: medium
+      area: dialogue
+      note: 为每场加入角色带目标的对白，避免只用动作摘要传递信息。
+  review_notes:
+    - 该报告模拟专业 coverage 的读稿反馈结构，用于初稿自检。
 revision_notes:
   - ...
 ```
@@ -99,6 +117,7 @@ revision_notes:
 | `structure_map` | object | 五点结构地图，把关键节拍映射到场景并给出结构诊断。 |
 | `story_bible` | object | 改编资料库，整理人物连续性、地点、道具/线索和待解问题。 |
 | `adaptation_report` | object | 改编质检报告，说明章节覆盖、场景映射、结构指标、质量风险和修订清单。 |
+| `coverage_report` | object | 专业读稿反馈式报告，包含推荐等级、分项评分、强弱项和优先修订动作。 |
 | `revision_notes` | string[] | 自动改编后的修订提醒。 |
 
 ## 场景结构
@@ -155,6 +174,17 @@ revision_notes:
 - 每个节拍记录 `scene_id`、`source_chapter`、摘要、功能和修订提示。
 - `diagnostics` 自动指出节拍是否过度集中在少数场景，帮助作者扩写或重排章节。
 
+## Coverage 报告
+
+`coverage_report` 借鉴专业剧本 coverage 的读稿反馈形态，把自动改编稿转成可执行的评审意见：
+
+- `verdict` 使用 `draft`、`revise`、`consider` 表示当前稿件成熟度。
+- `overall_score` 和 `scores` 给出 0-100 的总分与分项评分。
+- 分项固定为 `premise`、`structure`、`character`、`dialogue`、`visuality` 和 `adaptation_fidelity`。
+- `strengths` 与 `weaknesses` 分别列出可保留优势和主要短板。
+- `action_items` 使用 `priority`、`area` 和 `note` 把低分维度转成修订动作。
+- `review_notes` 说明评分来自本地启发式，适合初稿自检，不替代人工 coverage。
+
 ## 设计原因
 
 1. **面向编辑而不是终稿排版**：YAML 比传统剧本排版更容易被作者、编辑器和 AI 工具继续修改，因此 Schema 保留结构化字段，而不是直接生成固定版式。
@@ -164,4 +194,5 @@ revision_notes:
 5. **补足改编质检**：`adaptation_report` 让作者知道哪些章节已经被改成场景、哪里还缺对白或具体地点，避免只拿到一个不可追溯的 AI 初稿。
 6. **沉淀改编资产**：`story_bible` 把人物、地点、道具和未解决问题独立出来，便于作者后续扩写、统一设定或进入制片拆解。
 7. **检查结构节拍**：`structure_map` 把大纲工具中的 Beat Board/Story Map 思路引入改编初稿，帮助作者判断关键转折是否已经落到具体场景。
-8. **便于程序校验**：字段采用稳定 ID、枚举类型和最小长度约束，可在 CLI 或 CI 中自动检查，避免生成半结构化、难以复用的 YAML。
+8. **引入读稿反馈闭环**：`coverage_report` 把行业 coverage 中的推荐等级、分项评分和修订 notes 结构化，帮助作者判断下一轮先改哪里。
+9. **便于程序校验**：字段采用稳定 ID、枚举类型和最小长度约束，可在 CLI 或 CI 中自动检查，避免生成半结构化、难以复用的 YAML。
