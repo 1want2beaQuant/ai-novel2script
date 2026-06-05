@@ -31,6 +31,8 @@ cmd /c fc /b schemas\script.schema.json src\novel2script\schemas\script.schema.j
    - Repository：`ai-novel2script`
    - Workflow：`release.yml`
    - Environment：`pypi`
+6. 可选：在 GitHub Actions 中手动运行 `Release` workflow 做发布 dry run。手动触发只执行
+   release-candidate 测试、构建和 artifact 上传，不会发布到 PyPI 或创建 GitHub Release。
 
 ## 发布
 
