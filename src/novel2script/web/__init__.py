@@ -35,8 +35,8 @@ def convert_payload(payload: dict[str, Any]) -> dict[str, Any]:
     if not text:
         raise ValueError("Manuscript text is required.")
 
-    title = payload.get("title")
-    title = title.strip() if isinstance(title, str) and title.strip() else None
+    title_value = _optional_string(payload, "title")
+    title = title_value.strip() if title_value and title_value.strip() else None
 
     output_format = payload.get("format", "yaml")
     if output_format not in {"yaml", "fountain"}:
@@ -383,6 +383,15 @@ class Novel2ScriptWebHandler(BaseHTTPRequestHandler):
 
 def _required_string(payload: dict[str, Any], key: str) -> str:
     value = payload.get(key)
+    if not isinstance(value, str):
+        raise ValueError(f"{key} must be a string.")
+    return value
+
+
+def _optional_string(payload: dict[str, Any], key: str) -> str | None:
+    value = payload.get(key)
+    if value is None:
+        return None
     if not isinstance(value, str):
         raise ValueError(f"{key} must be a string.")
     return value

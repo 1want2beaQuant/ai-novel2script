@@ -194,6 +194,11 @@ def test_convert_payload_rejects_non_boolean_validate() -> None:
         convert_payload({"text": MANUSCRIPT, "format": "yaml", "validate": "false"})
 
 
+def test_convert_payload_rejects_non_string_title() -> None:
+    with pytest.raises(ValueError, match="title must be a string"):
+        convert_payload({"text": MANUSCRIPT, "format": "yaml", "title": 123})
+
+
 def test_preview_payload_reports_authoritative_chapter_preflight() -> None:
     two_chapters = """
 第 1 章
