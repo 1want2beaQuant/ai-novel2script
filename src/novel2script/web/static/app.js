@@ -123,6 +123,8 @@ async function convertManuscript() {
   }
 
   const startedAt = performance.now();
+  const payload = conversionPayload();
+  const requestModel = normalizedModel();
   setWorking(true);
   setConversionStatus("转换中", "正在生成剧本草稿。", "active");
   elements.output.classList.remove("is-error");
@@ -132,33 +134,26 @@ async function convertManuscript() {
     const response = await fetch("/api/convert", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        text: elements.manuscript.value,
-        title: elements.title.value,
-        format: elements.format.value,
-        provider: elements.provider.value,
-        model: elements.model.value,
-        validate: elements.validate.checked
-      })
+      body: JSON.stringify(payload)
     });
-    const payload = await response.json();
+    const result = await response.json();
     if (!response.ok) {
-      throw new Error(payload.error || "Conversion failed.");
+      throw new Error(result.error || "Conversion failed.");
     }
 
-    state.output = payload.output;
-    state.format = payload.format;
-    state.lastConvertedInput = elements.manuscript.value;
-    state.lastTitle = elements.title.value;
-    state.lastFormat = elements.format.value;
-    state.lastValidate = elements.validate.checked;
-    state.lastProvider = elements.provider.value;
-    state.lastModel = normalizedModel();
-    state.lastProviderStatus = payload.provider_status || null;
-    state.lastSummary = payload.summary;
+    state.output = result.output;
+    state.format = result.format;
+    state.lastConvertedInput = payload.text;
+    state.lastTitle = payload.title;
+    state.lastFormat = payload.format;
+    state.lastValidate = payload.validate;
+    state.lastProvider = payload.provider;
+    state.lastModel = requestModel;
+    state.lastProviderStatus = result.provider_status || null;
+    state.lastSummary = result.summary;
     state.lastDurationMs = Math.max(0, Math.round(performance.now() - startedAt));
-    elements.output.textContent = payload.output;
-    renderSummary(payload.summary);
+    elements.output.textContent = result.output;
+    renderSummary(result.summary);
     renderProviderRunStatus(state.lastProviderStatus);
     setOutputActions(true);
     updateExportStatus();
@@ -166,9 +161,10 @@ async function convertManuscript() {
       "已完成",
       `${formatDuration(state.lastDurationMs)} · ${providerStatusSummary(
         state.lastProviderStatus
-      )} · ${conversionSummary(payload.summary)}`,
+      )} · ${conversionSummary(result.summary)}`,
       "ready"
     );
+    updateConversionFreshness();
   } catch (error) {
     state.output = "";
     state.lastProviderStatus = null;

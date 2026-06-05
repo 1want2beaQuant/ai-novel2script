@@ -311,6 +311,9 @@ def test_web_static_assets_include_conversion_status_ui() -> None:
         assert "isPreviewReady" in script
         assert "textFingerprint(text)" in script
         assert "function showPreflightBlockedConversion" in script
+        assert "const payload = conversionPayload()" in script
+        assert "state.lastConvertedInput = payload.text" in script
+        assert "updateConversionFreshness()" in script
         assert "至少需要 3 章通过预检后才能转换。" in script
         assert "state.isPreviewPending || !state.isPreviewReady" in script
         assert "未确认远程发送" in script
