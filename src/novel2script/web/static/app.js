@@ -439,6 +439,15 @@ function showFileImportSizeError(file) {
   syncConvertAvailability();
 }
 
+function showFileImportReadError(file) {
+  state.isPreviewPending = false;
+  state.isPreviewReady = false;
+  elements.inputHint.textContent = "文件读取失败，当前手稿已保留。请重新选择或粘贴文本。";
+  setStatusTone(elements.inputSize.parentElement, "warn");
+  setConversionStatus("导入失败", `${file.name} 无法读取。`, "warn");
+  syncConvertAvailability();
+}
+
 function showPreflightBlockedConversion() {
   const detail = state.isPreviewPending
     ? "等待章节预检完成后再转换。"
@@ -743,7 +752,15 @@ async function loadFile() {
     showFileImportSizeError(file);
     return;
   }
-  elements.manuscript.value = await file.text();
+  let text;
+  try {
+    text = await file.text();
+  } catch {
+    elements.file.value = "";
+    showFileImportReadError(file);
+    return;
+  }
+  elements.manuscript.value = text;
   if (!elements.title.value) {
     elements.title.value = file.name.replace(/\.[^.]+$/, "");
   }
