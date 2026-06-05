@@ -14,10 +14,11 @@ const state = {
   previewLabelTimer: 0,
   previewRequestId: 0,
   previewInput: "",
-  openAiConfirmed: false,
+  openAiConfirmedFor: "",
   lastConvertedInput: "",
   lastTitle: "",
   lastProvider: "local",
+  lastModel: "",
   lastSummary: null,
   lastDurationMs: 0
 };
@@ -129,6 +130,7 @@ async function convertManuscript() {
     state.lastConvertedInput = elements.manuscript.value;
     state.lastTitle = elements.title.value;
     state.lastProvider = elements.provider.value;
+    state.lastModel = normalizedModel();
     state.lastSummary = payload.summary;
     state.lastDurationMs = Math.max(0, Math.round(performance.now() - startedAt));
     elements.output.textContent = payload.output;
@@ -374,30 +376,59 @@ function updateProviderStatus() {
   const isOpenAI = elements.provider.value === "openai";
   elements.providerMode.textContent = isOpenAI ? "OpenAI" : "本地";
   elements.privacyHint.textContent = isOpenAI
-    ? "转换前会要求确认远程发送。"
+    ? "转换前会按当前手稿、片名和模型确认远程发送。"
     : "仅在本机转换。";
   setStatusTone(elements.providerMode.parentElement, isOpenAI ? "warn" : "ready");
   if (!isOpenAI) {
-    state.openAiConfirmed = false;
+    state.openAiConfirmedFor = "";
   }
   updateConversionFreshness();
 }
 
 function confirmRemoteProvider() {
-  if (elements.provider.value !== "openai" || state.openAiConfirmed) {
+  if (elements.provider.value !== "openai") {
+    return true;
+  }
+
+  const confirmationKey = remoteConfirmationKey();
+  if (state.openAiConfirmedFor === confirmationKey) {
     return true;
   }
 
   const confirmed = window.confirm(
-    "OpenAI 模式会把截断后的章节摘要和本地 baseline JSON 发送给配置的远程兼容接口。确认继续？"
+    "OpenAI 模式会把当前手稿生成的截断章节摘要和本地 baseline JSON 发送给配置的远程兼容接口。确认继续？"
   );
   if (!confirmed) {
     setConversionStatus("已取消", "未确认远程发送，转换没有开始。", "warn");
     return false;
   }
 
-  state.openAiConfirmed = true;
+  state.openAiConfirmedFor = confirmationKey;
   return true;
+}
+
+function remoteConfirmationKey() {
+  const text = elements.manuscript.value;
+  return JSON.stringify({
+    provider: "openai",
+    model: normalizedModel(),
+    title: elements.title.value.trim(),
+    textLength: text.length,
+    textFingerprint: textFingerprint(text)
+  });
+}
+
+function normalizedModel() {
+  return elements.model.value.trim();
+}
+
+function textFingerprint(text) {
+  let hash = 2166136261;
+  for (const character of text) {
+    hash ^= character.codePointAt(0);
+    hash = Math.imul(hash, 16777619) >>> 0;
+  }
+  return hash.toString(16).padStart(8, "0");
 }
 
 function updateExportStatus() {
@@ -447,6 +478,11 @@ function updateConversionFreshness() {
 
   if (elements.provider.value !== state.lastProvider) {
     setConversionStatus("需重新转换", "处理模式已变更，重新转换后生效。", "warn");
+    return;
+  }
+
+  if (elements.provider.value === "openai" && normalizedModel() !== state.lastModel) {
+    setConversionStatus("需重新转换", "OpenAI 模型已变更，重新转换后生效。", "warn");
     return;
   }
 
@@ -561,6 +597,7 @@ elements.file.addEventListener("change", loadFile);
 elements.title.addEventListener("input", updateConversionFreshness);
 elements.manuscript.addEventListener("input", updateInputStatus);
 elements.provider.addEventListener("change", updateProviderStatus);
+elements.model.addEventListener("input", updateConversionFreshness);
 elements.format.addEventListener("change", updateExportStatus);
 elements.validate.addEventListener("change", updateExportStatus);
 elements.convert.addEventListener("click", convertManuscript);

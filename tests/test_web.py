@@ -258,9 +258,14 @@ def test_web_static_assets_include_conversion_status_ui() -> None:
         assert "function countCharacters" in script
         assert "function estimateChapterCount" not in script
         assert "function confirmRemoteProvider" in script
+        assert "function remoteConfirmationKey" in script
+        assert "function textFingerprint" in script
+        assert "openAiConfirmedFor" in script
+        assert "textFingerprint(text)" in script
         assert "未确认远程发送" in script
         assert "需重新转换" in script
-        assert "转换前会要求确认远程发送。" in script
+        assert "转换前会按当前手稿、片名和模型确认远程发送。" in script
+        assert "OpenAI 模型已变更" in script
         assert "conversionSummary" in script
 
         connection.request("GET", "/app.css")
