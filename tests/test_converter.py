@@ -93,3 +93,82 @@ def test_convert_text_to_script_keeps_voice_over_blocks() -> None:
     ]
 
     assert {"type": "voice_over", "text": "雨声盖住了旧宅里的脚步。"} in blocks
+
+
+def test_convert_text_to_script_does_not_promote_action_phrases_to_characters() -> None:
+    draft = convert_text_to_script(
+        """
+序章：雨声
+林晚在书房里发现一封旧信。
+
+第一章 回声
+周岚说：我们不能再等了。
+
+尾声
+两人在码头找到最后的线索。
+""",
+        title="雾城来信",
+    )
+
+    data = draft.to_dict()
+    character_names = [character["name"] for character in data["characters"]]
+    scene_characters = [
+        character
+        for act in data["acts"]
+        for scene in act["scenes"]
+        for character in scene["characters"]
+    ]
+
+    assert "林晚" in character_names
+    assert "周岚" in character_names
+    assert "房里发现" not in character_names
+    assert "最后的线索" not in character_names
+    assert "房里发现" not in scene_characters
+    assert "后的线索" not in scene_characters
+
+
+def test_convert_text_to_script_uses_fallback_character_when_names_are_unknown() -> None:
+    draft = convert_text_to_script(
+        """
+第 1 章 雨夜
+书房里发现一封旧信。
+
+第 2 章 空屋
+屋里只剩一只停止的钟。
+
+第 3 章 码头
+码头找到最后的线索。
+""",
+        title="无名线索",
+    )
+
+    data = draft.to_dict()
+
+    assert [character["name"] for character in data["characters"]] == ["主角"]
+    assert all(
+        scene["characters"] == []
+        for act in data["acts"]
+        for scene in act["scenes"]
+    )
+
+
+def test_convert_text_to_script_keeps_english_and_compound_surname_speakers() -> None:
+    draft = convert_text_to_script(
+        """
+Chapter One Opening
+Mara: We cannot wait any longer.
+
+Chapter Two Middle
+欧阳娜娜说：线索就在书房。
+
+Chapter Three Ending
+Jon: Then we go tonight.
+""",
+        title="Mixed Names",
+    )
+
+    names = [character["name"] for character in draft.to_dict()["characters"]]
+
+    assert "Mara" in names
+    assert "欧阳娜娜" in names
+    assert "Jon" in names

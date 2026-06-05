@@ -12,7 +12,50 @@ from novel2script.models import Act, Chapter, Character, Scene, ScriptBlock, Scr
 SENTENCE_RE = re.compile(r"[^。！？!?；;\n]+[。！？!?；;]?")
 DIALOGUE_RE = re.compile(r"(?P<speaker>[\u4e00-\u9fffA-Za-z0-9_·]{1,16})[：:]\s*(?P<line>.+)")
 LOCATION_HINT_RE = re.compile(r"(?:在|到|回到|走进|来到)(?P<place>[^，。！？!?；;\n]{2,16})")
-NAME_RE = re.compile(r"[\u4e00-\u9fff]{2,4}")
+CHINESE_SURNAME = (
+    "赵钱孙李周吴郑王冯陈褚卫蒋沈韩杨朱秦尤许何吕施张孔曹严华金魏陶姜"
+    "戚谢邹喻柏水窦章云苏潘葛奚范彭郎鲁韦昌马苗凤花方俞任袁柳鲍史唐"
+    "费廉岑薛雷贺倪汤滕殷罗毕郝邬安常乐于时傅皮卞齐康伍余元卜顾孟平"
+    "黄和穆萧尹姚邵湛汪祁毛禹狄米贝明臧计伏成戴谈宋庞熊纪舒屈项祝董"
+    "梁杜阮蓝闵席季麻强贾路娄危江童颜郭梅盛林刁钟徐邱骆高夏蔡田胡凌"
+    "霍虞万支柯昝管卢莫经房裘缪干解应宗丁宣邓郁单杭洪包诸左石崔吉龚"
+    "程邢裴陆荣翁荀羊於惠甄曲家封芮羿储靳汲邴糜松井段富巫乌焦巴弓牧"
+    "隗山谷车侯宓蓬全郗班仰秋仲伊宫宁仇栾暴甘厉戎祖武符刘景詹龙叶幸"
+    "司黎溥印怀蒲邰从鄂索咸籍赖卓蔺屠蒙池乔阴胥能苍双闻莘党翟谭贡劳"
+    "逄姬申扶堵冉宰郦雍却璩桑桂濮牛寿通边扈燕冀浦尚农温别庄晏柴瞿阎"
+    "连习容向古易廖庾终暨居衡步都耿满弘匡国文寇广禄阙东欧殳沃利蔚越"
+    "夔隆师巩厍聂晁勾敖融冷訾辛阚那简饶空曾毋沙乜养鞠须丰巢关蒯相查"
+    "后荆红游竺权逯盖益桓公"
+)
+COMPOUND_CHINESE_SURNAMES = (
+    "欧阳",
+    "司马",
+    "上官",
+    "诸葛",
+    "东方",
+    "夏侯",
+    "尉迟",
+    "公孙",
+    "慕容",
+    "司徒",
+    "令狐",
+    "皇甫",
+    "宇文",
+    "长孙",
+    "闻人",
+    "独孤",
+    "南宫",
+    "轩辕",
+)
+COMPOUND_SURNAME_PATTERN = "|".join(COMPOUND_CHINESE_SURNAMES)
+SURNAME_NAME_RE = re.compile(
+    rf"(?<![\u4e00-\u9fff])"
+    rf"(?P<name>(?:{COMPOUND_SURNAME_PATTERN})[\u4e00-\u9fff]{{1,2}}|"
+    rf"[{CHINESE_SURNAME}][\u4e00-\u9fff]{{1,2}})"
+    rf"(?=(?:在|说|问|喊|道|答|想|看|听|拿|把|将|走|来到|回到|发现|找到|没有|决定|"
+    rf"把|低声|轻声|抬头|转身|推开|藏|写|追|离开|出现|站|坐|望|来到|回头|$|[，。！？!?；;、\s]))"
+)
+LATIN_NAME_RE = re.compile(r"[A-Za-z][A-Za-z0-9_·-]{0,31}")
 STOP_NAMES = {
     "他们",
     "她们",
@@ -156,7 +199,7 @@ def _build_characters(scenes: list[Scene]) -> list[Character]:
     counter: Counter[str] = Counter()
     for scene in scenes:
         for name in scene.characters:
-            if name in STOP_NAMES:
+            if name in STOP_NAMES or not _is_plausible_character_name(name):
                 continue
             counter[name] += 1
             first_seen.setdefault(name, scene.id)
@@ -706,9 +749,29 @@ def _infer_time(text: str) -> str:
 
 
 def _guess_names(text: str, limit: int) -> list[str]:
-    names = [name for name in NAME_RE.findall(text) if name not in STOP_NAMES]
+    names = [
+        match.group("name")
+        for match in SURNAME_NAME_RE.finditer(text)
+        if _is_plausible_character_name(match.group("name"))
+    ]
     counts = Counter(names)
     return [name for name, _ in counts.most_common(limit)]
+
+
+def _is_plausible_character_name(name: str) -> bool:
+    cleaned = name.strip()
+    if cleaned in STOP_NAMES:
+        return False
+    if LATIN_NAME_RE.fullmatch(cleaned):
+        return True
+    if not all("\u4e00" <= char <= "\u9fff" for char in cleaned):
+        return False
+    if any(
+        cleaned.startswith(surname) and len(surname) < len(cleaned) <= len(surname) + 2
+        for surname in COMPOUND_CHINESE_SURNAMES
+    ):
+        return True
+    return 2 <= len(cleaned) <= 3 and cleaned[0] in CHINESE_SURNAME
 
 
 def _strip_quotes(text: str) -> str:
