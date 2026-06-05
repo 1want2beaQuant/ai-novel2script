@@ -116,4 +116,4 @@ novel2script path\to\novel.txt --provider openai --model gpt-4.1-mini
 - CI 在 PR 和 `main` push 上运行 ruff、pytest、CLI smoke test、Schema 同步检查、包构建检查、Windows smoke 和依赖安全审计。
 - 发布 workflow 监听 `v*.*.*` 标签，校验标签版本、构建 wheel/sdist、安装 wheel/sdist 做 smoke test，并通过 PyPI Trusted Publishing 发布；PyPI 发布成功后创建 GitHub Release。
 - Dependabot 每周检查 Python 依赖和 GitHub Actions 更新。
-- 发布前请先在 PyPI 配置 `pypi` environment 的 Trusted Publisher。
+- 首次发布前请先在 PyPI 创建 `novel2script` 的 pending publisher，并绑定 GitHub `pypi` environment。
