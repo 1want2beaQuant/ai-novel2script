@@ -156,7 +156,7 @@ async function convertManuscript() {
     }
 
     state.exports = normalizeExports(result);
-    state.selectedOutput = result.format === "fountain" ? "fountain" : "yaml";
+    state.selectedOutput = outputSelectionForFormat(result.format);
     state.output = outputForSelection(state.selectedOutput);
     state.lastConvertedInput = payload.text;
     state.lastTitle = payload.title;
@@ -474,6 +474,7 @@ function selectedOutputLabel() {
   const labels = {
     yaml: "YAML",
     fountain: "Fountain",
+    markdown: "Revision brief",
     draftJson: "Draft JSON",
     summaryJson: "Summary JSON"
   };
@@ -512,11 +513,15 @@ function requestByteLength(payload) {
   return textEncoder.encode(JSON.stringify(payload)).length;
 }
 
+function outputSelectionForFormat(format) {
+  return format === "fountain" || format === "markdown" ? format : "yaml";
+}
+
 function initializeWorkbench() {
   const restored = restoreLocalDraft();
   if (!restored) {
     elements.manuscript.value = sampleText;
-    state.selectedOutput = elements.format.value === "fountain" ? "fountain" : "yaml";
+    state.selectedOutput = outputSelectionForFormat(elements.format.value);
     if (localDraftStorage() && elements.draftStatus.textContent === "示例草稿") {
       setDraftStatus("示例草稿", "neutral");
     }
@@ -568,11 +573,12 @@ function restoreLocalDraft() {
 
   elements.manuscript.value = typeof draft.text === "string" ? draft.text : "";
   elements.title.value = typeof draft.title === "string" ? draft.title : "";
-  elements.format.value = draft.format === "fountain" ? "fountain" : "yaml";
+  elements.format.value =
+    draft.format === "fountain" || draft.format === "markdown" ? draft.format : "yaml";
   elements.provider.value = draft.provider === "openai" ? "openai" : "local";
   elements.model.value = typeof draft.model === "string" ? draft.model : defaultModel;
   elements.validate.checked = typeof draft.validate === "boolean" ? draft.validate : true;
-  state.selectedOutput = elements.format.value === "fountain" ? "fountain" : "yaml";
+  state.selectedOutput = outputSelectionForFormat(elements.format.value);
   setDraftStatus("已恢复草稿", "ready");
   return true;
 }
@@ -1019,6 +1025,12 @@ function normalizeExports(result) {
         : result.format === "fountain"
           ? result.output
           : "",
+    markdown:
+      typeof exports.markdown === "string"
+        ? exports.markdown
+        : result.format === "markdown"
+          ? result.output
+          : "",
     draftJson:
       typeof exports.draft_json === "string"
         ? exports.draft_json
@@ -1044,6 +1056,7 @@ function exportBundleFiles() {
   return [
     { name: `${baseName}.yaml`, content: state.exports.yaml || "" },
     { name: `${baseName}.fountain`, content: state.exports.fountain || "" },
+    { name: `${baseName}.revision.md`, content: state.exports.markdown || "" },
     { name: `${baseName}.draft.json`, content: state.exports.draftJson || "" },
     { name: `${baseName}.summary.json`, content: state.exports.summaryJson || "" }
   ];
@@ -1164,6 +1177,9 @@ function outputExtension(selection) {
   if (selection === "fountain") {
     return "fountain";
   }
+  if (selection === "markdown") {
+    return "revision.md";
+  }
   if (selection === "draftJson") {
     return "draft.json";
   }
@@ -1181,7 +1197,7 @@ function clearWorkbench() {
   clearTimeout(state.draftSaveTimer);
   state.output = "";
   state.exports = null;
-  state.selectedOutput = elements.format.value === "fountain" ? "fountain" : "yaml";
+  state.selectedOutput = outputSelectionForFormat(elements.format.value);
   state.previewRequestId += 1;
   state.previewInput = "";
   state.isPreviewPending = false;
@@ -1403,7 +1419,7 @@ elements.model.addEventListener("input", () => {
 elements.format.addEventListener("change", () => {
   scheduleLocalDraftSave();
   syncConvertAvailability();
-  const selection = elements.format.value === "fountain" ? "fountain" : "yaml";
+  const selection = outputSelectionForFormat(elements.format.value);
   if (state.exports) {
     selectOutput(selection);
     return;

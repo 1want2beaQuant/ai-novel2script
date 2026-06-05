@@ -110,6 +110,8 @@ def test_convert_payload_returns_output_and_summary() -> None:
     assert "title: The Locked Room" in result["output"]
     assert result["exports"]["yaml"] == result["output"]
     assert "Title: The Locked Room" in result["exports"]["fountain"]
+    assert "# The Locked Room 修订简报" in result["exports"]["markdown"]
+    assert "## Priority Actions" in result["exports"]["markdown"]
     assert json.loads(result["exports"]["draft_json"])["title"] == "The Locked Room"
     assert json.loads(result["exports"]["summary_json"])["scene_count"] == 3
     assert result["provider_status"] == {
@@ -158,6 +160,25 @@ def test_convert_payload_supports_fountain_output() -> None:
     assert "// source_chapter: 3" in result["output"]
     assert "title: The Locked Room" in result["exports"]["yaml"]
     assert result["exports"]["fountain"] == result["output"]
+
+
+def test_convert_payload_supports_markdown_revision_brief() -> None:
+    result = convert_payload(
+        {
+            "text": MANUSCRIPT,
+            "title": "The Locked Room",
+            "format": "markdown",
+            "provider": "local",
+        }
+    )
+
+    assert result["format"] == "markdown"
+    assert result["output"] == result["exports"]["markdown"]
+    assert result["output"].startswith("# The Locked Room 修订简报\n")
+    assert "## Coverage" in result["output"]
+    assert "## Structure Beats" in result["output"]
+    assert "Title: The Locked Room" in result["exports"]["fountain"]
+    assert "title: The Locked Room" in result["exports"]["yaml"]
 
 
 def test_convert_payload_reports_openai_local_fallback(
@@ -289,6 +310,9 @@ def test_web_server_serves_static_assets_and_conversion_api() -> None:
         assert 'class="output-tabs"' in body
         assert 'data-output-format="yaml"' in body
         assert 'data-output-format="fountain"' in body
+        assert 'value="markdown"' in body
+        assert 'data-output-format="markdown"' in body
+        assert "Revision" in body
         assert 'data-output-format="draftJson"' in body
         assert 'data-output-format="summaryJson"' in body
         assert 'id="scoresList"' in body
@@ -335,6 +359,7 @@ def test_web_server_serves_static_assets_and_conversion_api() -> None:
         assert data["summary"]["action_items"]
         assert "title:" in data["exports"]["yaml"]
         assert data["exports"]["fountain"] == data["output"]
+        assert "# Chapter 1 The Locked Room 修订简报" in data["exports"]["markdown"]
         assert json.loads(data["exports"]["draft_json"])["source"]["chapter_count"] == 3
         assert json.loads(data["exports"]["summary_json"])["scene_count"] == 3
     finally:
@@ -456,11 +481,15 @@ def test_web_static_assets_include_conversion_status_ui() -> None:
         assert "function outputExtension" in script
         assert "data-output-format" in script
         assert "button.dataset.outputFormat" in script
-        assert "state.selectedOutput = result.format === \"fountain\" ? \"fountain\" : \"yaml\"" in script
+        assert "function outputSelectionForFormat" in script
+        assert 'format === "fountain" || format === "markdown"' in script
         assert "state.output = outputForSelection(state.selectedOutput)" in script
         assert "selectOutput(selection)" in script
+        assert "markdown" in script
+        assert "Revision brief" in script
         assert "draftJson" in script
         assert "summaryJson" in script
+        assert 'return "revision.md"' in script
         assert 'return "draft.json"' in script
         assert 'return "summary.json"' in script
         assert "function downloadBundle" in script
@@ -472,6 +501,7 @@ def test_web_static_assets_include_conversion_status_ui() -> None:
         assert "state.exports = normalizeExports(result)" in script
         assert "state.exports = null" in script
         assert 'link.download = `${downloadBaseName()}-export.zip`' in script
+        assert 'name: `${baseName}.revision.md`' in script
         assert 'new Blob(chunks, { type: "application/zip" })' in script
         assert "localView.setUint16(6, 0x0800, true)" in script
         assert "centralView.setUint16(8, 0x0800, true)" in script

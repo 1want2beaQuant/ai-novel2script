@@ -155,6 +155,47 @@ def test_cli_writes_fountain_output(tmp_path: Path) -> None:
     assert "The hidden name finally connected every clue." in fountain
 
 
+def test_cli_writes_markdown_revision_brief(tmp_path: Path) -> None:
+    input_path = tmp_path / "novel.txt"
+    output_path = tmp_path / "drafts" / "revision.md"
+    input_path.write_text(MANUSCRIPT, encoding="utf-8")
+
+    exit_code = main(
+        [
+            str(input_path),
+            "--title",
+            "The Locked Room",
+            "--format",
+            "markdown",
+            "--output",
+            str(output_path),
+        ]
+    )
+
+    assert exit_code == 0
+    markdown = output_path.read_text(encoding="utf-8")
+    assert markdown.startswith("# The Locked Room 修订简报\n")
+    assert "## Coverage" in markdown
+    assert "## Priority Actions" in markdown
+    assert "## Scene Index" in markdown
+
+
+def test_cli_writes_markdown_to_stdout(
+    tmp_path: Path,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    input_path = tmp_path / "novel.txt"
+    input_path.write_text(MANUSCRIPT, encoding="utf-8")
+
+    exit_code = main([str(input_path), "--title", "The Locked Room", "--format", "markdown"])
+
+    assert exit_code == 0
+    captured = capsys.readouterr()
+    assert captured.err == ""
+    assert "# The Locked Room 修订简报" in captured.out
+    assert "## Scorecard" in captured.out
+
+
 def test_cli_writes_yaml_to_stdout(
     tmp_path: Path,
     capsys: pytest.CaptureFixture[str],

@@ -31,6 +31,7 @@
             <select id="formatSelect">
               <option value="yaml">YAML</option>
               <option value="fountain">Fountain</option>
+              <option value="markdown">Revision brief</option>
             </select>
           </label>
           <label>
@@ -119,6 +120,15 @@
                     data-output-format="fountain"
                   >
                     Fountain
+                  </button>
+                  <button
+                    id="viewRevisionButton"
+                    type="button"
+                    role="tab"
+                    aria-controls="outputBox"
+                    data-output-format="markdown"
+                  >
+                    Revision
                   </button>
                   <button
                     id="viewDraftJsonButton"
