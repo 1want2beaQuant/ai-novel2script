@@ -67,6 +67,7 @@ def test_distribution_metadata_exposes_publishable_project_details() -> None:
         "PyYAML>=6.0.1",
     ]
     assert project["scripts"]["novel2script"] == "novel2script.cli:main"
+    assert project["scripts"]["novel2script-web"] == "novel2script.web:main"
     assert project["urls"] == {
         "Homepage": "https://github.com/1want2beaQuant/ai-novel2script",
         "Repository": "https://github.com/1want2beaQuant/ai-novel2script",
@@ -84,6 +85,11 @@ def test_package_data_and_manifest_include_release_assets() -> None:
     }
 
     assert pyproject["tool"]["setuptools"]["package-data"]["novel2script"] == ["schemas/*.json"]
+    assert pyproject["tool"]["setuptools"]["package-data"]["novel2script.web"] == [
+        "static/*.html",
+        "static/*.css",
+        "static/*.js",
+    ]
     assert {
         "include LICENSE",
         "include README.md",
@@ -96,6 +102,7 @@ def test_package_data_and_manifest_include_release_assets() -> None:
         "recursive-include docs *.md",
         "recursive-include examples *.txt",
         "recursive-include scripts *.py",
+        "recursive-include src/novel2script/web/static *.html *.css *.js",
     } <= manifest_entries
 
 
@@ -109,3 +116,13 @@ def test_openai_validation_behavior_is_documented_for_release() -> None:
     assert "OpenAI-compatible enhancement responses are parsed as JSON objects" in changelog
     assert "tolerate fenced JSON blocks" in changelog
     assert "validated against the bundled schema" in changelog
+
+
+def test_local_web_workbench_is_documented_for_release() -> None:
+    readme = (ROOT / "README.md").read_text(encoding="utf-8")
+    changelog = (ROOT / "CHANGELOG.md").read_text(encoding="utf-8")
+
+    assert "novel2script-web --host 127.0.0.1 --port 8765" in readme
+    assert "python -m novel2script.web --host 127.0.0.1 --port 8765 --no-open" in readme
+    assert "默认本地模式不会把手稿发送到外部服务" in readme
+    assert "Local browser workbench" in changelog

@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>novel2script Studio</title>
+    <link rel="stylesheet" href="/app.css" />
+  </head>
+  <body>
+    <main class="shell">
+      <section class="workspace" aria-label="novel2script Studio">
+        <header class="topbar">
+          <div>
+            <p class="eyebrow">novel2script Studio</p>
+            <h1>小说改编工作台</h1>
+          </div>
+          <div class="status-pill" id="serverStatus">Local</div>
+        </header>
+
+        <section class="controls" aria-label="转换设置">
+          <label>
+            <span>片名</span>
+            <input id="titleInput" type="text" placeholder="可选" />
+          </label>
+          <label>
+            <span>输出</span>
+            <select id="formatSelect">
+              <option value="yaml">YAML</option>
+              <option value="fountain">Fountain</option>
+            </select>
+          </label>
+          <label>
+            <span>模式</span>
+            <select id="providerSelect">
+              <option value="local">本地</option>
+              <option value="openai">OpenAI</option>
+            </select>
+          </label>
+          <label>
+            <span>模型</span>
+            <input id="modelInput" type="text" value="gpt-4.1-mini" />
+          </label>
+          <label class="checkline">
+            <input id="validateInput" type="checkbox" checked />
+            <span>Schema 校验</span>
+          </label>
+          <button id="convertButton" type="button">转换</button>
+        </section>
+
+        <section class="panes">
+          <div class="pane">
+            <div class="pane-head">
+              <h2>原文</h2>
+              <div class="button-row">
+                <input id="fileInput" class="visually-hidden" type="file" accept=".txt,text/plain" />
+                <button id="fileButton" type="button">导入</button>
+                <button id="sampleButton" type="button">示例</button>
+              </div>
+            </div>
+            <textarea id="manuscriptInput" spellcheck="false"></textarea>
+          </div>
+
+          <div class="pane result-pane">
+            <div class="pane-head">
+              <h2>结果</h2>
+              <div class="button-row">
+                <button id="copyButton" type="button">复制</button>
+                <button id="downloadButton" type="button">下载</button>
+              </div>
+            </div>
+            <pre id="outputBox" aria-live="polite"></pre>
+          </div>
+        </section>
+
+        <section class="inspector" aria-label="改编摘要">
+          <div class="metrics">
+            <div class="metric">
+              <span>章节</span>
+              <strong id="chapterCount">0</strong>
+            </div>
+            <div class="metric">
+              <span>场景</span>
+              <strong id="sceneCount">0</strong>
+            </div>
+            <div class="metric">
+              <span>人物</span>
+              <strong id="characterCount">0</strong>
+            </div>
+            <div class="metric">
+              <span>Coverage</span>
+              <strong id="coverageScore">0</strong>
+            </div>
+          </div>
+          <div class="summary">
+            <div class="logline">
+              <span id="verdict">draft</span>
+              <p id="loglineText"></p>
+            </div>
+            <ol id="scenesList" class="scenes-list"></ol>
+          </div>
+        </section>
+      </section>
+    </main>
+    <script src="/app.js"></script>
+  </body>
+</html>
