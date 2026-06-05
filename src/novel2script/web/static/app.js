@@ -106,6 +106,14 @@ async function checkServer() {
   }
 }
 
+async function readJsonResponse(response, fallbackMessage) {
+  try {
+    return await response.json();
+  } catch {
+    throw new Error(fallbackMessage);
+  }
+}
+
 async function convertManuscript() {
   if (isCurrentRequestTooLarge()) {
     showRequestSizeError();
@@ -136,7 +144,7 @@ async function convertManuscript() {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload)
     });
-    const result = await response.json();
+    const result = await readJsonResponse(response, "服务返回了无法解析的转换响应。");
     if (!response.ok) {
       throw new Error(result.error || "Conversion failed.");
     }
@@ -460,7 +468,7 @@ async function runPreview(text, requestId) {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ text })
     });
-    const preview = await response.json();
+    const preview = await readJsonResponse(response, "服务返回了无法解析的预检响应。");
     if (requestId !== state.previewRequestId || text !== elements.manuscript.value) {
       return;
     }
