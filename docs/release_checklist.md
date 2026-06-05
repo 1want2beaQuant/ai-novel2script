@@ -18,6 +18,7 @@ python scripts\check_release_tag.py v0.1.0
 python -m build
 python -m twine check dist\*
 novel2script --version
+python -m novel2script --version
 python -m novel2script.cli examples/three_chapters.txt --output outputs/release-smoke.yaml --validate
 python -m novel2script.cli examples/three_chapters.txt --format fountain --output outputs/release-smoke.fountain
 cmd /c fc /b schemas\script.schema.json src\novel2script\schemas\script.schema.json
@@ -45,6 +46,6 @@ wheel/sdist 资产的 GitHub Release。
 ## 发布后
 
 1. 在干净虚拟环境中安装发布包。
-2. 运行 `novel2script --version`、`novel2script --help` 和示例转换命令。
+2. 运行 `novel2script --version`、`python -m novel2script --version`、`novel2script --help` 和示例转换命令。
 3. 核对 PyPI 页面中的 README、许可证、项目链接和版本号。
 4. 核对 GitHub Release 页面中的 release notes、wheel 和 sdist 资产。
