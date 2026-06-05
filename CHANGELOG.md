@@ -20,6 +20,7 @@ Initial release candidate.
 - Flexible chapter heading detection for Chinese prologue/epilogue headings and English word, Roman numeral, and abbreviated chapter headings.
 - Local character guessing avoids promoting action/location phrases to character names while preserving dialogue speakers and common Chinese compound surnames.
 - Local logline generation avoids repeated protagonist phrasing and uses a cleaner one-sentence pitch template.
+- Local Web workbench shows live input size, chapter estimate, provider privacy status, conversion freshness, and export readiness.
 - Structured `structure_map`, `story_bible`, `adaptation_report`, and `coverage_report` sections.
 - Optional OpenAI-compatible enhancement through the `novel2script[ai]` extra.
 - OpenAI-compatible enhancement responses are parsed as JSON objects, tolerate fenced JSON blocks, and are validated against the bundled schema before use.
