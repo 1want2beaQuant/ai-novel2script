@@ -40,31 +40,38 @@ python -m pip install -e .[dev]
 ```powershell
 novel2script --version
 python -m novel2script --version
-novel2script examples/three_chapters.txt --output outputs/fog-city.yaml --validate
+novel2script path\to\novel.txt --output outputs\script.yaml --validate
 ```
 
 ## 使用
 
 ```powershell
-novel2script examples/three_chapters.txt --output outputs/fog-city.yaml
+novel2script path\to\novel.txt --output outputs\script.yaml
 ```
 
 也可以直接验证输出是否符合 Schema：
 
 ```powershell
-novel2script examples/three_chapters.txt --output outputs/fog-city.yaml --validate
+novel2script path\to\novel.txt --output outputs\script.yaml --validate
 ```
 
 需要导出剧本文本时，可以选择 Fountain：
 
 ```powershell
-novel2script examples/three_chapters.txt --format fountain --output outputs/fog-city.fountain
+novel2script path\to\novel.txt --format fountain --output outputs\script.fountain
 ```
 
 如果当前 shell 找不到 console script，也可以使用模块入口：
 
 ```powershell
-python -m novel2script examples/three_chapters.txt --output outputs/fog-city.yaml --validate
+python -m novel2script path\to\novel.txt --output outputs\script.yaml --validate
+```
+
+克隆仓库后，可以直接用内置示例试运行：
+
+```powershell
+python -m novel2script examples\three_chapters.txt --output outputs\fog-city.yaml --validate
+python -m novel2script examples\three_chapters.txt --format fountain --output outputs\fog-city.fountain
 ```
 
 ## 可选 AI 增强
@@ -73,7 +80,7 @@ python -m novel2script examples/three_chapters.txt --output outputs/fog-city.yam
 
 ```powershell
 $env:OPENAI_API_KEY="sk-..."
-novel2script examples/three_chapters.txt --provider openai --model gpt-4.1-mini
+novel2script path\to\novel.txt --provider openai --model gpt-4.1-mini
 ```
 
 如果没有配置 Key，工具会自动回退到本地启发式引擎。
