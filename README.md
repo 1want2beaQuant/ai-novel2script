@@ -24,6 +24,7 @@ python -m pip install -e .[dev]
 发布包安装后可直接使用 CLI：
 
 ```powershell
+novel2script --version
 novel2script examples/three_chapters.txt --output outputs/fog-city.yaml --validate
 ```
 
