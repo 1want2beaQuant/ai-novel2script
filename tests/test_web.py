@@ -24,6 +24,14 @@ Mara and Jon played the tape together. The hidden name finally connected every c
 """
 
 
+def oversized_json_payload() -> bytes:
+    return b'{"text":"' + (b"a" * (web_module.MAX_REQUEST_BYTES + 1)) + b'"}'
+
+
+def oversized_content_length() -> str:
+    return str(web_module.MAX_REQUEST_BYTES + 1)
+
+
 def test_web_version_option_reports_package_version(
     capsys: pytest.CaptureFixture[str],
 ) -> None:
@@ -304,6 +312,11 @@ def test_web_static_assets_include_conversion_status_ui() -> None:
         assert "function providerStatusSummary" in script
         assert "本地回退" in script
         assert "OPENAI_API_KEY 未设置，实际使用本地转换。" in script
+        assert "const maxRequestBytes = 2000000" in script
+        assert "new TextEncoder" in script
+        assert "function isCurrentRequestTooLarge" in script
+        assert "function syncConvertAvailability" in script
+        assert "手稿过大，请拆分后再预检或转换。" in script
         assert "conversionSummary" in script
 
         connection.request("GET", "/app.css")
@@ -365,6 +378,31 @@ def test_web_server_accepts_utf8_bom_json_payload() -> None:
 
         assert response.status == HTTPStatus.OK
         assert data["summary"]["chapter_count"] == 3
+    finally:
+        server.shutdown()
+        server.server_close()
+        thread.join(timeout=5)
+
+
+def test_web_server_rejects_oversized_json_payload() -> None:
+    server = create_server(port=0)
+    thread = Thread(target=server.serve_forever, daemon=True)
+    thread.start()
+    host, port = server.server_address
+
+    try:
+        for path in ("/api/convert", "/api/preview"):
+            connection = HTTPConnection(host, port, timeout=10)
+            connection.putrequest("POST", path)
+            connection.putheader("Content-Type", "application/json")
+            connection.putheader("Content-Length", oversized_content_length())
+            connection.endheaders()
+            response = connection.getresponse()
+            data = json.loads(response.read().decode("utf-8"))
+
+            assert response.status == HTTPStatus.REQUEST_ENTITY_TOO_LARGE
+            assert data == {"error": "Request body is too large."}
+            connection.close()
     finally:
         server.shutdown()
         server.server_close()

@@ -92,7 +92,7 @@ python -m novel2script.web --host 127.0.0.1 --port 8765 --no-open
 打开 `http://127.0.0.1:8765` 后，可以导入 `.txt` 手稿、选择 YAML 或 Fountain 输出、切换本地或 OpenAI 模式。页面会用本地后端预检章节识别结果，并在转换后展示章节覆盖率、coverage 分项评分、结构节拍、优先修订动作、风险提示、实际处理方式和场景索引。默认本地模式不会把手稿发送到外部服务；选择 OpenAI 且配置 `OPENAI_API_KEY` 后，行为与 CLI 的 `--provider openai` 相同，Web 页面会在开始远程转换前按当前手稿、片名和模型要求确认。
 
 Web 工作台默认只绑定本机 loopback 地址。若确实需要让局域网内其他设备访问，必须同时传入非本机 `--host` 和 `--allow-remote`；这样会把页面和手稿转换 API 暴露给该网络，请只在受信任网络中使用。
-预检和转换 API 只接受 JSON 请求；浏览器请求携带 `Origin` 时必须与当前 Web 工作台同源。
+预检和转换 API 只接受 JSON 请求；浏览器请求携带 `Origin` 时必须与当前 Web 工作台同源。单次 Web 请求上限为 2 MB，超大手稿请拆分后再预检或转换。
 
 ## 可选 AI 增强
 

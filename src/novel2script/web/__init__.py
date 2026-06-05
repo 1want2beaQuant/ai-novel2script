@@ -26,6 +26,10 @@ STATIC_FILES = {"index.html", "app.css", "app.js"}
 LOCAL_HOSTS = {"localhost", "127.0.0.1", "::1"}
 
 
+class RequestTooLargeError(ValueError):
+    pass
+
+
 def convert_payload(payload: dict[str, Any]) -> dict[str, Any]:
     text = _required_string(payload, "text").strip()
     if not text:
@@ -290,6 +294,9 @@ class Novel2ScriptWebHandler(BaseHTTPRequestHandler):
             self._validate_convert_request()
             payload = self._read_json_payload()
             result = preview_payload(payload) if path == "/api/preview" else convert_payload(payload)
+        except RequestTooLargeError as exc:
+            self._send_json({"error": str(exc)}, status=HTTPStatus.REQUEST_ENTITY_TOO_LARGE)
+            return
         except ValueError as exc:
             self._send_json({"error": str(exc)}, status=HTTPStatus.BAD_REQUEST)
             return
@@ -321,7 +328,7 @@ class Novel2ScriptWebHandler(BaseHTTPRequestHandler):
         except ValueError as exc:
             raise ValueError("Invalid request length.") from exc
         if content_length > MAX_REQUEST_BYTES:
-            raise ValueError("Request body is too large.")
+            raise RequestTooLargeError("Request body is too large.")
 
         raw = self.rfile.read(content_length)
         try:
