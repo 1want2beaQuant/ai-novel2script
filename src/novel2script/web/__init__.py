@@ -46,9 +46,13 @@ def convert_payload(payload: dict[str, Any]) -> dict[str, Any]:
     if provider not in {"local", "openai"}:
         raise ValueError("Provider must be local or openai.")
 
-    model = payload.get("model", "gpt-4.1-mini")
-    if not isinstance(model, str) or not model.strip():
-        raise ValueError("Model must be a non-empty string.")
+    model = _optional_string(
+        payload,
+        "model",
+        default="gpt-4.1-mini",
+        allow_blank=False,
+        error_message="Model must be a non-empty string.",
+    )
 
     conversion = convert_with_provider_status(
         text=text,
@@ -388,12 +392,21 @@ def _required_string(payload: dict[str, Any], key: str) -> str:
     return value
 
 
-def _optional_string(payload: dict[str, Any], key: str, *, default: str | None = None) -> str | None:
+def _optional_string(
+    payload: dict[str, Any],
+    key: str,
+    *,
+    default: str | None = None,
+    allow_blank: bool = True,
+    error_message: str | None = None,
+) -> str | None:
     value = payload.get(key, default)
     if value is None:
         return None
     if not isinstance(value, str):
-        raise ValueError(f"{key} must be a string.")
+        raise ValueError(error_message or f"{key} must be a string.")
+    if not allow_blank and not value.strip():
+        raise ValueError(error_message or f"{key} must be a non-empty string.")
     return value
 
 

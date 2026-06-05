@@ -209,6 +209,16 @@ def test_convert_payload_rejects_non_string_provider() -> None:
         convert_payload({"text": MANUSCRIPT, "format": "yaml", "provider": 1})
 
 
+def test_convert_payload_rejects_non_string_model() -> None:
+    with pytest.raises(ValueError, match="Model must be a non-empty string"):
+        convert_payload({"text": MANUSCRIPT, "format": "yaml", "model": 1})
+
+
+def test_convert_payload_rejects_blank_model() -> None:
+    with pytest.raises(ValueError, match="Model must be a non-empty string"):
+        convert_payload({"text": MANUSCRIPT, "format": "yaml", "model": "  "})
+
+
 def test_preview_payload_reports_authoritative_chapter_preflight() -> None:
     two_chapters = """
 第 1 章
