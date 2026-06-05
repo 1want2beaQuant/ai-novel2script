@@ -835,6 +835,22 @@ function providerStatusSummary(status) {
   return "本地转换";
 }
 
+function downloadBaseName() {
+  const title = elements.title.value.trim() || state.lastSummary?.title || "";
+  const safeTitle = safeFilenameSegment(title);
+  return safeTitle || "novel2script-draft";
+}
+
+function safeFilenameSegment(value) {
+  return value
+    .normalize("NFKC")
+    .replace(/[<>:"/\\|?*\u0000-\u001f]/g, "-")
+    .replace(/\s+/g, " ")
+    .replace(/[.\s-]+$/g, "")
+    .replace(/^[.\s-]+/g, "")
+    .slice(0, 80);
+}
+
 function withEmpty(items, message) {
   return Array.isArray(items) && items.length ? items : [message];
 }
@@ -916,7 +932,7 @@ function downloadOutput() {
     const link = document.createElement("a");
     objectUrl = URL.createObjectURL(blob);
     link.href = objectUrl;
-    link.download = `novel2script-draft.${extension}`;
+    link.download = `${downloadBaseName()}.${extension}`;
     link.click();
     elements.download.textContent = "已下载";
   } catch {
