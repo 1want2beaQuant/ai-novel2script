@@ -21,6 +21,12 @@
 python -m pip install -e .[dev]
 ```
 
+发布包安装后可直接使用 CLI：
+
+```powershell
+novel2script examples/three_chapters.txt --output outputs/fog-city.yaml --validate
+```
+
 ## 使用
 
 ```powershell
@@ -44,6 +50,7 @@ python -m novel2script.cli examples/three_chapters.txt --format fountain --outpu
 设置环境变量后启用 OpenAI 兼容模型：
 
 ```powershell
+python -m pip install "novel2script[ai]"
 $env:OPENAI_API_KEY="sk-..."
 python -m novel2script.cli examples/three_chapters.txt --provider openai --model gpt-4.1-mini
 ```
@@ -65,4 +72,11 @@ python -m novel2script.cli examples/three_chapters.txt --provider openai --model
 
 - [YAML Schema 设计文档](docs/yaml_schema.md)
 - [竞品调研与改进记录](docs/market_research.md)
+- [发布检查清单](docs/release_checklist.md)
 - [JSON Schema 文件](schemas/script.schema.json)
+
+## 工程化状态
+
+- CI 在 PR 和 `main` push 上运行 ruff、pytest、CLI smoke test 和 Schema 同步检查。
+- 发布 workflow 监听 `v*.*.*` 标签，构建 wheel/sdist，并通过 PyPI Trusted Publishing 发布。
+- 发布前请先在 PyPI 配置 `pypi` environment 的 Trusted Publisher。
