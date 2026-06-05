@@ -88,6 +88,8 @@ def _read_input_text(input_path: Path) -> str:
 def _validate_output_path(output_path: Path) -> None:
     if output_path.is_dir():
         raise ValueError(f"Output path is a directory, expected a file path: {output_path}")
+    if output_path.parent.exists() and not output_path.parent.is_dir():
+        raise ValueError(f"Output parent path is not a directory: {output_path.parent}")
 
 
 if __name__ == "__main__":
