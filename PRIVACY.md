@@ -18,7 +18,8 @@ In this mode, `novel2script`:
 - does not collect telemetry;
 - does not store API keys.
 
-Generated output files contain manuscript-derived content. Treat YAML, Fountain, logs, and screenshots as sensitive if the input manuscript is sensitive.
+Generated output files contain manuscript-derived content. Treat YAML, Fountain, JSON exports,
+zip bundles, logs, and screenshots as sensitive if the input manuscript is sensitive.
 
 ## Optional OpenAI-Compatible Mode
 
@@ -51,7 +52,11 @@ When using the Web UI:
   confirmation before starting that remote conversion for the current manuscript, title, and model;
 - if OpenAI mode falls back because no API key is configured, the provider status card shows
   `本地回退` and no remote AI service is called;
-- generated YAML or Fountain text remains in the browser until you copy or download it.
+- generated YAML, Fountain, draft JSON, and summary JSON text remains in the browser until you
+  clear the workbench, close the page, copy it, download it, or package it into a zip;
+- the Web UI clear action removes the current manuscript, title, generated outputs, diagnostics,
+  selected file reference, and pending remote confirmation from the browser workbench state, but it
+  cannot remove files you already downloaded or content you already copied elsewhere;
 - static assets and JSON API responses are sent with `Cache-Control: no-store` to reduce
   browser or intermediary caching of manuscript-derived responses.
 

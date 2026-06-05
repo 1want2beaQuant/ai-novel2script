@@ -270,6 +270,8 @@ def test_web_server_serves_static_assets_and_conversion_api() -> None:
         assert "novel2script Studio" in body
         assert f'id="modelInput" type="text" value="{novel2script.DEFAULT_MODEL}"' in body
         assert 'id="fileButton"' in body
+        assert 'id="clearButton"' in body
+        assert "清空当前工作台" in body
         assert "Adaptation Inspector" in body
         assert 'aria-label="转换状态"' in body
         assert 'id="inputSize"' in body
@@ -405,6 +407,15 @@ def test_web_static_assets_include_conversion_status_ui() -> None:
         assert "文件读取失败，当前手稿已保留" in script
         assert "setConversionStatus(\"导入失败\"" in script
         assert "elements.file.value = \"\"" in script
+        assert "function clearWorkbench" in script
+        assert "elements.clear.addEventListener(\"click\", clearWorkbench)" in script
+        assert "elements.clear.disabled = isWorking" in script
+        assert "state.openAiConfirmedFor = \"\"" in script
+        assert "state.exports = null" in script
+        assert "state.previewRequestId += 1" in script
+        assert "elements.manuscript.value = \"\"" in script
+        assert "elements.title.value = \"\"" in script
+        assert "工作台已清空，等待手稿输入。" in script
         assert (
             'elements.manuscript.value = text;\n  elements.file.value = "";\n  if (!elements.title.value)'
             in normalized_script
