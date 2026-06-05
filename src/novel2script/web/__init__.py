@@ -38,11 +38,11 @@ def convert_payload(payload: dict[str, Any]) -> dict[str, Any]:
     title_value = _optional_string(payload, "title")
     title = title_value.strip() if title_value and title_value.strip() else None
 
-    output_format = payload.get("format", "yaml")
+    output_format = _optional_string(payload, "format", default="yaml")
     if output_format not in {"yaml", "fountain"}:
         raise ValueError("Format must be yaml or fountain.")
 
-    provider = payload.get("provider", "local")
+    provider = _optional_string(payload, "provider", default="local")
     if provider not in {"local", "openai"}:
         raise ValueError("Provider must be local or openai.")
 
@@ -388,8 +388,8 @@ def _required_string(payload: dict[str, Any], key: str) -> str:
     return value
 
 
-def _optional_string(payload: dict[str, Any], key: str) -> str | None:
-    value = payload.get(key)
+def _optional_string(payload: dict[str, Any], key: str, *, default: str | None = None) -> str | None:
+    value = payload.get(key, default)
     if value is None:
         return None
     if not isinstance(value, str):
