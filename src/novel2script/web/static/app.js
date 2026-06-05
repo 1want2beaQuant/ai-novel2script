@@ -8,6 +8,7 @@ Chapter 3 The Last Tape
 Mara and Jon played the tape together. The hidden name finally connected every clue.`;
 
 const maxRequestBytes = 2000000;
+const defaultModel = "gpt-4.1-mini";
 const textEncoder = new TextEncoder();
 
 const state = {
@@ -457,7 +458,7 @@ function conversionPayload() {
     title: elements.title.value,
     format: elements.format.value,
     provider: elements.provider.value,
-    model: elements.model.value,
+    model: normalizedModel(),
     validate: elements.validate.checked
   };
 }
@@ -664,7 +665,7 @@ function remoteConfirmationKey() {
 }
 
 function normalizedModel() {
-  return elements.model.value.trim();
+  return elements.model.value.trim() || defaultModel;
 }
 
 function textFingerprint(text) {
