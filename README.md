@@ -87,6 +87,7 @@ novel2script path\to\novel.txt --provider openai --model gpt-4.1-mini
 
 默认本地模式不会调用外部 AI 服务。启用 `--provider openai` 且设置 `OPENAI_API_KEY`
 后，工具会把截断后的章节摘要和本地生成的 baseline JSON 发送给 OpenAI 兼容接口；
+返回内容会按 JSON 对象解析（支持常见 fenced JSON 代码块），并在替换本地草稿前通过内置 Schema 校验。
 处理私有手稿前请先阅读 [隐私说明](PRIVACY.md)。
 
 ## 依赖与原创说明

@@ -15,6 +15,7 @@ Initial release candidate.
 - Fountain screenplay export.
 - Structured `structure_map`, `story_bible`, `adaptation_report`, and `coverage_report` sections.
 - Optional OpenAI-compatible enhancement through the `novel2script[ai]` extra.
+- OpenAI-compatible enhancement responses are parsed as JSON objects, tolerate fenced JSON blocks, and are validated against the bundled schema before use.
 - Release workflow for tagged PyPI publishing through Trusted Publishing and GitHub Release assets.
 - CI matrix for Python 3.10 through 3.14.
 - Build, wheel/sdist smoke, release tag, workflow configuration, Windows smoke, and dependency security audit guards.
