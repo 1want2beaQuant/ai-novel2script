@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import re
 from collections import Counter
+from typing import Any
 
 from novel2script.models import Act, Chapter, Character, Scene, ScriptBlock, ScriptDraft
 
@@ -37,7 +38,12 @@ def build_script_from_chapters(chapters: list[Chapter], title: str | None = None
     scenes = [_chapter_to_scene(chapter) for chapter in chapters]
     characters = _build_characters(scenes)
     character_names = [character.name for character in characters]
+    logline = _build_logline(inferred_title, scenes, character_names)
+    themes = _infer_themes(chapters)
     acts = _group_scenes_into_acts(scenes)
+    structure_map = _build_structure_map(scenes)
+    story_bible = _build_story_bible(chapters, scenes, characters)
+    adaptation_report = _build_adaptation_report(chapters, scenes)
 
     return ScriptDraft(
         title=inferred_title,
@@ -46,19 +52,29 @@ def build_script_from_chapters(chapters: list[Chapter], title: str | None = None
             "chapter_count": len(chapters),
             "chapters": [{"index": chapter.index, "title": chapter.title} for chapter in chapters],
         },
-        logline=_build_logline(inferred_title, scenes, character_names),
-        themes=_infer_themes(chapters),
+        logline=logline,
+        themes=themes,
         characters=characters,
         acts=acts,
-        structure_map=_build_structure_map(scenes),
-        story_bible=_build_story_bible(chapters, scenes, characters),
-        adaptation_report=_build_adaptation_report(chapters, scenes),
+        structure_map=structure_map,
+        story_bible=story_bible,
+        adaptation_report=adaptation_report,
+        coverage_report=_build_coverage_report(
+            logline=logline,
+            themes=themes,
+            scenes=scenes,
+            characters=characters,
+            structure_map=structure_map,
+            story_bible=story_bible,
+            adaptation_report=adaptation_report,
+        ),
         revision_notes=[
             "本稿由本地启发式改编引擎生成，建议作者重点复核人物动机和对白语气。",
             "每个场景保留 source_chapter，便于回到原小说章节继续打磨。",
             "structure_map 标记开端、诱发事件、中点、高潮和结局，便于检查三幕结构。",
             "story_bible 汇总人物、地点、道具/线索和待解问题，可作为后续改编资料库。",
             "adaptation_report 汇总章节覆盖、场景映射和质量风险，可作为下一轮修订清单。",
+            "coverage_report 按专业 coverage 思路给出分项评分、强弱项和优先修订动作。",
         ],
     )
 
@@ -373,6 +389,256 @@ def _revision_checklist(quality_flags: list[str]) -> list[str]:
     if any("地点" in flag for flag in quality_flags):
         checklist.append("把待定地点改成具体、可视觉化的内景或外景。")
     return checklist
+
+
+def _build_coverage_report(
+    *,
+    logline: str,
+    themes: list[str],
+    scenes: list[Scene],
+    characters: list[Character],
+    structure_map: dict[str, object],
+    story_bible: dict[str, object],
+    adaptation_report: dict[str, object],
+) -> dict[str, object]:
+    scores = _coverage_scores(
+        logline=logline,
+        themes=themes,
+        scenes=scenes,
+        characters=characters,
+        structure_map=structure_map,
+        story_bible=story_bible,
+        adaptation_report=adaptation_report,
+    )
+    overall_score = round(sum(score["score"] for score in scores) / len(scores))
+    lowest_score = min(int(score["score"]) for score in scores)
+
+    return {
+        "model": "screenplay_coverage_v1",
+        "verdict": _coverage_verdict(overall_score, lowest_score),
+        "overall_score": overall_score,
+        "scores": scores,
+        "strengths": _coverage_strengths(scores, structure_map, story_bible, adaptation_report),
+        "weaknesses": _coverage_weaknesses(scores, structure_map, story_bible, adaptation_report),
+        "action_items": _coverage_action_items(scores, structure_map, story_bible, adaptation_report),
+        "review_notes": [
+            "该报告模拟专业 coverage 的读稿反馈结构，用于初稿自检，不等同于人工行业评估。",
+            "分数来自本地启发式指标，建议优先处理低于 70 分的维度后再进入对白和场面细修。",
+        ],
+    }
+
+
+def _coverage_scores(
+    *,
+    logline: str,
+    themes: list[str],
+    scenes: list[Scene],
+    characters: list[Character],
+    structure_map: dict[str, object],
+    story_bible: dict[str, object],
+    adaptation_report: dict[str, object],
+) -> list[dict[str, object]]:
+    metrics = _as_dict(adaptation_report["metrics"])
+    chapter_coverage = _as_dict(adaptation_report["chapter_coverage"])
+    diagnostics = _as_list(structure_map["diagnostics"])
+    beats = [_as_dict(beat) for beat in _as_list(structure_map["beats"])]
+    locations = [_as_dict(location) for location in _as_list(story_bible["locations"])]
+    open_questions = _as_list(story_bible["open_questions"])
+    props = _as_list(story_bible["props"])
+
+    premise_score = _clamp_score(58 + (12 if logline else 0) + min(len(themes), 3) * 4)
+    structure_score = _clamp_score(
+        82
+        - max(0, 5 - len({beat["scene_id"] for beat in beats})) * 8
+        - (8 if len(scenes) < 5 else 0)
+        - max(0, len(diagnostics) - 1) * 4
+    )
+    character_score = _clamp_score(
+        55
+        + min(len(characters), 4) * 6
+        + (8 if any(character.role == "protagonist" for character in characters) else 0)
+        - max(0, len(open_questions) - 2) * 3
+    )
+    dialogue_ratio = float(metrics["dialogue_ratio"])  # type: ignore[index]
+    dialogue_score = _clamp_score(
+        48
+        + min(int(dialogue_ratio * 100), 35)
+        + (8 if metrics["dialogue_blocks"] else 0)
+    )
+    visuality_score = _clamp_score(
+        50
+        + min(int(metrics["action_blocks"]) * 4, 20)
+        + min(len([location for location in locations if location["name"] != "待定场景"]), 4) * 5
+        + min(len(props), 3) * 3
+        - (12 if any(scene.location == "待定场景" for scene in scenes) else 0)
+    )
+    fidelity_score = _clamp_score(
+        45
+        + round(float(chapter_coverage["coverage_ratio"]) * 40)
+        + (6 if not chapter_coverage["missing_chapters"] else 0)
+    )
+
+    return [
+        _coverage_score("premise", premise_score, "故事前提、类型信号和一句话卖点的清晰度。"),
+        _coverage_score("structure", structure_score, "关键结构节拍是否分布清楚并能支撑三幕推进。"),
+        _coverage_score("character", character_score, "人物功能、连续性和可继续深化的目标关系。"),
+        _coverage_score("dialogue", dialogue_score, "对白存在感、台词推进和小说叙述转剧本语言的程度。"),
+        _coverage_score("visuality", visuality_score, "场景地点、动作块和道具线索的可拍摄程度。"),
+        _coverage_score("adaptation_fidelity", fidelity_score, "源章节覆盖、场景映射和改编可追溯性。"),
+    ]
+
+
+def _coverage_score(area: str, score: int, rationale: str) -> dict[str, object]:
+    return {
+        "area": area,
+        "score": score,
+        "rationale": rationale,
+    }
+
+
+def _coverage_verdict(overall_score: int, lowest_score: int) -> str:
+    if overall_score >= 80 and lowest_score >= 70:
+        return "consider"
+    if overall_score >= 60:
+        return "revise"
+    return "draft"
+
+
+def _coverage_strengths(
+    scores: list[dict[str, object]],
+    structure_map: dict[str, object],
+    story_bible: dict[str, object],
+    adaptation_report: dict[str, object],
+) -> list[str]:
+    strengths: list[str] = []
+    strong_areas = [score["area"] for score in scores if int(score["score"]) >= 75]
+    if "adaptation_fidelity" in strong_areas:
+        strengths.append("章节覆盖和场景映射完整，便于作者逐章回到原文复核。")
+    if "structure" in strong_areas:
+        strengths.append("关键结构节拍已经映射到具体场景，可继续深化冲突强度。")
+    if "visuality" in strong_areas:
+        strengths.append("动作、地点和道具线索具备初步可拍摄性。")
+    if story_bible["characters"]:
+        strengths.append("人物和改编资料已独立沉淀，适合后续连续性维护。")
+    if adaptation_report["revision_checklist"]:
+        strengths.append("修订清单已经把自动质检结果转化为下一轮打磨入口。")
+    if not strengths:
+        strengths.append("初稿已建立基本场景序列，可以在此基础上继续做人工扩写。")
+    if structure_map["diagnostics"]:
+        return strengths[:4]
+    return strengths
+
+
+def _coverage_weaknesses(
+    scores: list[dict[str, object]],
+    structure_map: dict[str, object],
+    story_bible: dict[str, object],
+    adaptation_report: dict[str, object],
+) -> list[str]:
+    weaknesses: list[str] = []
+    low_areas = [score["area"] for score in scores if int(score["score"]) < 70]
+    if "dialogue" in low_areas:
+        weaknesses.append("对白维度偏弱，部分场景仍可能停留在小说摘要而非角色交锋。")
+    if "visuality" in low_areas:
+        weaknesses.append("可拍摄信息不足，需要补充具体地点、动作调度和视觉线索。")
+    if "structure" in low_areas:
+        weaknesses.append("结构节拍可能过度集中或场景数量偏少，需要扩写转折层次。")
+    if "character" in low_areas:
+        weaknesses.append("人物目标和关系仍需明确，否则后续对白和冲突会缺少驱动力。")
+    quality_flags = _as_list(adaptation_report["quality_flags"])
+    for flag in quality_flags:
+        if len(weaknesses) >= 4:
+            break
+        if "未发现" in str(flag):
+            continue
+        if flag not in weaknesses:
+            weaknesses.append(str(flag))
+    if len(_as_list(story_bible["open_questions"])) > 2:
+        weaknesses.append("待回答问题较多，建议先收束核心悬念和主角选择。")
+    if not weaknesses:
+        weaknesses.append("当前未发现单项硬伤，下一步应由作者进行人物动机和语气复核。")
+    if structure_map["diagnostics"]:
+        return weaknesses[:5]
+    return weaknesses
+
+
+def _coverage_action_items(
+    scores: list[dict[str, object]],
+    structure_map: dict[str, object],
+    story_bible: dict[str, object],
+    adaptation_report: dict[str, object],
+) -> list[dict[str, str]]:
+    low_scores = sorted(scores, key=lambda score: int(score["score"]))
+    items = [
+        _coverage_action_for_area(str(score["area"]), int(score["score"]))
+        for score in low_scores
+        if int(score["score"]) < 75
+    ]
+
+    if any("同一场" in str(diagnostic) for diagnostic in _as_list(structure_map["diagnostics"])):
+        items.append(
+            {
+                "priority": "high",
+                "area": "structure",
+                "note": "拆分或重排共用关键节拍的场景，让诱发事件、中点和高潮形成更清楚的递进。",
+            }
+        )
+    if any("待定场景" in str(question) for question in _as_list(story_bible["open_questions"])):
+        items.append(
+            {
+                "priority": "medium",
+                "area": "visuality",
+                "note": "把待定地点改写为具体内景或外景，并补充能被镜头捕捉的动作细节。",
+            }
+        )
+    chapter_coverage = _as_dict(adaptation_report["chapter_coverage"])
+    if chapter_coverage["missing_chapters"]:
+        items.append(
+            {
+                "priority": "high",
+                "area": "adaptation_fidelity",
+                "note": "先补齐缺失源章节的场景，再进入对白和节奏调整。",
+            }
+        )
+
+    if not items:
+        items.append(
+            {
+                "priority": "medium",
+                "area": "character",
+                "note": "逐场检查主角外在目标、阻碍和情绪变化，让已生成场景更具戏剧推进。",
+            }
+        )
+    return items[:5]
+
+
+def _coverage_action_for_area(area: str, score: int) -> dict[str, str]:
+    priority = "high" if score < 60 else "medium"
+    notes = {
+        "premise": "重写 logline，明确主角、目标、阻碍和类型承诺。",
+        "structure": "对照 structure_map 扩写缺少独立场景承载的关键节拍。",
+        "character": "为主要人物补充本幕目标、关系变化和选择代价。",
+        "dialogue": "为每场加入角色带目标的对白，避免只用动作摘要传递信息。",
+        "visuality": "补充可拍摄地点、动作调度和可回收的视觉道具。",
+        "adaptation_fidelity": "核对 scene_map 和 chapter_coverage，确保源章节没有被跳过。",
+    }
+    return {
+        "priority": priority,
+        "area": area,
+        "note": notes[area],
+    }
+
+
+def _clamp_score(score: int) -> int:
+    return max(0, min(100, score))
+
+
+def _as_dict(value: object) -> dict[str, Any]:
+    return value if isinstance(value, dict) else {}
+
+
+def _as_list(value: object) -> list[Any]:
+    return value if isinstance(value, list) else []
 
 
 def _infer_themes(chapters: list[Chapter]) -> list[str]:

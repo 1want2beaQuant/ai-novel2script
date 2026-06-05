@@ -17,6 +17,9 @@
 | FinalBit / NolanAI | 官网定位为 AI screenwriting、budgeting 与 pre-production 的一体化平台。 | 强在影视生产链路整合，但公开页面重点是编剧、预算和前期制作，没有展示小说章节改编的 YAML Schema 与覆盖报告。 |
 | StudioBinder | 官网强调 script breakdown、shooting schedule、call sheet、shot list 和 storyboard 等制片管理能力。 | 强在已有剧本后的拆解和生产排期，但并不解决小说原文到剧本初稿阶段的人物、地点、道具/线索资料沉淀。 |
 | WriterDuet / Arc Studio 等剧本编辑器 | 同类剧本编辑器通常强调专业排版、多人协作、云端编辑和导入导出。 | 作者拿到 YAML 后仍需要一个能进入专业剧本编辑器的文本稿，因此结构化输出之外还需要轻量格式互操作。 |
+| Black List Evaluations | 官方帮助页把 evaluations 作为单独服务说明，面向作者解释 Black List 评估的常见问题。 | 行业评估不是只给“润色建议”，而是把读稿意见变成可比较的评价结果，说明本项目需要能输出结构化 coverage 反馈。 |
+| Stage 32 Script Coverage | 官方页面提供 industry reader coverage、executive development notes、logline polish、first 10 pages review 等服务，并提到 Double Recommend。 | 专业 coverage 关注稿件是否足以进入市场/行业流转，因此本项目需要 `verdict`、强弱项和优先修订动作，而不只是质量风险列表。 |
+| Screenplay Readers Script Coverage | 官方服务页列出 3-5 页 notes、logline、synopsis、22-category scoresheet、Bechdel/Diversity score 和 Pass / Consider / Recommend。 | 说明 coverage 的常见交付由推荐等级、分项评分、梗概/日志线和具体 notes 组成，可被抽象为 YAML 的评分与 action items。 |
 
 ## 发现的不足
 
@@ -27,6 +30,7 @@
 5. **缺少改编资产沉淀**：影视改编不只需要剧本文本，还需要人物连续性、地点、美术线索、关键道具和未解决问题的资料库；这类能力通常分散在小说资料库工具或制片拆解工具中。
 6. **缺少格式互操作**：结构化 YAML 适合校验和二次处理，但作者也需要可导入或复制到专业剧本工具的纯文本剧本格式。
 7. **缺少结构节拍地图**：很多大纲工具会帮助作者检查关键转折和情节节拍，但普通 AI 生成稿往往只给场景列表，不说明开场、诱发事件、中点、高潮和结局分别落在哪里。
+8. **缺少专业读稿反馈闭环**：coverage 服务会给出 pass/consider/recommend 类推荐、分项 scorecard 和多页 notes；普通 AI 改编稿通常只给内容本身，缺少“是否值得继续推进、先改哪一项”的结构化反馈。
 
 ## 已落地改进
 
@@ -59,6 +63,14 @@
 - 每个节拍都绑定到生成场景和原章节，避免抽象结构建议脱离文本。
 - `diagnostics` 提示节拍是否过度集中在少数场景，帮助作者扩写或重排。
 
+继续调研剧本 coverage 和专业 notes 服务后，本项目新增 `coverage_report`：
+
+- `verdict`：使用 `draft`、`revise`、`consider` 表示当前初稿成熟度。
+- `overall_score` / `scores`：按 premise、structure、character、dialogue、visuality 和 adaptation_fidelity 给出 0-100 分。
+- `strengths` / `weaknesses`：把可保留优势和主要短板分开呈现。
+- `action_items`：将低分维度转成带优先级的修订动作。
+- `review_notes`：说明该报告是本地启发式 coverage，自检用途，不替代人工行业评估。
+
 ## 参考来源
 
 - Sudowrite Features: https://docs.sudowrite.com/getting-started/dQph1snuwbfMWG9wRjsNug/features/dq7YUMNy5ZMvKUJiRAisyT
@@ -73,3 +85,6 @@
 - Plottr: https://plottr.com/
 - Dabble: https://www.dabblewriter.com/
 - Dramatica: https://dramatica.com/
+- Black List Evaluations: https://help.blcklst.com/kb/guide/en/evaluations-FeXHHDKqE2/Steps/2733421
+- Stage 32 Script Coverage: https://www.stage32.com/scriptservices/coverage
+- Screenplay Readers Script Coverage: https://www.screenplayreaders.com/script-coverage/
