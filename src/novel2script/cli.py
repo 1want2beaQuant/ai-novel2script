@@ -15,6 +15,9 @@ from novel2script.schema import validate_script
 from novel2script.yaml_io import draft_to_yaml, write_yaml
 
 
+DEFAULT_MODEL = "gpt-4.1-mini"
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         prog="novel2script",
@@ -35,7 +38,7 @@ def build_parser() -> argparse.ArgumentParser:
         default="local",
         help="Use local heuristics or optional OpenAI enhancement.",
     )
-    parser.add_argument("--model", default="gpt-4.1-mini", help="OpenAI-compatible model name.")
+    parser.add_argument("--model", default=DEFAULT_MODEL, help="OpenAI-compatible model name.")
     parser.add_argument("--validate", action="store_true", help="Validate generated YAML with Schema.")
     parser.add_argument("--version", action="version", version=f"%(prog)s {__version__}")
     return parser
@@ -52,11 +55,12 @@ def main(argv: list[str] | None = None) -> int:
             _validate_output_path(args.output)
 
         text = _read_input_text(args.input)
+        model = _normalize_model(args.model)
         conversion = convert_with_provider_status(
             text=text,
             title=args.title,
             provider=args.provider,
-            model=args.model,
+            model=model,
         )
         draft = conversion.draft
         if args.provider == "openai" and not conversion.provider_status.remote:
@@ -94,6 +98,10 @@ def _configure_stdio() -> None:
     for stream in (sys.stdout, sys.stderr):
         if hasattr(stream, "reconfigure"):
             stream.reconfigure(encoding="utf-8")
+
+
+def _normalize_model(model: str) -> str:
+    return model.strip() or DEFAULT_MODEL
 
 
 def _validate_output_path(output_path: Path) -> None:
