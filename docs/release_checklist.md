@@ -12,6 +12,7 @@
 python -m pip install -e .[dev,release]
 python -m pytest
 python -m ruff check .
+python scripts\check_release_tag.py v0.1.0
 python -m build
 python -m twine check dist\*
 novel2script --version
@@ -28,14 +29,15 @@ cmd /c fc /b schemas\script.schema.json src\novel2script\schemas\script.schema.j
 
 ## 发布
 
-创建并推送语义化版本标签：
+创建并推送与 `pyproject.toml` 版本一致的语义化版本标签：
 
 ```powershell
 git tag v0.1.0
 git push origin v0.1.0
 ```
 
-GitHub Actions 会构建 wheel/sdist，并通过 PyPI Trusted Publishing 发布。
+GitHub Actions 会校验标签与包版本一致、构建 wheel/sdist、在干净虚拟环境中安装 wheel
+并运行 CLI smoke test，然后通过 PyPI Trusted Publishing 发布。
 
 ## 发布后
 
