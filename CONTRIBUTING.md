@@ -40,3 +40,5 @@ python -m novel2script.cli examples\three_chapters.txt --format fountain --outpu
 ## Optional AI Work
 
 OpenAI-compatible enhancement must stay optional. The default local provider should continue to work without API keys or the `openai` package installed.
+
+If a change expands remote provider payloads, adds telemetry, writes additional manuscript-derived files, or changes API-key handling, update `PRIVACY.md`, the README, and release notes in the same pull request.
