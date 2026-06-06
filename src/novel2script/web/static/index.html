@@ -152,7 +152,13 @@
                 </button>
               </div>
             </div>
-            <textarea id="manuscriptInput" spellcheck="false"></textarea>
+            <div id="inputDropZone" class="manuscript-drop-area" aria-label="手稿导入区">
+              <textarea id="manuscriptInput" spellcheck="false"></textarea>
+              <div id="dropOverlay" class="drop-overlay" aria-hidden="true">
+                <strong>放开导入手稿</strong>
+                <span>.txt / text/plain</span>
+              </div>
+            </div>
             <div class="chapter-preview" aria-label="章节预检">
               <div class="chapter-preview-head">
                 <span>章节预检</span>

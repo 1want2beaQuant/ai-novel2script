@@ -147,6 +147,8 @@ def _missing_static_app_markers(body: str) -> list[str]:
         "isPreviewReady",
         "showPreflightBlockedConversion",
         "showFileImportSizeError",
+        "handleDropZoneDrop",
+        "setDropZoneActive",
     ]
     return [marker for marker in required if marker not in body]
 

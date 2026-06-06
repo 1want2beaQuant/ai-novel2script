@@ -46,7 +46,8 @@ const state = {
   lastSummary: null,
   lastDurationMs: 0,
   visibleScenes: [],
-  sceneFilter: ""
+  sceneFilter: "",
+  dragDepth: 0
 };
 
 const scoreLabels = {
@@ -71,6 +72,8 @@ const elements = {
   model: document.querySelector("#modelInput"),
   validate: document.querySelector("#validateInput"),
   manuscript: document.querySelector("#manuscriptInput"),
+  inputDropZone: document.querySelector("#inputDropZone"),
+  dropOverlay: document.querySelector("#dropOverlay"),
   chapterPreviewState: document.querySelector("#chapterPreviewState"),
   chapterPreviewList: document.querySelector("#chapterPreviewList"),
   output: document.querySelector("#outputBox"),
@@ -1838,8 +1841,14 @@ async function loadFile() {
   if (!file) {
     return;
   }
+  await importFile(file, { resetPicker: true });
+}
+
+async function importFile(file, options = {}) {
   if (importedFileRequestByteLength(file) > maxRequestBytes) {
-    elements.file.value = "";
+    if (options.resetPicker) {
+      elements.file.value = "";
+    }
     showFileImportSizeError(file);
     return;
   }
@@ -1847,18 +1856,92 @@ async function loadFile() {
   try {
     text = await file.text();
   } catch {
-    elements.file.value = "";
+    if (options.resetPicker) {
+      elements.file.value = "";
+    }
     showFileImportReadError(file);
     return;
   }
   elements.manuscript.value = text;
-  elements.file.value = "";
+  if (options.resetPicker) {
+    elements.file.value = "";
+  }
   if (!elements.title.value) {
     elements.title.value = file.name.replace(/\.[^.]+$/, "");
   }
   saveLocalDraft();
   setConversionStatus("待转换", `已导入 ${file.name}，等待章节预检。`, "active");
   updateInputStatus();
+}
+
+function handleDropZoneDragEnter(event) {
+  if (!event.dataTransfer) {
+    return;
+  }
+  event.preventDefault();
+  if (state.isWorking) {
+    event.dataTransfer.dropEffect = "none";
+    state.dragDepth = 0;
+    setDropZoneActive(false);
+    return;
+  }
+  state.dragDepth += 1;
+  setDropZoneActive(true);
+}
+
+function handleDropZoneDragOver(event) {
+  if (!event.dataTransfer) {
+    return;
+  }
+  event.preventDefault();
+  if (state.isWorking) {
+    event.dataTransfer.dropEffect = "none";
+    setDropZoneActive(false);
+    return;
+  }
+  event.dataTransfer.dropEffect = "copy";
+  setDropZoneActive(true);
+}
+
+function handleDropZoneDragLeave(event) {
+  if (!event.dataTransfer) {
+    return;
+  }
+  event.preventDefault();
+  if (state.isWorking) {
+    state.dragDepth = 0;
+    setDropZoneActive(false);
+    return;
+  }
+  state.dragDepth = Math.max(0, state.dragDepth - 1);
+  if (!state.dragDepth) {
+    setDropZoneActive(false);
+  }
+}
+
+function handleDropZoneDrop(event) {
+  if (!event.dataTransfer) {
+    return;
+  }
+  event.preventDefault();
+  state.dragDepth = 0;
+  setDropZoneActive(false);
+  if (state.isWorking) {
+    return;
+  }
+  const [file] = event.dataTransfer.files;
+  if (!file) {
+    setConversionStatus("导入失败", "没有检测到可导入的文本文件。", "warn");
+    return;
+  }
+  void importFile(file);
+}
+
+function setDropZoneActive(isActive) {
+  elements.inputDropZone?.classList.toggle("is-drop-active", isActive);
+  if (elements.dropOverlay) {
+    elements.dropOverlay.setAttribute("aria-hidden", String(!isActive));
+  }
 }
 
 async function copyOutput() {
@@ -2145,6 +2228,10 @@ function crc32(bytes) {
 
 function setWorking(isWorking) {
   state.isWorking = isWorking;
+  if (isWorking) {
+    state.dragDepth = 0;
+    setDropZoneActive(false);
+  }
   syncConvertAvailability();
   elements.convert.textContent = isWorking ? "转换中" : "转换";
   elements.fileButton.disabled = isWorking;
@@ -2180,6 +2267,10 @@ elements.fileButton.addEventListener("click", () => {
   elements.file.click();
 });
 elements.file.addEventListener("change", loadFile);
+elements.inputDropZone?.addEventListener("dragenter", handleDropZoneDragEnter);
+elements.inputDropZone?.addEventListener("dragover", handleDropZoneDragOver);
+elements.inputDropZone?.addEventListener("dragleave", handleDropZoneDragLeave);
+elements.inputDropZone?.addEventListener("drop", handleDropZoneDrop);
 elements.title.addEventListener("input", () => {
   dismissRemoteConfirmation();
   scheduleLocalDraftSave();
