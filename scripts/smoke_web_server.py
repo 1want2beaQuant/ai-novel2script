@@ -126,6 +126,14 @@ def _check_health(base_url: str) -> None:
 
 def _check_static_app(base_url: str) -> None:
     status, body = _request_text(base_url, "GET", "/app.js")
+    missing = _missing_static_app_markers(body)
+    if status != 200 or missing:
+        raise AssertionError(
+            f"Unexpected app.js response: {status}; missing markers: {missing!r}"
+        )
+
+
+def _missing_static_app_markers(body: str) -> list[str]:
     required = [
         "fetch(\"/api/preview\"",
         "providerStatusSummary",
@@ -140,8 +148,7 @@ def _check_static_app(base_url: str) -> None:
         "showPreflightBlockedConversion",
         "showFileImportSizeError",
     ]
-    if status != 200 or not all(marker in body for marker in required):
-        raise AssertionError(f"Unexpected app.js response: {status}")
+    return [marker for marker in required if marker not in body]
 
 
 def _check_preview(base_url: str) -> None:

@@ -59,6 +59,7 @@ Initial release candidate.
 - Local Web health metadata reports the runtime version, default model, and request limit, and the browser status pill shows the backend version.
 - Local Web workbench syncs browser-side request limit checks from `/api/health` instead of relying only on the bundled fallback limit.
 - Installed Web server smoke validation covers health, static app assets, preview parsing, conversion, export manifests, and JSON exports in CI and release distribution checks.
+- Web server smoke validation reports missing static app capability markers when asset checks fail.
 - Flexible chapter heading detection for Chinese prologue/epilogue headings and English word, Roman numeral, and abbreviated chapter headings.
 - Local character guessing avoids promoting action/location phrases to character names while preserving dialogue speakers and common Chinese compound surnames.
 - Local logline generation avoids repeated protagonist phrasing and uses a cleaner one-sentence pitch template.
