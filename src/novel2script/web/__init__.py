@@ -24,7 +24,7 @@ from novel2script.yaml_io import draft_to_yaml
 
 MAX_REQUEST_BYTES = 2_000_000
 MIN_PREVIEW_CHAPTER_CHARACTERS = 40
-STATIC_FILES = {"index.html", "app.css", "app.js"}
+STATIC_FILES = {"index.html", "app.css", "app.js", "favicon.svg"}
 LOCAL_HOSTS = {"localhost", "127.0.0.1", "::1"}
 ALLOWED_METHODS_HEADER = "GET, HEAD, OPTIONS, POST"
 CONTENT_SECURITY_POLICY = (

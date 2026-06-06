@@ -65,6 +65,7 @@ Initial release candidate.
 - Local Web download action reports browser download failures and recovers its button label.
 - Local Web health metadata reports the runtime version, default model, and request limit, and the browser status pill shows the backend version.
 - Local Web workbench syncs browser-side request limit checks from `/api/health` instead of relying only on the bundled fallback limit.
+- Local Web UI serves an SVG favicon so browser loads do not create a missing icon request.
 - Installed Web server smoke validation covers health, static app assets, preview parsing, conversion, export manifests, and JSON exports in CI and release distribution checks.
 - Web server smoke validation reports missing static app capability markers when asset checks fail.
 - Flexible chapter heading detection for Chinese prologue/epilogue headings and English word, Roman numeral, and abbreviated chapter headings.
