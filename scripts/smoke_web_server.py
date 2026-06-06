@@ -191,6 +191,7 @@ def _missing_static_app_markers(body: str) -> list[str]:
         "elements.dropOverlay.setAttribute(\"aria-hidden\", String(!isActive))",
         "requestClearWorkbench",
         "dismissClearConfirmation",
+        "restoreConversionStatusAfterClearDismiss",
         "确认清空",
         "clearWorkbench",
         "setConversionStatus(\"待输入\", \"工作台已清空，等待手稿输入。\", \"neutral\")",

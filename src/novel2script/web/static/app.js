@@ -2007,7 +2007,7 @@ function emptyItem(text) {
 }
 
 function replaceManuscriptText(text, options = {}) {
-  dismissClearConfirmation();
+  dismissClearConfirmation({ quiet: true });
   dismissRemoteConfirmation();
   elements.manuscript.value = text;
   saveLocalDraft();
@@ -2122,7 +2122,7 @@ function handleDropZoneDrop(event) {
     return;
   }
   event.preventDefault();
-  dismissClearConfirmation();
+  dismissClearConfirmation({ quiet: true });
   state.dragDepth = 0;
   setDropZoneActive(false);
   if (state.isWorking) {
@@ -2263,7 +2263,7 @@ function requestClearWorkbench() {
   state.clearConfirmTimer = window.setTimeout(dismissClearConfirmation, 4200);
 }
 
-function dismissClearConfirmation() {
+function dismissClearConfirmation(options = {}) {
   if (!state.isClearConfirmationPending) {
     return;
   }
@@ -2274,6 +2274,34 @@ function dismissClearConfirmation() {
   elements.clear.textContent = "清空";
   elements.clear.classList.remove("is-danger");
   elements.clear.setAttribute("aria-label", "清空当前工作台");
+  if (!options.quiet) {
+    restoreConversionStatusAfterClearDismiss();
+  }
+}
+
+function restoreConversionStatusAfterClearDismiss() {
+  refreshExportReadiness();
+  updateConversionFreshness();
+  if (state.output) {
+    return;
+  }
+
+  if (state.isPreviewReady) {
+    setConversionStatus("待转换", "章节预检已通过，可以开始转换。", "active");
+    return;
+  }
+
+  if (state.isPreviewPending) {
+    setConversionStatus("预检中", "正在解析章节，完成后会启用转换。", "active");
+    return;
+  }
+
+  if (countCharacters(elements.manuscript.value)) {
+    setConversionStatus("无法转换", "至少需要 3 章通过预检后才能转换。", "warn");
+    return;
+  }
+
+  setConversionStatus("待输入", "等待手稿输入。", "neutral");
 }
 
 function clearWorkbench() {

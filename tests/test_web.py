@@ -801,12 +801,15 @@ def test_web_static_assets_include_conversion_status_ui() -> None:
         assert "function clearLocalDraft" in script
         assert "function requestClearWorkbench" in script
         assert "function dismissClearConfirmation" in script
+        assert "function restoreConversionStatusAfterClearDismiss" in script
         assert "clearConfirmTimer" in script
         assert "isClearConfirmationPending" in script
         assert "确认清空" in script
         assert "再次点击清空会移除当前手稿、标题、生成结果、诊断状态和浏览器本地草稿。" in script
         assert 'elements.clear.classList.add("is-danger")' in script
         assert 'elements.clear.classList.remove("is-danger")' in script
+        assert "dismissClearConfirmation({ quiet: true })" in script
+        assert 'setConversionStatus("无法转换", "至少需要 3 章通过预检后才能转换。", "warn")' in script
         assert "window.setTimeout(dismissClearConfirmation, 4200)" in script
         assert "elements.clear.addEventListener(\"click\", requestClearWorkbench)" in script
         assert "elements.clear.addEventListener(\"click\", clearWorkbench)" not in script
