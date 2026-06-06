@@ -177,6 +177,8 @@ def _missing_static_app_markers(body: str) -> list[str]:
         "isPreviewReady",
         "showPreflightBlockedConversion",
         "setConversionStatus(\"预检中\", pendingDetail, \"active\")",
+        "preserveCurrentInputAfterImportError",
+        "当前手稿和章节预检已保留。",
         "showFileImportSizeError",
         "showFileImportTypeError",
         "showFileImportReadError",

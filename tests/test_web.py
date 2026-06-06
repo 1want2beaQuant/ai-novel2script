@@ -756,6 +756,8 @@ def test_web_static_assets_include_conversion_status_ui() -> None:
         assert "function isImportableTextFile" in script
         assert "name.endsWith(\".txt\") || type === \"text/plain\"" in script
         assert "type.startsWith(\"text/\")" not in script
+        assert "function preserveCurrentInputAfterImportError" in script
+        assert "当前手稿和章节预检已保留。" in script
         assert "function showFileImportTypeError" in script
         assert "仅支持 .txt 或 text/plain 文本文件，当前手稿已保留。" in script
         assert "请选择 .txt 文本手稿" in script
