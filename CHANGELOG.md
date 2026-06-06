@@ -82,5 +82,5 @@ Initial release candidate.
 - OpenAI-compatible enhancement responses are parsed as JSON objects, tolerate fenced JSON blocks, and are validated against the bundled schema before use.
 - Release workflow for tagged PyPI publishing through Trusted Publishing and GitHub Release assets.
 - CI matrix for Python 3.10 through 3.14.
-- Build, wheel/sdist smoke, release tag, workflow configuration, Windows smoke, distribution artifact diagnostics, and dependency security audit guards.
+- Build, wheel/sdist smoke, release tag, workflow configuration, Windows Web server smoke, distribution artifact diagnostics, and dependency security audit guards.
 - Repository governance, contribution, security, privacy, issue, and pull request documentation.

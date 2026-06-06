@@ -175,6 +175,7 @@ def test_ci_workflow_smokes_linux_distributions_and_windows_cli() -> None:
     assert "novel2script-web --help" in windows_web_smoke["run"]
     assert "python -m novel2script.web --version" in windows_web_smoke["run"]
     assert "python -m novel2script.web --help" in windows_web_smoke["run"]
+    assert r"python scripts\smoke_web_server.py" in windows_web_smoke["run"]
     assert step_runs(
         windows_job,
         r"cmd /c fc /b schemas\script.schema.json src\novel2script\schemas\script.schema.json",

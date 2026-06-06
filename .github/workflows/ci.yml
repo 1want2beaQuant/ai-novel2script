@@ -152,6 +152,7 @@ jobs:
           novel2script-web --help
           python -m novel2script.web --version
           python -m novel2script.web --help
+          python scripts\smoke_web_server.py
 
       - name: Smoke test YAML CLI
         run: novel2script examples\three_chapters.txt --output outputs\windows-smoke.yaml --validate
