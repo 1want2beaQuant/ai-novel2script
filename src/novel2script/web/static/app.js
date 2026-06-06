@@ -2424,12 +2424,24 @@ function setWorking(isWorking) {
     state.dragDepth = 0;
     setDropZoneActive(false);
   }
+  setConversionInputLock(isWorking);
   syncConvertAvailability();
   elements.convert.textContent = isWorking ? "转换中" : "转换";
   elements.fileButton.disabled = isWorking;
   elements.sample.disabled = isWorking;
   elements.clear.disabled = isWorking;
   refreshExportReadiness();
+}
+
+function setConversionInputLock(isLocked) {
+  elements.manuscript.readOnly = isLocked;
+  elements.title.readOnly = isLocked;
+  elements.model.readOnly = isLocked;
+  elements.format.disabled = isLocked;
+  elements.provider.disabled = isLocked;
+  elements.validate.disabled = isLocked;
+  elements.file.disabled = isLocked;
+  elements.inputDropZone?.classList.toggle("is-locked", isLocked);
 }
 
 function syncConvertAvailability() {

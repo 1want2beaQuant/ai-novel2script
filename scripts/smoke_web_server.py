@@ -198,6 +198,7 @@ def _missing_static_app_markers(body: str) -> list[str]:
         "downloadBundle",
         "createZipBlob",
         "currentOutputStaleReason",
+        "setConversionInputLock",
     ]
     return [marker for marker in required if marker not in body]
 

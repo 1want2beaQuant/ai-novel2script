@@ -797,6 +797,16 @@ def test_web_static_assets_include_conversion_status_ui() -> None:
         assert "function clearLocalDraft" in script
         assert "elements.clear.addEventListener(\"click\", clearWorkbench)" in script
         assert "elements.clear.disabled = isWorking" in script
+        assert "function setConversionInputLock" in script
+        assert "setConversionInputLock(isWorking)" in script
+        assert "elements.manuscript.readOnly = isLocked" in script
+        assert "elements.title.readOnly = isLocked" in script
+        assert "elements.model.readOnly = isLocked" in script
+        assert "elements.format.disabled = isLocked" in script
+        assert "elements.provider.disabled = isLocked" in script
+        assert "elements.validate.disabled = isLocked" in script
+        assert "elements.file.disabled = isLocked" in script
+        assert 'elements.inputDropZone?.classList.toggle("is-locked", isLocked)' in script
         assert "setDropZoneActive(false)" in script
         assert "state.openAiConfirmedFor = \"\"" in script
         assert "state.exports = null" in script
@@ -921,6 +931,7 @@ def test_web_static_assets_include_conversion_status_ui() -> None:
         assert ".input-pane" in stylesheet
         assert ".manuscript-drop-area" in stylesheet
         assert ".manuscript-drop-area.is-drop-active textarea" in stylesheet
+        assert ".manuscript-drop-area.is-locked textarea" in stylesheet
         assert ".drop-overlay" in stylesheet
         assert ".manuscript-drop-area.is-drop-active .drop-overlay" in stylesheet
         assert ".chapter-preview" in stylesheet
