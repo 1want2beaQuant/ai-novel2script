@@ -438,6 +438,11 @@ def test_web_server_serves_static_assets_and_conversion_api() -> None:
         assert 'id="convertStepMeta"' in body
         assert 'id="exportStepMeta"' in body
         assert 'class="pane input-pane"' in body
+        assert 'id="inputDropZone"' in body
+        assert 'class="manuscript-drop-area"' in body
+        assert 'id="dropOverlay"' in body
+        assert 'class="drop-overlay"' in body
+        assert "放开导入手稿" in body
         assert 'id="chapterPreviewState"' in body
         assert 'id="chapterPreviewList"' in body
         assert "章节预检" in body
@@ -708,6 +713,26 @@ def test_web_static_assets_include_conversion_status_ui() -> None:
         assert "new TextEncoder" in script
         assert "function isCurrentRequestTooLarge" in script
         assert "function importedFileRequestByteLength" in script
+        assert "function importFile" in script
+        assert "await importFile(file, { resetPicker: true })" in script
+        assert "function handleDropZoneDragEnter" in script
+        assert "function handleDropZoneDragOver" in script
+        assert "function handleDropZoneDragLeave" in script
+        assert "function handleDropZoneDrop" in script
+        assert "function setDropZoneActive" in script
+        assert "state.dragDepth += 1" in script
+        assert "event.dataTransfer.dropEffect = \"copy\"" in script
+        assert "event.dataTransfer.dropEffect = \"none\"" in script
+        assert "if (state.isWorking)" in script
+        assert "state.dragDepth = 0" in script
+        assert "void importFile(file)" in script
+        assert "没有检测到可导入的文本文件。" in script
+        assert "elements.inputDropZone?.classList.toggle(\"is-drop-active\", isActive)" in script
+        assert "elements.dropOverlay.setAttribute(\"aria-hidden\", String(!isActive))" in script
+        assert 'elements.inputDropZone?.addEventListener("dragenter", handleDropZoneDragEnter)' in script
+        assert 'elements.inputDropZone?.addEventListener("dragover", handleDropZoneDragOver)' in script
+        assert 'elements.inputDropZone?.addEventListener("dragleave", handleDropZoneDragLeave)' in script
+        assert 'elements.inputDropZone?.addEventListener("drop", handleDropZoneDrop)' in script
         assert "function showFileImportSizeError" in script
         assert "文件过大，未导入" in script
         assert "function showFileImportReadError" in script
@@ -718,6 +743,7 @@ def test_web_static_assets_include_conversion_status_ui() -> None:
         assert "function clearLocalDraft" in script
         assert "elements.clear.addEventListener(\"click\", clearWorkbench)" in script
         assert "elements.clear.disabled = isWorking" in script
+        assert "setDropZoneActive(false)" in script
         assert "state.openAiConfirmedFor = \"\"" in script
         assert "state.exports = null" in script
         assert "state.previewRequestId += 1" in script
@@ -728,7 +754,7 @@ def test_web_static_assets_include_conversion_status_ui() -> None:
         assert "storage.removeItem(localDraftStorageKey)" in script
         assert "工作台已清空，等待手稿输入。" in script
         assert (
-            'elements.manuscript.value = text;\n  elements.file.value = "";\n  if (!elements.title.value)'
+            'elements.manuscript.value = text;\n  if (options.resetPicker) {\n    elements.file.value = "";'
             in normalized_script
         )
         assert "function copyOutput" in script
@@ -831,6 +857,10 @@ def test_web_static_assets_include_conversion_status_ui() -> None:
         assert ".status-card.is-warn strong" in stylesheet
         assert ".status-card.is-error strong" in stylesheet
         assert ".input-pane" in stylesheet
+        assert ".manuscript-drop-area" in stylesheet
+        assert ".manuscript-drop-area.is-drop-active textarea" in stylesheet
+        assert ".drop-overlay" in stylesheet
+        assert ".manuscript-drop-area.is-drop-active .drop-overlay" in stylesheet
         assert ".chapter-preview" in stylesheet
         assert ".chapter-preview-list li" in stylesheet
         assert ".chapter-preview-list li.is-short" in stylesheet

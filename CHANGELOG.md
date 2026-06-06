@@ -45,6 +45,7 @@ Initial release candidate.
 - Local Web file import refuses oversized manuscripts before reading them into the workbench.
 - Local Web file import reports local read failures without replacing the current manuscript.
 - Local Web file import resets the picker after a successful import so the same file can be selected again.
+- Local Web manuscript input supports drag-and-drop text import with the same size and read-error safeguards as the file picker.
 - Local Web downloads use the screenplay title when naming exported YAML or Fountain files.
 - Local Web conversion responses include an export manifest, and the result pane shows file extensions, byte sizes, and bundle totals before download.
 - Local Web export manifest entries can directly switch to or download each generated export file.
