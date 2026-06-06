@@ -12,6 +12,7 @@ Initial release candidate.
 - Module execution entry point: `python -m novel2script`.
 - CLI reports a clear error when the input manuscript is not UTF-8 text.
 - CLI rejects `--output` paths that would overwrite the input manuscript.
+- CLI file exports write through a same-directory temporary file before replacing the final output.
 - CLI `--model` falls back to the default OpenAI-compatible model when given a blank value.
 - CLI and Web conversion paths share the same default OpenAI-compatible model constant.
 - Local heuristic conversion from 3+ chapter manuscripts to screenplay YAML drafts.

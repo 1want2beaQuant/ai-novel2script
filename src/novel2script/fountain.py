@@ -6,6 +6,7 @@ import re
 from pathlib import Path
 from typing import Any
 
+from novel2script.file_io import write_text_atomic
 from novel2script.models import ScriptDraft
 
 
@@ -28,8 +29,7 @@ def draft_to_fountain(draft: ScriptDraft) -> str:
 
 
 def write_fountain(draft: ScriptDraft, output_path: Path) -> None:
-    output_path.parent.mkdir(parents=True, exist_ok=True)
-    output_path.write_text(draft_to_fountain(draft), encoding="utf-8")
+    write_text_atomic(output_path, draft_to_fountain(draft))
 
 
 def _scene_to_fountain(scene: dict[str, Any]) -> list[str]:

@@ -5,6 +5,7 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Any
 
+from novel2script.file_io import write_text_atomic
 from novel2script.models import ScriptDraft
 
 
@@ -82,8 +83,7 @@ def draft_to_markdown(draft: ScriptDraft) -> str:
 
 
 def write_markdown(draft: ScriptDraft, output_path: Path) -> None:
-    output_path.parent.mkdir(parents=True, exist_ok=True)
-    output_path.write_text(draft_to_markdown(draft), encoding="utf-8")
+    write_text_atomic(output_path, draft_to_markdown(draft))
 
 
 def _append_section(lines: list[str], title: str, items: list[str]) -> None:
