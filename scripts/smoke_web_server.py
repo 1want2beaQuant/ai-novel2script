@@ -192,6 +192,7 @@ def _missing_static_app_markers(body: str) -> list[str]:
         "requestClearWorkbench",
         "dismissClearConfirmation",
         "restoreConversionStatusAfterClearDismiss",
+        "dismissRemoteConfirmation({ quiet: true })",
         "确认清空",
         "clearWorkbench",
         "setConversionStatus(\"待输入\", \"工作台已清空，等待手稿输入。\", \"neutral\")",

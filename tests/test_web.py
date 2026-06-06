@@ -806,6 +806,7 @@ def test_web_static_assets_include_conversion_status_ui() -> None:
         assert "isClearConfirmationPending" in script
         assert "确认清空" in script
         assert "再次点击清空会移除当前手稿、标题、生成结果、诊断状态和浏览器本地草稿。" in script
+        assert "dismissRemoteConfirmation({ quiet: true })" in script
         assert 'elements.clear.classList.add("is-danger")' in script
         assert 'elements.clear.classList.remove("is-danger")' in script
         assert "dismissClearConfirmation({ quiet: true })" in script

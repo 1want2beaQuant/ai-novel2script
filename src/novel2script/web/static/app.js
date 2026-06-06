@@ -2250,6 +2250,7 @@ function requestClearWorkbench() {
     return;
   }
 
+  dismissRemoteConfirmation({ quiet: true });
   state.isClearConfirmationPending = true;
   clearTimeout(state.clearConfirmTimer);
   elements.clear.textContent = "确认清空";
