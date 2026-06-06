@@ -63,8 +63,10 @@ STOP_NAMES = {
     "你们",
     "这里",
     "那里",
+    "那就",
     "时候",
     "声音",
+    "黎明前",
     "城市",
     "屋里",
     "窗外",
@@ -72,6 +74,64 @@ STOP_NAMES = {
     "清晨",
     "突然",
 }
+LOCATION_KEYWORDS = (
+    "档案馆地下库",
+    "灯塔控制室",
+    "码头仓库",
+    "修表铺",
+    "旧钟楼",
+    "天台",
+    "书房",
+    "旧宅",
+    "码头",
+    "街口",
+    "屋里",
+    "客厅",
+    "学校",
+    "公司",
+    "医院",
+    "城门",
+    "森林",
+    "灯塔",
+)
+LOCATION_SUFFIXES = ("门口", "里面", "内", "里", "外", "前", "后", "上", "下")
+PROP_KEYWORDS = (
+    "蓝皮账本",
+    "银色录音带",
+    "铜钥匙",
+    "旧怀表",
+    "路线图",
+    "录音带",
+    "船票",
+    "胶片",
+    "账本",
+    "怀表",
+    "信",
+    "照片",
+    "录音笔",
+    "钥匙",
+    "钟",
+    "线索",
+    "日记",
+    "戒指",
+    "地图",
+    "刀",
+)
+SPEAKER_SPLIT_CHARS = set("从低轻冷问说答喊道提追推带拿把将坐站走看听")
+SPEAKER_SUFFIXES = (
+    "低声说",
+    "轻声说",
+    "说道",
+    "冷笑",
+    "提醒",
+    "追问",
+    "威胁",
+    "说",
+    "问",
+    "喊",
+    "道",
+    "答",
+)
 
 
 def build_script_from_chapters(chapters: list[Chapter], title: str | None = None) -> ScriptDraft:
@@ -139,10 +199,14 @@ def _chapter_to_scene(chapter: Chapter) -> Scene:
     if not blocks:
         blocks.append(ScriptBlock(type="action", text=_shorten(chapter.body, 90)))
 
+    for name in _guess_names(chapter.body, limit=4):
+        if name not in characters:
+            characters.append(name)
+
     if blocks[-1].type != "transition":
         blocks.append(ScriptBlock(type="transition", text="切至下一场。"))
 
-    scene_characters = characters or _guess_names(chapter.body, limit=3)
+    scene_characters = characters[:5]
     location = _infer_location(chapter.body)
     summary = _summarize(chapter.body)
     lead = scene_characters[0] if scene_characters else "主角"
@@ -154,7 +218,7 @@ def _chapter_to_scene(chapter: Chapter) -> Scene:
         location=location,
         time=_infer_time(chapter.body),
         summary=summary,
-        objective=_scene_objective(lead, chapter.title, summary),
+        objective=_scene_objective(lead, chapter.title, chapter.body, summary),
         conflict=_scene_conflict(lead, location, chapter.body),
         turning_point=turning_point,
         source_chapter=chapter.index,
@@ -168,26 +232,29 @@ def _paragraph_to_block(paragraph: str) -> ScriptBlock:
     if paragraph.startswith(("旁白：", "旁白:")):
         return ScriptBlock(type="voice_over", text=_strip_voice_over_prefix(paragraph))
 
-    dialogue = DIALOGUE_RE.match(paragraph)
+    dialogue = _match_dialogue(paragraph)
     if dialogue:
-        speaker = _normalize_speaker(dialogue.group("speaker"))
         return ScriptBlock(
             type="dialogue",
-            character=speaker,
-            text=_strip_quotes(dialogue.group("line")),
+            character=dialogue[0],
+            text=dialogue[1],
         )
 
     return ScriptBlock(type="action", text=_rewrite_action(paragraph))
 
 
-def _scene_objective(lead: str, chapter_title: str, summary: str) -> str:
-    chapter_goal = _shorten(summary or chapter_title, 42).rstrip("。！？!?；;，, ")
-    return f"{lead}试图弄清“{chapter_goal}”背后的选择和后果。"
+def _scene_objective(lead: str, chapter_title: str, body: str, summary: str) -> str:
+    clue = _primary_scene_prop(body, chapter_title) or _first_keyword(summary, PROP_KEYWORDS) or _clean_chapter_title(chapter_title)
+    action = _objective_action(summary)
+    return f"{lead}要{action}{clue}，确认它如何改变下一步选择。"
 
 
 def _scene_conflict(lead: str, location: str, body: str) -> str:
     obstacle = "信息不完整"
-    if "秘密" in body or "真相" in body or "线索" in body:
+    antagonist = _first_name_before_marker(body, ("堵住", "威胁", "要求", "冷笑", "追到"))
+    if antagonist:
+        obstacle = f"{antagonist}的阻拦和交换条件"
+    elif "秘密" in body or "真相" in body or "线索" in body or "证据" in body:
         obstacle = "关键线索仍被隐瞒"
     elif "雨" in body or "夜" in body or "黑" in body:
         obstacle = "环境压迫让判断变得困难"
@@ -199,7 +266,7 @@ def _scene_conflict(lead: str, location: str, body: str) -> str:
 
 def _scene_turning_point(paragraphs: list[str], summary: str) -> str:
     candidates = [paragraph for paragraph in paragraphs if paragraph.strip()]
-    source = candidates[-1] if candidates else summary
+    source = _select_turning_source(candidates) or summary
     turn = _shorten(source, 52).rstrip("。！？!?；;，, ")
     return f"场景转向：{turn}。"
 
@@ -367,10 +434,9 @@ def _story_locations(scenes: list[Scene]) -> list[dict[str, object]]:
 
 
 def _story_props(chapters: list[Chapter]) -> list[dict[str, object]]:
-    prop_keywords = ("信", "照片", "录音笔", "钥匙", "钟", "线索", "日记", "戒指", "地图", "刀")
     props: dict[str, set[int]] = {}
     for chapter in chapters:
-        for keyword in prop_keywords:
+        for keyword in PROP_KEYWORDS:
             if keyword in chapter.body:
                 props.setdefault(keyword, set()).add(chapter.index)
     return [
@@ -404,13 +470,14 @@ def _build_adaptation_report(chapters: list[Chapter], scenes: list[Scene]) -> di
     dialogue_blocks = sum(1 for scene in scenes for block in scene.blocks if block.type == "dialogue")
     total_blocks = sum(len(scene.blocks) for scene in scenes)
     dialogue_ratio = round(dialogue_blocks / total_blocks, 2) if total_blocks else 0
-    quality_flags = _quality_flags(
+    quality_checks = _quality_checks(
         missing_chapters=missing_chapters,
         scenes=scenes,
         action_blocks=action_blocks,
         dialogue_blocks=dialogue_blocks,
         dialogue_ratio=dialogue_ratio,
     )
+    quality_flags = _quality_flags(quality_checks)
 
     return {
         "chapter_coverage": {
@@ -435,28 +502,114 @@ def _build_adaptation_report(chapters: list[Chapter], scenes: list[Scene]) -> di
             "dialogue_blocks": dialogue_blocks,
             "dialogue_ratio": dialogue_ratio,
         },
+        "quality_checks": quality_checks,
         "quality_flags": quality_flags,
         "revision_checklist": _revision_checklist(quality_flags),
     }
 
 
-def _quality_flags(
+def _quality_checks(
     missing_chapters: list[int],
     scenes: list[Scene],
     action_blocks: int,
     dialogue_blocks: int,
     dialogue_ratio: float,
-) -> list[str]:
+) -> list[dict[str, str]]:
+    scene_count = len(scenes)
+    specific_locations = [
+        scene.location for scene in scenes if scene.location and scene.location != "待定场景"
+    ]
+    scenes_with_dialogue = [
+        scene
+        for scene in scenes
+        if any(block.type == "dialogue" for block in scene.blocks)
+    ]
+    scenes_with_characters = [scene for scene in scenes if scene.characters]
+    generic_objectives = [scene.id for scene in scenes if "背后的选择和后果" in scene.objective]
+
+    checks = [
+        _quality_check(
+            "chapter_coverage",
+            "章节覆盖",
+            "pass" if not missing_chapters else "fail",
+            f"{scene_count - len(missing_chapters)}/{scene_count} 场",
+            "所有源章节都有可追溯场景。" if not missing_chapters else "存在未映射为场景的源章节。",
+        ),
+        _quality_check(
+            "dialogue_density",
+            "对白密度",
+            "pass" if dialogue_ratio >= 0.3 else "warn" if dialogue_ratio >= 0.18 else "fail",
+            f"{round(dialogue_ratio * 100)}%",
+            (
+                f"{len(scenes_with_dialogue)}/{scene_count} 场包含对白，"
+                f"共 {dialogue_blocks} 个对白块。"
+            ),
+        ),
+        _quality_check(
+            "visual_specificity",
+            "可拍摄地点",
+            "pass"
+            if len(specific_locations) == scene_count
+            else "warn"
+            if specific_locations
+            else "fail",
+            f"{len(specific_locations)}/{scene_count} 场",
+            "地点已具体到可用于场面调度。" if len(specific_locations) == scene_count else "仍有场景地点待定。",
+        ),
+        _quality_check(
+            "character_presence",
+            "人物识别",
+            "pass"
+            if len(scenes_with_characters) == scene_count
+            else "warn"
+            if scenes_with_characters
+            else "fail",
+            f"{len(scenes_with_characters)}/{scene_count} 场",
+            "每场都有明确角色进入改编资料。" if len(scenes_with_characters) == scene_count else "部分场景缺少明确角色。",
+        ),
+        _quality_check(
+            "dramatic_function",
+            "场景功能",
+            "pass" if not generic_objectives and action_blocks else "warn",
+            f"{scene_count - len(generic_objectives)}/{scene_count} 场",
+            "目标、冲突和转折已从原文线索生成。" if not generic_objectives else "部分场景功能仍偏模板化。",
+        ),
+    ]
+    return checks
+
+
+def _quality_check(
+    check_id: str,
+    label: str,
+    status: str,
+    value: str,
+    detail: str,
+) -> dict[str, str]:
+    return {
+        "id": check_id,
+        "label": label,
+        "status": status,
+        "value": value,
+        "detail": detail,
+    }
+
+
+def _quality_flags(quality_checks: list[dict[str, str]]) -> list[str]:
     flags: list[str] = []
-    if missing_chapters:
+    status_by_id = {check["id"]: check["status"] for check in quality_checks}
+    if status_by_id.get("chapter_coverage") == "fail":
         flags.append("存在未生成场景的源章节，请复核章节拆分。")
-    if any(scene.location == "待定场景" for scene in scenes):
+    if status_by_id.get("visual_specificity") in {"warn", "fail"}:
         flags.append("部分场景地点仍为待定，需要作者补充可拍摄空间。")
-    if dialogue_blocks == 0:
+    if status_by_id.get("dialogue_density") == "fail":
         flags.append("未检测到对白块，剧本可能仍偏小说叙述。")
-    elif dialogue_ratio < 0.2 and action_blocks > dialogue_blocks:
+    elif status_by_id.get("dialogue_density") == "warn":
         flags.append("对白占比偏低，建议补充人物目标冲突和台词推进。")
-    if len(scenes) < 3:
+    if status_by_id.get("character_presence") in {"warn", "fail"}:
+        flags.append("部分场景缺少明确人物，建议补齐角色称谓和关系功能。")
+    if status_by_id.get("dramatic_function") == "warn":
+        flags.append("部分场景目标或转折仍偏模板化，需要从原文线索中强化戏剧功能。")
+    if status_by_id.get("chapter_coverage") == "fail":
         flags.append("场景数量偏少，可能不足以覆盖完整三幕改编。")
     return flags or ["未发现结构性风险，建议进入人物动机和对白语气复核。"]
 
@@ -763,16 +916,40 @@ def _rewrite_action(text: str) -> str:
     return _shorten(compact, 120)
 
 
+def _match_dialogue(paragraph: str) -> tuple[str, str] | None:
+    compact = paragraph.strip()
+    dialogue = DIALOGUE_RE.match(compact)
+    if dialogue:
+        speaker = _normalize_speaker(dialogue.group("speaker"))
+        line = _strip_quotes(dialogue.group("line"))
+        return (speaker, line) if speaker and line else None
+
+    narrated = re.match(
+        r"(?P<speaker>[\u4e00-\u9fffA-Za-z0-9_·]{2,18}(?:低声说|轻声说|说道|冷笑|提醒|追问|威胁|说|问|喊|道|答))[：:]\s*(?P<line>.+)",
+        compact,
+    )
+    if narrated:
+        speaker = _normalize_speaker(narrated.group("speaker"))
+        line = _strip_quotes(narrated.group("line"))
+        return (speaker, line) if speaker and line else None
+
+    return None
+
+
 def _infer_location(text: str) -> str:
-    for place in ("书房", "旧宅", "码头", "街口", "屋里", "客厅", "学校", "公司", "医院", "城门", "森林"):
-        if place in text:
-            return place
+    keyword_hits = [
+        (index, -len(place), place)
+        for place in LOCATION_KEYWORDS
+        if (index := text.find(place)) >= 0
+    ]
+    if keyword_hits:
+        return sorted(keyword_hits)[0][2]
 
     match = LOCATION_HINT_RE.search(text)
     if match:
         place = match.group("place")
-        place = re.split(r"(发现|找到|看见|听见|只剩|停下|拿出|推开|穿过)", place, maxsplit=1)[0]
-        return place.strip(" 的里中外前后上下") or "待定场景"
+        place = re.split(r"(发现|找到|看见|听见|只剩|停下|拿出|推开|穿过|堆满)", place, maxsplit=1)[0]
+        return _clean_location(place)
     return "待定场景"
 
 
@@ -789,11 +966,15 @@ def _infer_time(text: str) -> str:
 
 
 def _guess_names(text: str, limit: int) -> list[str]:
-    names = [
+    names: list[str] = [
         match.group("name")
         for match in SURNAME_NAME_RE.finditer(text)
         if _is_plausible_character_name(match.group("name"))
     ]
+    for dialogue in re.finditer(r"(?P<speaker>[\u4e00-\u9fffA-Za-z0-9_·]{2,18})[：:]", text):
+        speaker = _normalize_speaker(dialogue.group("speaker"))
+        if _is_plausible_character_name(speaker):
+            names.append(speaker)
     counts = Counter(names)
     return [name for name, _ in counts.most_common(limit)]
 
@@ -824,10 +1005,110 @@ def _strip_voice_over_prefix(text: str) -> str:
 
 def _normalize_speaker(text: str) -> str:
     speaker = text.strip()
-    for suffix in ("低声说", "轻声说", "说道", "说", "问", "喊", "道", "答"):
+    for suffix in SPEAKER_SUFFIXES:
         if speaker.endswith(suffix) and len(speaker) > len(suffix):
-            return speaker[: -len(suffix)]
+            speaker = speaker[: -len(suffix)]
+            break
+    speaker = re.sub(r"^(?:旁白|对讲机里|录音带里传出|屏幕里)", "", speaker).strip()
+    speaker = re.sub(r"的声音$", "", speaker).strip()
+    for index in range(1, len(speaker)):
+        if speaker[index] in SPEAKER_SPLIT_CHARS:
+            candidate = speaker[:index]
+            if _is_plausible_character_name(candidate):
+                return candidate
     return speaker
+
+
+def _clean_location(place: str) -> str:
+    cleaned = re.sub(r"\s+", "", place).strip(" ，。！？!?；;的里中外前后上下")
+    for suffix in LOCATION_SUFFIXES:
+        if cleaned.endswith(suffix) and len(cleaned) > len(suffix) + 1:
+            cleaned = cleaned[: -len(suffix)]
+            break
+    return cleaned or "待定场景"
+
+
+def _first_keyword(text: str, keywords: tuple[str, ...]) -> str:
+    for keyword in keywords:
+        if keyword in text:
+            return keyword
+    return ""
+
+
+def _clean_chapter_title(title: str) -> str:
+    cleaned = re.sub(r"^第\s*[\w一二三四五六七八九十百千万零〇两]+\s*[章节回幕卷]\s*", "", title)
+    return cleaned.strip() or title.strip() or "关键线索"
+
+
+def _objective_action(text: str) -> str:
+    if any(word in text for word in ("救", "绑", "计时器", "活")):
+        return "救出"
+    if any(word in text for word in ("证明", "证据", "账本", "录音")):
+        return "保住并验证"
+    if any(word in text for word in ("找到", "发现", "打开", "线索")):
+        return "追查"
+    return "确认"
+
+
+def _primary_scene_prop(body: str, chapter_title: str) -> str:
+    title_props = [keyword for keyword in PROP_KEYWORDS if keyword in chapter_title]
+    if title_props:
+        title_candidates = [
+            keyword
+            for keyword in PROP_KEYWORDS
+            if keyword in body and any(keyword.endswith(title_prop) for title_prop in title_props)
+        ]
+        if title_candidates:
+            return max(title_candidates, key=len)
+
+    for keyword in PROP_KEYWORDS:
+        if keyword in chapter_title and keyword in body:
+            return keyword
+
+    matches = [
+        (
+            body.count(keyword),
+            len(keyword),
+            -body.find(keyword),
+            keyword,
+        )
+        for keyword in PROP_KEYWORDS
+        if keyword in body
+    ]
+    if not matches:
+        return ""
+    return max(matches)[3]
+
+
+def _first_name_before_marker(text: str, markers: tuple[str, ...]) -> str:
+    for marker in markers:
+        index = text.find(marker)
+        if index <= 0:
+            continue
+        names = _guess_names(text[max(0, index - 8) : index], limit=1)
+        if names:
+            return names[0]
+    return ""
+
+
+def _select_turning_source(paragraphs: list[str]) -> str:
+    turn_markers = (
+        "听到这里",
+        "不要相信",
+        "天台见",
+        "一个人来",
+        "只剩十五分钟",
+        "所有人听见",
+        "传向码头",
+        "唯一的入口",
+        "露出",
+        "威胁",
+        "证据",
+    )
+    for paragraph in reversed(paragraphs):
+        if any(marker in paragraph for marker in turn_markers):
+            return paragraph
+    return paragraphs[-1] if paragraphs else ""
 
 
 def _shorten(text: str, limit: int) -> str:

@@ -1068,6 +1068,88 @@ pre {
   background: linear-gradient(90deg, var(--teal), var(--blue));
 }
 
+.quality-check-list {
+  grid-column: 1 / -1;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  border-top: 1px solid var(--line);
+  list-style: none;
+  background: var(--surface);
+}
+
+.quality-check-list li {
+  min-width: 0;
+  padding: 12px 14px;
+  display: grid;
+  grid-template-columns: 46px minmax(0, 1fr);
+  gap: 9px;
+  border-right: 1px solid var(--line);
+}
+
+.quality-check-list li:last-child {
+  border-right: 0;
+}
+
+.quality-check-list li.empty {
+  grid-column: 1 / -1;
+  display: list-item;
+  color: var(--muted);
+  font-style: italic;
+}
+
+.quality-check-status {
+  align-self: start;
+  border-radius: 999px;
+  padding: 3px 7px;
+  color: var(--surface);
+  background: var(--teal);
+  text-align: center;
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.quality-check-warn .quality-check-status {
+  background: var(--amber);
+}
+
+.quality-check-fail .quality-check-status {
+  background: var(--accent-strong);
+}
+
+.quality-check-list strong,
+.quality-check-list span,
+.quality-check-list p {
+  min-width: 0;
+}
+
+.quality-check-list strong {
+  display: block;
+  color: var(--ink);
+  font-size: 13px;
+  line-height: 1.2;
+}
+
+.quality-check-list div > span {
+  display: block;
+  margin-top: 4px;
+  color: var(--blue);
+  font-size: 13px;
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+
+.quality-check-list p {
+  margin-top: 5px;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+}
+
 .revision-focus {
   display: grid;
   grid-template-columns: minmax(0, 1fr) 210px;
@@ -1593,6 +1675,18 @@ pre {
     border-bottom: 1px solid var(--line);
   }
 
+  .quality-check-list {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .quality-check-list li {
+    border-bottom: 1px solid var(--line);
+  }
+
+  .quality-check-list li:nth-child(2n) {
+    border-right: 0;
+  }
+
   .revision-focus-main {
     grid-row: auto;
     border-right: 0;
@@ -1713,6 +1807,20 @@ pre {
   }
 
   .quality-track:last-child {
+    border-bottom: 0;
+  }
+
+  .quality-check-list {
+    grid-template-columns: 1fr;
+  }
+
+  .quality-check-list li,
+  .quality-check-list li:nth-child(2n) {
+    border-right: 0;
+    border-bottom: 1px solid var(--line);
+  }
+
+  .quality-check-list li:last-child {
     border-bottom: 0;
   }
 

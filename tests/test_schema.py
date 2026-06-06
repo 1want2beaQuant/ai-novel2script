@@ -22,7 +22,7 @@ def test_generated_script_matches_schema() -> None:
     data = draft.to_dict()
 
     validate_script(data)
-    assert data["schema_version"] == "1.5.0"
+    assert data["schema_version"] == "1.6.0"
     scene = data["acts"][0]["scenes"][0]
     assert scene["objective"]
     assert scene["conflict"]
