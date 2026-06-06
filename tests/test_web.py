@@ -696,6 +696,7 @@ def test_web_static_assets_include_conversion_status_ui() -> None:
         assert "setOutputActions(false)" in script
         assert "setOutputActions(true)" in script
         assert "elements.bundle.disabled = !isEnabled" in script
+        assert "button.disabled = !isEnabled" not in script
         assert "model: normalizedModel()" in script
         assert "lastValidate" in script
         assert "当前导出可能不是最新" in script
