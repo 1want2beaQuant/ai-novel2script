@@ -13,6 +13,7 @@ python -m pip install -e ".[dev,release,security]"
 Run these before opening a pull request:
 
 ```powershell
+python scripts\check_release_readiness.py --dry-run
 python -m pytest
 python -m ruff check .
 python -m pip_audit --skip-editable
@@ -21,7 +22,7 @@ Remove-Item -LiteralPath dist -Recurse -Force -ErrorAction SilentlyContinue
 python -m build
 python -m twine check dist\*
 python -m novel2script --version
-cmd /c fc /b schemas\script.schema.json src\novel2script\schemas\script.schema.json
+python scripts\check_release_readiness.py --schema-only
 ```
 
 For CLI changes, also run:
