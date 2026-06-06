@@ -106,6 +106,20 @@ def test_package_data_and_manifest_include_release_assets() -> None:
     } <= manifest_entries
 
 
+def test_web_smoke_script_covers_conversion_exports_for_release() -> None:
+    smoke_script = (ROOT / "scripts" / "smoke_web_server.py").read_text(encoding="utf-8")
+
+    assert "def _check_conversion" in smoke_script
+    assert '"/api/convert"' in smoke_script
+    assert '"format": "markdown"' in smoke_script
+    assert '"validate": True' in smoke_script
+    assert "export_manifest" in smoke_script
+    assert "draft_json" in smoke_script
+    assert "summary_json" in smoke_script
+    assert "provider_status" in smoke_script
+    assert "Conversion failed with status" in smoke_script
+
+
 def test_openai_validation_behavior_is_documented_for_release() -> None:
     readme = (ROOT / "README.md").read_text(encoding="utf-8")
     changelog = (ROOT / "CHANGELOG.md").read_text(encoding="utf-8")
@@ -177,6 +191,7 @@ def test_local_web_workbench_is_documented_for_release() -> None:
     assert "file extensions, byte sizes, and bundle totals" in changelog
     assert "Story Bible panels" in changelog
     assert "four-step workflow progress strip" in changelog
+    assert "preview parsing, conversion, export manifests, and JSON exports" in changelog
     assert "per-chapter manuscript size" in changelog
     assert "non-blocking short-chapter warnings" in changelog
     assert "inline remote confirmation panel" in changelog
