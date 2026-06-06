@@ -45,6 +45,7 @@ const state = {
   lastProviderStatus: null,
   lastSummary: null,
   lastDurationMs: 0,
+  lastConversionFailed: false,
   visibleScenes: [],
   sceneFilter: "",
   dragDepth: 0
@@ -205,6 +206,7 @@ async function convertManuscript() {
   const startedAt = performance.now();
   const payload = conversionPayload();
   const requestModel = normalizedModel();
+  state.lastConversionFailed = false;
   setWorking(true);
   setConversionStatus("转换中", "正在生成剧本草稿。", "active");
   refreshExportReadiness();
@@ -252,6 +254,7 @@ async function convertManuscript() {
     state.output = "";
     state.exports = null;
     state.exportManifest = null;
+    state.lastConversionFailed = true;
     renderOutputTabs();
     renderExportManifest();
     state.lastProviderStatus = null;
@@ -745,6 +748,7 @@ function renderChapterPreview(status, chapters, options = {}) {
 
 function updateInputStatus() {
   resetProviderRunStatus();
+  clearConversionFailure();
   const text = elements.manuscript.value;
   const characterCount = countCharacters(text);
   elements.inputSize.textContent = `${formatNumber(characterCount)} 字 / 预检中`;
@@ -1599,6 +1603,20 @@ function setConversionStatus(label, detail, tone) {
   updateWorkflowSteps();
 }
 
+function clearConversionFailure() {
+  if (!state.lastConversionFailed) {
+    return;
+  }
+  state.lastConversionFailed = false;
+  if (!state.output) {
+    setConversionStatus(
+      state.isPreviewReady ? "待转换" : "待预检",
+      state.isPreviewReady ? "预检已通过，可以重新转换。" : "修改后等待章节预检通过。",
+      state.isPreviewReady ? "active" : "neutral"
+    );
+  }
+}
+
 function updateConversionFreshness() {
   if (!state.output) {
     return;
@@ -1665,6 +1683,8 @@ function updateWorkflowSteps() {
     setWorkflowStep("convert", "active", "生成剧本中");
   } else if (state.remoteConfirmationResolve) {
     setWorkflowStep("convert", "warn", "等待远程确认");
+  } else if (state.lastConversionFailed) {
+    setWorkflowStep("convert", "error", "转换失败");
   } else if (state.output && staleReason) {
     setWorkflowStep("convert", "warn", "需重新转换");
   } else if (state.output) {
@@ -2115,6 +2135,7 @@ function clearWorkbench() {
   state.lastProviderStatus = null;
   state.lastSummary = null;
   state.lastDurationMs = 0;
+  state.lastConversionFailed = false;
   state.visibleScenes = [];
   state.sceneFilter = "";
 
@@ -2325,6 +2346,7 @@ elements.inputDropZone?.addEventListener("drop", handleDropZoneDrop);
 elements.title.addEventListener("input", () => {
   dismissRemoteConfirmation();
   scheduleLocalDraftSave();
+  clearConversionFailure();
   resetProviderRunStatus();
   syncConvertAvailability();
   refreshExportReadiness();
@@ -2338,6 +2360,7 @@ elements.manuscript.addEventListener("input", () => {
 elements.provider.addEventListener("change", () => {
   dismissRemoteConfirmation();
   scheduleLocalDraftSave();
+  clearConversionFailure();
   syncConvertAvailability();
   refreshExportReadiness();
   updateProviderStatus();
@@ -2345,6 +2368,7 @@ elements.provider.addEventListener("change", () => {
 elements.model.addEventListener("input", () => {
   dismissRemoteConfirmation();
   scheduleLocalDraftSave();
+  clearConversionFailure();
   resetProviderRunStatus();
   syncConvertAvailability();
   refreshExportReadiness();
@@ -2352,6 +2376,7 @@ elements.model.addEventListener("input", () => {
 });
 elements.format.addEventListener("change", () => {
   scheduleLocalDraftSave();
+  clearConversionFailure();
   syncConvertAvailability();
   const selection = outputSelectionForFormat(elements.format.value);
   if (state.exports) {
@@ -2364,6 +2389,7 @@ elements.format.addEventListener("change", () => {
 });
 elements.validate.addEventListener("change", () => {
   scheduleLocalDraftSave();
+  clearConversionFailure();
   syncConvertAvailability();
   refreshExportReadiness();
   updateConversionFreshness();
