@@ -20,6 +20,7 @@ Initial release candidate.
 - Local browser workbench through `novel2script-web` and `python -m novel2script.web`.
 - Local Web adaptation inspector with coverage scores, structure beats, revision actions, risk notes, and scene index panels.
 - Local Web adaptation inspector shows chapter-to-scene mapping so source coverage can be audited directly in the browser.
+- Local Web scene index shows scene block counts and action/dialogue/voice-over/transition previews.
 - Local Web adaptation inspector shows Story Bible panels for character continuity, locations, props/clues, and open questions.
 - Local Web UI refuses non-loopback hosts unless `--allow-remote` is provided and sends basic browser security headers.
 - Local Web conversion API rejects non-JSON and cross-origin browser requests.

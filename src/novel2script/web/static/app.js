@@ -378,10 +378,57 @@ function renderScenes(scenes) {
       const summary = document.createElement("p");
       summary.textContent = scene.summary || "";
 
-      item.append(title, meta, summary);
+      const counts = scene.block_counts || {};
+      const blockMeta = document.createElement("div");
+      blockMeta.className = "scene-block-meta";
+      blockMeta.textContent = `块 ${counts.total ?? 0} · 动作 ${counts.action ?? 0} · 对白 ${
+        counts.dialogue ?? 0
+      }`;
+
+      const blockList = document.createElement("ul");
+      blockList.className = "scene-block-preview";
+      const previewBlocks = Array.isArray(scene.blocks_preview) ? scene.blocks_preview : [];
+      for (const block of previewBlocks) {
+        const blockItem = document.createElement("li");
+        const badge = document.createElement("span");
+        badge.className = `block-type ${blockTypeClass(block.type)}`;
+        badge.textContent = blockTypeLabel(block.type);
+
+        const text = document.createElement("p");
+        const speaker = block.character ? `${block.character}：` : "";
+        text.textContent = `${speaker}${block.text || ""}`;
+
+        blockItem.append(badge, text);
+        blockList.append(blockItem);
+      }
+
+      item.append(title, meta, summary, blockMeta);
+      if (previewBlocks.length) {
+        item.append(blockList);
+      }
       return item;
     })
   );
+}
+
+function blockTypeLabel(type) {
+  const labels = {
+    action: "动作",
+    dialogue: "对白",
+    voice_over: "旁白",
+    transition: "转场"
+  };
+  return labels[type] || "块";
+}
+
+function blockTypeClass(type) {
+  const classes = {
+    action: "block-type-action",
+    dialogue: "block-type-dialogue",
+    voice_over: "block-type-voice_over",
+    transition: "block-type-transition"
+  };
+  return classes[type] || "block-type-unknown";
 }
 
 function renderStoryBible(storyBible) {

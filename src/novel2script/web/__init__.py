@@ -261,6 +261,8 @@ def summarize_script(data: dict[str, Any]) -> dict[str, Any]:
                 "summary": scene.get("summary", ""),
                 "characters": _string_list(scene.get("characters")),
                 "source_chapter": scene.get("source_chapter", ""),
+                "block_counts": _scene_block_counts(scene),
+                "blocks_preview": _scene_blocks_preview(scene),
             }
             for act, scene in scenes[:12]
         ],
@@ -281,6 +283,35 @@ def _string_list(value: object) -> list[str]:
 
 def _number_list(value: object) -> list[int | float]:
     return [item for item in value if isinstance(item, int | float)] if isinstance(value, list) else []
+
+
+def _scene_block_counts(scene: dict[str, Any]) -> dict[str, int]:
+    blocks = _dict_list(scene.get("blocks"))
+    counts = {
+        "total": len(blocks),
+        "action": 0,
+        "dialogue": 0,
+        "voice_over": 0,
+        "transition": 0,
+    }
+    for block in blocks:
+        block_type = block.get("type")
+        if block_type in counts:
+            counts[block_type] += 1
+    return counts
+
+
+def _scene_blocks_preview(scene: dict[str, Any], limit: int = 3) -> list[dict[str, Any]]:
+    preview = []
+    for block in _dict_list(scene.get("blocks"))[:limit]:
+        preview.append(
+            {
+                "type": block.get("type", ""),
+                "character": block.get("character", ""),
+                "text": block.get("text", ""),
+            }
+        )
+    return preview
 
 
 def _preview_chapter(chapter: Any) -> dict[str, Any]:
