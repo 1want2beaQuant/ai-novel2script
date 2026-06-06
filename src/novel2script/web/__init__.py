@@ -155,6 +155,15 @@ def preview_payload(payload: dict[str, Any]) -> dict[str, Any]:
     }
 
 
+def health_payload() -> dict[str, Any]:
+    return {
+        "status": "ok",
+        "version": __version__,
+        "default_model": DEFAULT_MODEL,
+        "max_request_bytes": MAX_REQUEST_BYTES,
+    }
+
+
 def summarize_script(data: dict[str, Any]) -> dict[str, Any]:
     acts = [act for act in data.get("acts", []) if isinstance(act, dict)]
     scenes = [
@@ -555,7 +564,7 @@ class Novel2ScriptWebHandler(BaseHTTPRequestHandler):
             self._send_static("index.html", include_body=include_body)
             return
         if path == "/api/health":
-            self._send_json({"status": "ok"}, include_body=include_body)
+            self._send_json(health_payload(), include_body=include_body)
             return
         if path.startswith("/"):
             filename = unquote(path.lstrip("/"))
