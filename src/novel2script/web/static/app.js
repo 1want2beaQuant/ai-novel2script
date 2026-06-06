@@ -128,6 +128,16 @@ const elements = {
   coverageScore: document.querySelector("#coverageScore"),
   verdict: document.querySelector("#verdict"),
   logline: document.querySelector("#loglineText"),
+  qualityOverviewState: document.querySelector("#qualityOverviewState"),
+  qualityOverviewMeta: document.querySelector("#qualityOverviewMeta"),
+  qualityCoverageValue: document.querySelector("#qualityCoverageValue"),
+  qualityCoverageMeter: document.querySelector("#qualityCoverageMeter"),
+  qualityDialogueValue: document.querySelector("#qualityDialogueValue"),
+  qualityDialogueMeter: document.querySelector("#qualityDialogueMeter"),
+  qualityLowestScoreValue: document.querySelector("#qualityLowestScoreValue"),
+  qualityLowestScoreMeter: document.querySelector("#qualityLowestScoreMeter"),
+  qualityRiskValue: document.querySelector("#qualityRiskValue"),
+  qualityRiskMeter: document.querySelector("#qualityRiskMeter"),
   revisionFocusArea: document.querySelector("#revisionFocusArea"),
   revisionFocusPriority: document.querySelector("#revisionFocusPriority"),
   revisionFocusScore: document.querySelector("#revisionFocusScore"),
@@ -296,6 +306,7 @@ function renderSummary(summary) {
   elements.verdict.textContent = summary?.verdict || "draft";
   elements.logline.textContent = summary?.logline || "完成转换后，这里会显示一句话故事、coverage 分数和下一轮修订入口。";
 
+  renderQualityOverview(summary || null);
   renderRevisionFocus(summary?.revision_focus || null);
   renderScores(summary?.scores || []);
   renderActionItems(summary?.action_items || summary?.revision_checklist || []);
@@ -309,6 +320,111 @@ function renderSummary(summary) {
     [...(summary?.weaknesses || []), ...(summary?.structure_diagnostics || [])]
   );
   renderTextList(elements.qualityList, summary?.quality_flags || summary?.revision_checklist || []);
+}
+
+function renderQualityOverview(summary) {
+  if (!summary) {
+    elements.qualityOverviewState.textContent = "等待转换";
+    elements.qualityOverviewMeta.textContent = "转换后汇总覆盖、对白、最低分项和风险数量。";
+    updateQualityMeter(elements.qualityCoverageValue, elements.qualityCoverageMeter, 0, "0%");
+    updateQualityMeter(elements.qualityDialogueValue, elements.qualityDialogueMeter, 0, "0%");
+    updateQualityMeter(elements.qualityLowestScoreValue, elements.qualityLowestScoreMeter, 0, "--");
+    updateQualityMeter(elements.qualityRiskValue, elements.qualityRiskMeter, 0, "0");
+    return;
+  }
+
+  const chapterCoverage = summary.chapter_coverage || {};
+  const metrics = summary.adaptation_metrics || {};
+  const coveragePercent = clampPercent(Number(chapterCoverage.coverage_ratio || 0) * 100);
+  const dialoguePercent = clampPercent(Number(metrics.dialogue_ratio || 0) * 100);
+  const lowestScore = lowestCoverageScore(summary.scores || []);
+  const riskCount = qualityRiskCount(summary);
+  const healthLabel = qualityHealthLabel({
+    coveragePercent,
+    dialoguePercent,
+    lowestScore: lowestScore?.score ?? 0,
+    riskCount
+  });
+
+  elements.qualityOverviewState.textContent = healthLabel;
+  elements.qualityOverviewMeta.textContent = qualityOverviewMeta(summary, lowestScore, riskCount);
+  updateQualityMeter(
+    elements.qualityCoverageValue,
+    elements.qualityCoverageMeter,
+    coveragePercent,
+    `${Math.round(coveragePercent)}%`
+  );
+  updateQualityMeter(
+    elements.qualityDialogueValue,
+    elements.qualityDialogueMeter,
+    dialoguePercent,
+    `${Math.round(dialoguePercent)}%`
+  );
+  updateQualityMeter(
+    elements.qualityLowestScoreValue,
+    elements.qualityLowestScoreMeter,
+    Number(lowestScore?.score || 0),
+    lowestScore ? `${scoreLabels[lowestScore.area] || lowestScore.area} ${lowestScore.score}` : "--"
+  );
+  updateQualityMeter(
+    elements.qualityRiskValue,
+    elements.qualityRiskMeter,
+    riskMeterPercent(riskCount),
+    String(riskCount)
+  );
+}
+
+function updateQualityMeter(valueElement, meterElement, percent, label) {
+  valueElement.textContent = label;
+  meterElement.style.setProperty("--quality", `${clampPercent(percent)}%`);
+}
+
+function lowestCoverageScore(scores) {
+  return arrayItems(scores)
+    .filter((score) => score && Number.isFinite(Number(score.score)))
+    .map((score) => ({ ...score, score: Number(score.score) }))
+    .sort((left, right) => left.score - right.score)[0];
+}
+
+function qualityRiskCount(summary) {
+  return [
+    ...arrayItems(summary.weaknesses),
+    ...arrayItems(summary.quality_flags),
+    ...arrayItems(summary.structure_diagnostics)
+  ].filter(Boolean).length;
+}
+
+function qualityHealthLabel({ coveragePercent, dialoguePercent, lowestScore, riskCount }) {
+  if (coveragePercent >= 95 && dialoguePercent >= 18 && lowestScore >= 70 && riskCount <= 2) {
+    return "可进入精修";
+  }
+  if (coveragePercent >= 80 && lowestScore >= 55) {
+    return "需要定向修订";
+  }
+  return "需要补强";
+}
+
+function qualityOverviewMeta(summary, lowestScore, riskCount) {
+  const sceneCount = Number(summary.scene_count || 0);
+  const focus = summary.revision_focus?.note || "";
+  const lowestLabel = lowestScore ? scoreLabels[lowestScore.area] || lowestScore.area : "coverage";
+  const focusText = focus ? `下一步：${focus}` : `优先复核 ${lowestLabel}。`;
+  return `${sceneCount} 场已生成，${lowestLabel}是当前最低分项，风险提示 ${riskCount} 条。${focusText}`;
+}
+
+function riskMeterPercent(riskCount) {
+  return clampPercent(Math.max(0, 100 - riskCount * 14));
+}
+
+function clampPercent(value) {
+  if (!Number.isFinite(value)) {
+    return 0;
+  }
+  return Math.max(0, Math.min(value, 100));
+}
+
+function arrayItems(value) {
+  return Array.isArray(value) ? value : [];
 }
 
 function renderRevisionFocus(focus) {

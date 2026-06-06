@@ -138,6 +138,8 @@ def test_web_smoke_static_asset_diagnostics_report_missing_markers() -> None:
     assert "stripLeadingByteOrderMark" in missing
     assert "preserveCurrentInputAfterImportError" in missing
     assert "当前手稿和章节预检已保留。" in missing
+    assert "renderQualityOverview" in missing
+    assert "qualityHealthLabel" in missing
     assert "replaceManuscriptText" in missing
     assert "requestClearWorkbench" in missing
     assert "dismissClearConfirmation" in missing
@@ -174,6 +176,8 @@ def test_local_web_workbench_is_documented_for_release() -> None:
     assert "显示每章字数，并标记正文偏短的章节" in readme
     assert "短章提示不会阻止满足 3 章要求的手稿继续转换" in readme
     assert "章节到场景映射" in readme
+    assert "质量概览" in readme
+    assert "章节覆盖、对白占比、最低 coverage 分项和风险数量" in readme
     assert "场景块预览" in readme
     assert "场景目标/冲突/转折" in readme
     assert "每场输出戏剧目标、冲突和转折" in readme
@@ -211,6 +215,7 @@ def test_local_web_workbench_is_documented_for_release() -> None:
     assert "Local browser workbench" in changelog
     assert "Markdown revision brief" in changelog
     assert "Local Web adaptation inspector" in changelog
+    assert "quality overview for chapter coverage, dialogue ratio, lowest coverage score, and risk count" in changelog
     assert "export manifest entries can directly switch to or download" in changelog
     assert "result tabs support keyboard navigation with arrow keys, Home, and End" in changelog
     assert "saved browser draft" in changelog

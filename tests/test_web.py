@@ -470,6 +470,18 @@ def test_web_server_serves_static_assets_and_conversion_api() -> None:
         assert 'aria-labelledby="viewYamlButton"' in body
         assert 'id="scoresList"' in body
         assert 'id="actionItems"' in body
+        assert 'class="quality-overview"' in body
+        assert 'aria-label="稿件质量概览"' in body
+        assert 'id="qualityOverviewState"' in body
+        assert 'id="qualityOverviewMeta"' in body
+        assert 'id="qualityCoverageMeter"' in body
+        assert 'id="qualityDialogueMeter"' in body
+        assert 'id="qualityLowestScoreMeter"' in body
+        assert 'id="qualityRiskMeter"' in body
+        assert "质量概览" in body
+        assert "对白占比" in body
+        assert "最低分项" in body
+        assert "风险数量" in body
         assert 'class="revision-focus"' in body
         assert 'id="revisionFocusArea"' in body
         assert 'id="revisionFocusPriority"' in body
@@ -675,6 +687,22 @@ def test_web_static_assets_include_conversion_status_ui() -> None:
         assert "function renderStoryCharacters" in script
         assert "function renderStoryLocations" in script
         assert "function renderStoryProps" in script
+        assert "function renderQualityOverview" in script
+        assert "function updateQualityMeter" in script
+        assert "function lowestCoverageScore" in script
+        assert "function qualityRiskCount" in script
+        assert "function qualityHealthLabel" in script
+        assert "function qualityOverviewMeta" in script
+        assert "function riskMeterPercent" in script
+        assert "function clampPercent" in script
+        assert "function arrayItems" in script
+        assert "qualityOverviewState" in script
+        assert "qualityCoverageMeter" in script
+        assert "metrics.dialogue_ratio" in script
+        assert "可进入精修" in script
+        assert "需要定向修订" in script
+        assert "需要补强" in script
+        assert "风险提示 ${riskCount} 条" in script
         assert "storyCharactersList" in script
         assert "storyLocationsList" in script
         assert "storyPropsList" in script
@@ -984,6 +1012,11 @@ def test_web_static_assets_include_conversion_status_ui() -> None:
         assert ".scene-filter input" in stylesheet
         assert ".scene-filter button" in stylesheet
         assert ".scene-filter-meta" in stylesheet
+        assert ".quality-overview" in stylesheet
+        assert ".quality-track-grid" in stylesheet
+        assert ".quality-track-head" in stylesheet
+        assert ".quality-meter" in stylesheet
+        assert "width: var(--quality, 0%)" in stylesheet
         assert ".output-tabs" in stylesheet
         assert ".output-tabs button.is-selected" in stylesheet
         assert ".export-file-detail" in stylesheet

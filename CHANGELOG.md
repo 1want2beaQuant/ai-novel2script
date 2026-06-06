@@ -23,6 +23,7 @@ Initial release candidate.
 - Markdown revision brief export with coverage summary, scorecard, priority actions, structure beats, and scene index.
 - Local browser workbench through `novel2script-web` and `python -m novel2script.web`.
 - Local Web adaptation inspector with coverage scores, structure beats, revision actions, risk notes, and scene index panels.
+- Local Web adaptation inspector shows a quality overview for chapter coverage, dialogue ratio, lowest coverage score, and risk count.
 - Local Web adaptation inspector highlights the next revision focus with priority, score, note, and coverage rationale.
 - Local Web adaptation inspector shows chapter-to-scene mapping so source coverage can be audited directly in the browser.
 - Local Web scene index shows scene block counts and action/dialogue/voice-over/transition previews.

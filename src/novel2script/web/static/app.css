@@ -887,6 +887,7 @@ pre {
 
 .inspector-head,
 .summary-strip,
+.quality-overview,
 .revision-focus,
 .diagnostic-grid,
 .story-bible-grid,
@@ -980,6 +981,91 @@ pre {
 .logline p {
   margin-top: 6px;
   line-height: 1.45;
+}
+
+.quality-overview {
+  display: grid;
+  grid-template-columns: minmax(260px, 0.7fr) minmax(0, 1.3fr);
+  border-bottom: 1px solid var(--line);
+  background: #f2f6f4;
+}
+
+.quality-overview-copy {
+  min-width: 0;
+  padding: 14px;
+  border-right: 1px solid var(--line);
+}
+
+.quality-overview-copy span,
+.quality-track-head span {
+  display: block;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.quality-overview-copy strong {
+  display: block;
+  margin-top: 6px;
+  color: var(--teal);
+  font-size: 24px;
+  line-height: 1;
+}
+
+.quality-overview-copy p {
+  margin-top: 8px;
+  color: var(--muted);
+  line-height: 1.45;
+}
+
+.quality-track-grid {
+  min-width: 0;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(120px, 1fr));
+}
+
+.quality-track {
+  min-width: 0;
+  padding: 14px;
+  border-right: 1px solid var(--line);
+  background: var(--surface);
+}
+
+.quality-track:last-child {
+  border-right: 0;
+}
+
+.quality-track-head {
+  min-width: 0;
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.quality-track-head strong {
+  min-width: 0;
+  color: var(--blue);
+  font-size: 15px;
+  line-height: 1;
+  text-align: right;
+  overflow-wrap: anywhere;
+}
+
+.quality-meter {
+  display: block;
+  height: 8px;
+  margin-top: 10px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: #dce7e6;
+}
+
+.quality-meter span {
+  display: block;
+  width: var(--quality, 0%);
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, var(--teal), var(--blue));
 }
 
 .revision-focus {
@@ -1457,6 +1543,7 @@ pre {
   .workflow-steps,
   .panes,
   .summary-strip,
+  .quality-overview,
   .revision-focus,
   .diagnostic-grid,
   .story-bible-grid,
@@ -1482,6 +1569,27 @@ pre {
 
   .logline {
     border-right: 0;
+    border-bottom: 1px solid var(--line);
+  }
+
+  .quality-overview-copy {
+    border-right: 0;
+    border-bottom: 1px solid var(--line);
+  }
+
+  .quality-track-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .quality-track:nth-child(2n) {
+    border-right: 0;
+  }
+
+  .quality-track:nth-last-child(-n + 2) {
+    border-bottom: 0;
+  }
+
+  .quality-track {
     border-bottom: 1px solid var(--line);
   }
 
@@ -1592,6 +1700,20 @@ pre {
   .coverage-badge {
     width: 100%;
     text-align: left;
+  }
+
+  .quality-track-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .quality-track,
+  .quality-track:nth-child(2n) {
+    border-right: 0;
+    border-bottom: 1px solid var(--line);
+  }
+
+  .quality-track:last-child {
+    border-bottom: 0;
   }
 
   .button-row {
