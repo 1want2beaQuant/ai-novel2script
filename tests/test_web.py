@@ -684,7 +684,11 @@ def test_web_static_assets_include_conversion_status_ui() -> None:
         assert "function providerStatusSummary" in script
         assert "本地回退" in script
         assert "OPENAI_API_KEY 未设置，实际使用本地转换。" in script
-        assert "const maxRequestBytes = 2000000" in script
+        assert "const defaultMaxRequestBytes = 2000000" in script
+        assert "let maxRequestBytes = defaultMaxRequestBytes" in script
+        assert "function updateRuntimeRequestLimit" in script
+        assert "health?.max_request_bytes" in script
+        assert "maxRequestBytes = normalizedLimit" in script
         assert "new TextEncoder" in script
         assert "function isCurrentRequestTooLarge" in script
         assert "function importedFileRequestByteLength" in script

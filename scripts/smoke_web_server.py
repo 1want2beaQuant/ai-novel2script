@@ -132,6 +132,8 @@ def _check_static_app(base_url: str) -> None:
         "localDraftStorageKey",
         "Revision brief",
         "maxRequestBytes",
+        "updateRuntimeRequestLimit",
+        "max_request_bytes",
         "isPreviewReady",
         "showPreflightBlockedConversion",
         "showFileImportSizeError",
