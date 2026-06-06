@@ -147,6 +147,7 @@ def _missing_static_app_markers(body: str) -> list[str]:
         "isPreviewReady",
         "showPreflightBlockedConversion",
         "showFileImportSizeError",
+        "showFileImportTypeError",
         "handleDropZoneDrop",
         "setDropZoneActive",
     ]
