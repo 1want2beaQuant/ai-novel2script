@@ -301,6 +301,14 @@ def test_web_server_serves_static_assets_and_conversion_api() -> None:
         assert 'id="providerMode"' in body
         assert 'id="conversionState"' in body
         assert 'id="exportState"' in body
+        assert 'id="remoteConfirmPanel"' in body
+        assert 'aria-label="OpenAI 远程转换确认"' in body
+        assert 'id="remoteConfirmModel"' in body
+        assert 'id="remoteConfirmTitle"' in body
+        assert 'id="remoteConfirmSize"' in body
+        assert 'id="remoteConfirmCancel"' in body
+        assert 'id="remoteConfirmProceed"' in body
+        assert "确认发送" in body
         assert 'aria-label="工作流进度"' in body
         assert 'data-workflow-step="input"' in body
         assert 'data-workflow-step="preview"' in body
@@ -394,7 +402,13 @@ def test_web_static_assets_include_conversion_status_ui() -> None:
         assert 'fetch("/api/preview"' in script
         assert "function countCharacters" in script
         assert "function estimateChapterCount" not in script
+        assert "window.confirm" not in script
         assert "function confirmRemoteProvider" in script
+        assert "function requestRemoteConfirmation" in script
+        assert "function resolveRemoteConfirmation" in script
+        assert "function dismissRemoteConfirmation" in script
+        assert "remoteConfirmationResolve" in script
+        assert "remoteConfirmProceed" in script
         assert "function remoteConfirmationKey" in script
         assert "function textFingerprint" in script
         assert f'const defaultModel = "{novel2script.DEFAULT_MODEL}"' in script
@@ -427,6 +441,7 @@ def test_web_static_assets_include_conversion_status_ui() -> None:
         assert "解析章节中" in script
         assert "结果已过期" in script
         assert "selectedOutputLabel()} 可用" in script
+        assert "等待远程确认" in script
         assert "textFingerprint(text)" in script
         assert "function showPreflightBlockedConversion" in script
         assert "function renderChapterPreview" in script
@@ -439,7 +454,9 @@ def test_web_static_assets_include_conversion_status_ui() -> None:
         assert "state.lastConvertedInput = payload.text" in script
         assert "updateConversionFreshness()" in script
         assert "至少需要 3 章通过预检后才能转换。" in script
-        assert "state.isPreviewPending || !state.isPreviewReady" in script
+        assert "state.isPreviewPending" in script
+        assert "!state.isPreviewReady" in script
+        assert "Boolean(state.remoteConfirmationResolve)" in script
         assert "未确认远程发送" in script
         assert "需重新转换" in script
         assert "function currentOutputStaleReason" in script
@@ -452,6 +469,8 @@ def test_web_static_assets_include_conversion_status_ui() -> None:
         assert "Schema 校验设置已变更" in script
         assert "Schema 校验设置已变更，当前导出仍使用旧设置。" in script
         assert "转换前会按当前手稿、片名和模型确认远程发送。" in script
+        assert "请确认 OpenAI 远程发送后再开始转换" in script
+        assert "手稿、片名、模型或模式已变化，请重新检查后再确认远程发送。" in script
         assert "OpenAI 模型已变更" in script
         assert "return elements.model.value.trim() || defaultModel" in script
         assert "重新转换后再复制、下载或打包。" in script
@@ -545,6 +564,10 @@ def test_web_static_assets_include_conversion_status_ui() -> None:
 
         assert response.status == HTTPStatus.OK
         assert ".status-grid" in stylesheet
+        assert ".remote-confirmation" in stylesheet
+        assert ".remote-confirmation.is-hidden" in stylesheet
+        assert ".remote-confirmation-facts" in stylesheet
+        assert ".remote-confirmation-actions" in stylesheet
         assert ".workflow-steps" in stylesheet
         assert ".workflow-step" in stylesheet
         assert ".workflow-step.is-ready .step-index" in stylesheet

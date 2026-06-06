@@ -93,6 +93,7 @@ button:disabled {
 .topbar,
 .controls,
 .status-grid,
+.remote-confirmation,
 .workflow-steps,
 .pane,
 .inspector {
@@ -298,6 +299,92 @@ select {
 
 .status-card.is-active strong {
   color: var(--blue);
+}
+
+.remote-confirmation {
+  min-width: 0;
+  padding: 14px;
+  display: grid;
+  grid-template-columns: minmax(260px, 1.1fr) minmax(320px, 1.4fr) auto;
+  gap: 14px;
+  align-items: center;
+  border-color: rgba(184, 117, 20, 0.56);
+  background:
+    linear-gradient(90deg, rgba(184, 117, 20, 0.12), rgba(15, 113, 108, 0.06)),
+    var(--surface);
+}
+
+.remote-confirmation.is-hidden {
+  display: none;
+}
+
+.remote-confirmation-copy {
+  min-width: 0;
+}
+
+.remote-confirmation-copy p:not(.eyebrow) {
+  margin-top: 7px;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.remote-confirmation-facts {
+  min-width: 0;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  overflow: hidden;
+  background: var(--surface);
+}
+
+.remote-confirmation-facts div {
+  min-width: 0;
+  padding: 10px 12px;
+  border-right: 1px solid var(--line);
+}
+
+.remote-confirmation-facts div:last-child {
+  border-right: 0;
+}
+
+.remote-confirmation-facts span {
+  display: block;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.remote-confirmation-facts strong {
+  display: block;
+  margin-top: 5px;
+  color: var(--ink);
+  font-size: 13px;
+  line-height: 1.2;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.remote-confirmation-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.remote-confirmation-actions button:first-child {
+  background: transparent;
+  color: var(--ink);
+}
+
+.remote-confirmation-actions button:first-child:hover {
+  border-color: var(--amber);
+  color: var(--amber);
+}
+
+.remote-confirmation-actions button:last-child {
+  border-color: var(--accent-strong);
+  background: var(--accent-strong);
 }
 
 .workflow-steps {
@@ -872,6 +959,7 @@ pre {
 @media (max-width: 1100px) {
   .controls,
   .status-grid,
+  .remote-confirmation,
   .workflow-steps,
   .panes,
   .summary-strip,
@@ -908,6 +996,14 @@ pre {
 
   .status-card:last-child {
     border-bottom: 0;
+  }
+
+  .remote-confirmation {
+    grid-template-columns: 1fr;
+  }
+
+  .remote-confirmation-actions {
+    justify-content: flex-start;
   }
 
   .workflow-step {
@@ -993,6 +1089,23 @@ pre {
   .button-row {
     flex-wrap: wrap;
     justify-content: flex-end;
+  }
+
+  .remote-confirmation-facts {
+    grid-template-columns: 1fr;
+  }
+
+  .remote-confirmation-facts div {
+    border-right: 0;
+    border-bottom: 1px solid var(--line);
+  }
+
+  .remote-confirmation-facts div:last-child {
+    border-bottom: 0;
+  }
+
+  .remote-confirmation-actions {
+    flex-wrap: wrap;
   }
 
   button {
