@@ -406,7 +406,7 @@ function renderScenes(scenes) {
     : state.visibleScenes;
   const emptyMessage = filter
     ? `没有匹配“${state.sceneFilter.trim()}”的场景。`
-    : "转换后显示前 12 场的章节来源、地点和人物。";
+    : "转换后显示全部场景的章节来源、地点和人物。";
 
   renderSceneFilterMeta(filteredScenes.length, state.visibleScenes.length);
   elements.scenesList.replaceChildren(
