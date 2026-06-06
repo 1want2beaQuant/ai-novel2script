@@ -144,9 +144,15 @@ initializeWorkbench();
 async function checkServer() {
   try {
     const response = await fetch("/api/health");
-    elements.serverStatus.textContent = response.ok ? "Ready" : "Offline";
+    if (!response.ok) {
+      throw new Error("Health check failed.");
+    }
+    const health = await readJsonResponse(response, "服务状态响应无法解析。");
+    elements.serverStatus.textContent = health.version ? `Ready v${health.version}` : "Ready";
+    setStatusTone(elements.serverStatus, "ready");
   } catch {
     elements.serverStatus.textContent = "Offline";
+    setStatusTone(elements.serverStatus, "error");
   }
 }
 

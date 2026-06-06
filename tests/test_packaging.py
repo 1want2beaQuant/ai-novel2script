@@ -174,6 +174,8 @@ def test_local_web_workbench_is_documented_for_release() -> None:
     assert "自动保存当前手稿、片名、输出格式、处理模式、模型和 Schema 开关到本机浏览器" in readme
     assert "刷新页面后自动恢复" in readme
     assert "清空按钮会移除当前手稿、标题、生成结果、诊断状态、选中文件引用、远程确认状态和浏览器本地保存的草稿" in readme
+    assert "顶部状态会显示当前后端版本" in readme
+    assert "`/api/health` 会返回版本、默认模型和 Web 请求上限" in readme
     assert "Web 页面会在开始远程转换前按当前手稿、片名和模型要求确认" in readme
     assert "Web 工作台会在处理模式卡片显示“本地回退”" in readme
     assert "转换 API 只接受 JSON 请求" in readme
@@ -182,6 +184,7 @@ def test_local_web_workbench_is_documented_for_release() -> None:
     assert "Local Web adaptation inspector" in changelog
     assert "export manifest entries can directly switch to or download" in changelog
     assert "saved browser draft" in changelog
+    assert "health metadata reports the runtime version, default model, and request limit" in changelog
     assert "next revision focus" in changelog
     assert "priority, score, note, and coverage rationale" in changelog
     assert "chapter-to-scene mapping" in changelog

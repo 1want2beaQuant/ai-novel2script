@@ -13,6 +13,8 @@ import threading
 import time
 from typing import Any
 
+from novel2script import DEFAULT_MODEL, __version__
+
 
 MANUSCRIPT = """
 Chapter 1 The Locked Room
@@ -114,8 +116,12 @@ def _read_server_url(process: subprocess.Popen[str], *, timeout_seconds: float) 
 
 def _check_health(base_url: str) -> None:
     status, payload = _request_json(base_url, "GET", "/api/health")
-    if status != 200 or payload != {"status": "ok"}:
+    if status != 200 or payload.get("status") != "ok":
         raise AssertionError(f"Unexpected health response: {status} {payload!r}")
+    if payload.get("version") != __version__ or payload.get("default_model") != DEFAULT_MODEL:
+        raise AssertionError(f"Unexpected health metadata: {payload!r}")
+    if payload.get("max_request_bytes") != 2_000_000:
+        raise AssertionError(f"Unexpected health request limit: {payload!r}")
 
 
 def _check_static_app(base_url: str) -> None:

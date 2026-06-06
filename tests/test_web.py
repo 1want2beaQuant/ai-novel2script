@@ -9,7 +9,7 @@ from threading import Thread
 import pytest
 
 import novel2script
-from novel2script.web import convert_payload, create_server, preview_payload
+from novel2script.web import convert_payload, create_server, health_payload, preview_payload
 import novel2script.web as web_module
 
 
@@ -301,6 +301,15 @@ def test_convert_payload_reports_openai_local_fallback(
     assert result["summary"]["title"] == "The Locked Room"
 
 
+def test_health_payload_reports_runtime_metadata() -> None:
+    assert health_payload() == {
+        "status": "ok",
+        "version": novel2script.__version__,
+        "default_model": novel2script.DEFAULT_MODEL,
+        "max_request_bytes": web_module.MAX_REQUEST_BYTES,
+    }
+
+
 def test_convert_payload_rejects_missing_text() -> None:
     try:
         convert_payload({"text": "", "format": "yaml"})
@@ -561,6 +570,10 @@ def test_web_static_assets_include_conversion_status_ui() -> None:
         assert "function remoteConfirmationKey" in script
         assert "function textFingerprint" in script
         assert f'const defaultModel = "{novel2script.DEFAULT_MODEL}"' in script
+        assert 'fetch("/api/health")' in script
+        assert "Ready v${health.version}" in script
+        assert 'readJsonResponse(response, "服务状态响应无法解析。")' in script
+        assert 'setStatusTone(elements.serverStatus, "ready")' in script
         assert 'const localDraftStorageKey = "novel2script:web:local-draft:v1"' in script
         assert "const localDraftVersion = 1" in script
         assert "draftSaveTimer" in script
@@ -877,7 +890,8 @@ def test_web_server_supports_head_without_body() -> None:
 
         assert response.status == HTTPStatus.OK
         assert response.getheader("Content-Type") == "application/json; charset=utf-8"
-        assert response.getheader("Content-Length") == str(len(b'{"status": "ok"}'))
+        expected_length = len(json.dumps(health_payload(), ensure_ascii=False).encode("utf-8"))
+        assert response.getheader("Content-Length") == str(expected_length)
         assert response.getheader("Cache-Control") == "no-store"
         assert_security_headers(response)
         assert body == b""
