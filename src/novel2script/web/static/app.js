@@ -1976,8 +1976,10 @@ async function importFile(file, options = {}) {
     elements.title.value = file.name.replace(/\.[^.]+$/, "");
   }
   saveLocalDraft();
-  setConversionStatus("待转换", `已导入 ${file.name}，等待章节预检。`, "active");
-  updateInputStatus();
+  updateInputStatus({
+    pendingDetail: `已导入 ${file.name}，正在等待章节预检。`,
+    emptyDetail: `已导入 ${file.name}，但文件内容为空。`
+  });
 }
 
 function isImportableTextFile(file) {
