@@ -144,3 +144,6 @@ def test_local_web_workbench_is_documented_for_release() -> None:
     assert "Local browser workbench" in changelog
     assert "Markdown revision brief" in changelog
     assert "Local Web adaptation inspector" in changelog
+    assert "four-step workflow progress strip" in changelog
+    assert "inline remote confirmation panel" in changelog
+    assert "pending confirmations are invalidated" in changelog

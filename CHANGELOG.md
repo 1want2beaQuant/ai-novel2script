@@ -40,6 +40,7 @@ Initial release candidate.
 - Local Web result pane can switch between YAML, Fountain, Markdown revision brief, draft JSON, and summary JSON views without rerunning conversion.
 - Local Web workbench can clear the current manuscript, generated outputs, diagnostics, selected file, and remote confirmation state.
 - Local Web workbench automatically saves manuscript draft input and conversion settings in browser local storage and restores them after a refresh.
+- Local Web workbench shows a four-step workflow progress strip for input, chapter preflight, conversion, and export readiness.
 - Local Web download action reports browser download failures and recovers its button label.
 - Installed Web server smoke validation covers health, static app assets, and preview parsing in CI and release distribution checks.
 - Flexible chapter heading detection for Chinese prologue/epilogue headings and English word, Roman numeral, and abbreviated chapter headings.
@@ -55,6 +56,7 @@ Initial release candidate.
 - Local Web conversion results are tied to the request snapshot so edits made while converting are marked stale.
 - Local Web OpenAI mode asks for confirmation before starting a remote conversion.
 - Local Web OpenAI confirmation is scoped to the current manuscript, title, and model, and model changes mark converted output stale.
+- Local Web OpenAI mode uses an inline remote confirmation panel that shows the model, title, and manuscript size before sending data, and pending confirmations are invalidated when manuscript, title, model, or provider changes.
 - CLI and Web conversions report the actual provider used, including local fallback when OpenAI is requested without `OPENAI_API_KEY`.
 - Structured `structure_map`, `story_bible`, `adaptation_report`, and `coverage_report` sections.
 - Optional OpenAI-compatible enhancement through the `novel2script[ai]` extra.
