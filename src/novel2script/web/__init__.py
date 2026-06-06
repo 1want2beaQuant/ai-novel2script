@@ -23,6 +23,7 @@ from novel2script.yaml_io import draft_to_yaml
 
 
 MAX_REQUEST_BYTES = 2_000_000
+MIN_PREVIEW_CHAPTER_CHARACTERS = 40
 STATIC_FILES = {"index.html", "app.css", "app.js"}
 LOCAL_HOSTS = {"localhost", "127.0.0.1", "::1"}
 ALLOWED_METHODS_HEADER = "GET, HEAD, OPTIONS, POST"
@@ -100,7 +101,9 @@ def preview_payload(payload: dict[str, Any]) -> dict[str, Any]:
             "ready": False,
             "character_count": 0,
             "chapter_count": 0,
+            "short_chapter_count": 0,
             "chapters": [],
+            "preflight_warnings": [],
             "message": "至少 3 章后开始转换。",
         }
 
@@ -111,20 +114,31 @@ def preview_payload(payload: dict[str, Any]) -> dict[str, Any]:
             "ready": False,
             "character_count": character_count,
             "chapter_count": 0,
+            "short_chapter_count": 0,
             "chapters": [],
+            "preflight_warnings": [],
             "message": str(exc),
         }
 
     ready = len(chapters) >= 3
+    preview_chapters = [_preview_chapter(chapter) for chapter in chapters]
+    short_chapter_count = sum(1 for chapter in preview_chapters if chapter["status"] == "short")
+    warnings = (
+        [f"有 {short_chapter_count} 个章节正文偏短，建议补充素材后再转换。"]
+        if short_chapter_count
+        else []
+    )
     return {
         "ready": ready,
         "character_count": character_count,
         "chapter_count": len(chapters),
-        "chapters": [
-            {"index": chapter.index, "title": chapter.title} for chapter in chapters
-        ],
+        "short_chapter_count": short_chapter_count,
+        "chapters": preview_chapters,
+        "preflight_warnings": warnings,
         "message": (
-            "符合三章以上输入要求。"
+            warnings[0]
+            if ready and warnings
+            else "符合三章以上输入要求。"
             if ready
             else "至少需要 3 个包含正文的章节才能生成结构化剧本。"
         ),
@@ -267,6 +281,18 @@ def _string_list(value: object) -> list[str]:
 
 def _number_list(value: object) -> list[int | float]:
     return [item for item in value if isinstance(item, int | float)] if isinstance(value, list) else []
+
+
+def _preview_chapter(chapter: Any) -> dict[str, Any]:
+    character_count = len("".join(chapter.body.split()))
+    is_short = character_count < MIN_PREVIEW_CHAPTER_CHARACTERS
+    return {
+        "index": chapter.index,
+        "title": chapter.title,
+        "character_count": character_count,
+        "status": "short" if is_short else "ready",
+        "warning": "正文偏短，转换结果可能只有概要。" if is_short else "",
+    }
 
 
 def create_server(

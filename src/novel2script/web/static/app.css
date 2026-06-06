@@ -642,6 +642,10 @@ pre {
   border-bottom: 1px solid rgba(207, 216, 220, 0.72);
 }
 
+.chapter-preview-list li.is-short {
+  background: rgba(184, 117, 20, 0.08);
+}
+
 .chapter-preview-list li:last-child {
   border-bottom: 0;
 }
@@ -652,6 +656,12 @@ pre {
   font-weight: 700;
 }
 
+.chapter-preview-content {
+  min-width: 0;
+  display: grid;
+  gap: 3px;
+}
+
 .chapter-preview-list strong {
   min-width: 0;
   color: var(--ink);
@@ -659,6 +669,21 @@ pre {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.chapter-preview-list small,
+.chapter-preview-list em {
+  min-width: 0;
+  color: var(--muted);
+  font-size: 12px;
+  font-style: normal;
+  line-height: 1.25;
+  overflow-wrap: anywhere;
+}
+
+.chapter-preview-list li.is-short small,
+.chapter-preview-list li.is-short em {
+  color: var(--amber);
 }
 
 .chapter-preview-list .empty {

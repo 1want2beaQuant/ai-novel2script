@@ -271,17 +271,35 @@ def test_preview_payload_reports_authoritative_chapter_preflight() -> None:
 
     assert result["ready"] is False
     assert result["chapter_count"] == 2
+    assert result["short_chapter_count"] == 2
     assert result["chapters"] == [
-        {"index": 1, "title": "第 1 章"},
-        {"index": 2, "title": "第 2 章"},
+        {
+            "index": 1,
+            "title": "第 1 章",
+            "character_count": 5,
+            "status": "short",
+            "warning": "正文偏短，转换结果可能只有概要。",
+        },
+        {
+            "index": 2,
+            "title": "第 2 章",
+            "character_count": 5,
+            "status": "short",
+            "warning": "正文偏短，转换结果可能只有概要。",
+        },
     ]
+    assert result["preflight_warnings"] == ["有 2 个章节正文偏短，建议补充素材后再转换。"]
     assert "至少需要 3 个" in result["message"]
 
     ready = preview_payload({"text": MANUSCRIPT})
 
     assert ready["ready"] is True
     assert ready["chapter_count"] == 3
+    assert ready["short_chapter_count"] == 0
     assert ready["chapters"][0]["title"] == "Chapter 1 The Locked Room"
+    assert ready["chapters"][0]["status"] == "ready"
+    assert ready["chapters"][0]["character_count"] == 76
+    assert ready["preflight_warnings"] == []
 
 
 def test_web_server_serves_static_assets_and_conversion_api() -> None:
@@ -374,6 +392,8 @@ def test_web_server_serves_static_assets_and_conversion_api() -> None:
         assert preview["ready"] is True
         assert preview["chapter_count"] == 3
         assert preview["chapters"][0]["title"] == "Chapter 1 The Locked Room"
+        assert preview["chapters"][0]["status"] == "ready"
+        assert preview["chapters"][0]["character_count"] == 76
 
         payload = json.dumps({"text": MANUSCRIPT, "format": "fountain"}).encode("utf-8")
         connection.request(
@@ -488,6 +508,12 @@ def test_web_static_assets_include_conversion_status_ui() -> None:
         assert "chapterPreviewState" in script
         assert "chapterPreviewList" in script
         assert "preview.chapters || []" in script
+        assert "previewWarningCount" in script
+        assert "short_chapter_count" in script
+        assert "可转换 / 需补素材" in script
+        assert "章需补素材" in script
+        assert "素材偏短" in script
+        assert "chapter-preview-content" in script
         assert "还有 ${chapterItems.length - limit} 章未显示" in script
         assert "正在解析章节" in script
         assert "const payload = conversionPayload()" in script
@@ -620,6 +646,8 @@ def test_web_static_assets_include_conversion_status_ui() -> None:
         assert ".input-pane" in stylesheet
         assert ".chapter-preview" in stylesheet
         assert ".chapter-preview-list li" in stylesheet
+        assert ".chapter-preview-list li.is-short" in stylesheet
+        assert ".chapter-preview-content" in stylesheet
         assert ".chapter-preview.is-ready .chapter-preview-head strong" in stylesheet
         assert ".output-tabs" in stylesheet
         assert ".output-tabs button.is-selected" in stylesheet
