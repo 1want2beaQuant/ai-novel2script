@@ -41,6 +41,9 @@ class Scene:
     location: str
     time: str
     summary: str
+    objective: str
+    conflict: str
+    turning_point: str
     source_chapter: int
     characters: list[str] = field(default_factory=list)
     beats: list[str] = field(default_factory=list)
@@ -53,6 +56,9 @@ class Scene:
             "location": self.location,
             "time": self.time,
             "summary": self.summary,
+            "objective": self.objective,
+            "conflict": self.conflict,
+            "turning_point": self.turning_point,
             "source_chapter": self.source_chapter,
             "characters": self.characters,
             "beats": self.beats,
@@ -105,7 +111,7 @@ class ScriptDraft:
     adaptation_report: dict[str, Any]
     coverage_report: dict[str, Any]
     revision_notes: list[str]
-    schema_version: str = "1.4.0"
+    schema_version: str = "1.5.0"
     language: str = "zh-CN"
     generated_at: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
 

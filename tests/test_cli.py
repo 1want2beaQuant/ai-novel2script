@@ -124,7 +124,7 @@ def test_cli_writes_validated_yaml_to_nested_output_path(tmp_path: Path) -> None
     assert exit_code == 0
     assert output_path.exists()
     data = yaml.safe_load(output_path.read_text(encoding="utf-8"))
-    assert data["schema_version"] == "1.4.0"
+    assert data["schema_version"] == "1.5.0"
     assert data["title"] == "The Locked Room"
     assert data["source"]["chapter_count"] == 3
     assert [scene["source_chapter"] for act in data["acts"] for scene in act["scenes"]] == [1, 2, 3]

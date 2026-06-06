@@ -33,6 +33,9 @@ def test_convert_text_to_script_contains_traceable_scenes() -> None:
     assert [scene["source_chapter"] for scene in scenes] == [1, 2, 3]
     assert data["characters"][0]["name"] == "林晚"
     assert scenes[0]["location"] == "书房"
+    assert scenes[0]["objective"]
+    assert scenes[0]["conflict"]
+    assert scenes[0]["turning_point"].startswith("场景转向：")
     assert any(block["type"] == "dialogue" for scene in scenes for block in scene["blocks"])
     structure = data["structure_map"]
     assert structure["model"] == "five_point_screenplay_map"

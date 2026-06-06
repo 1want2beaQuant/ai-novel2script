@@ -15,6 +15,7 @@ Initial release candidate.
 - CLI and Web conversion paths share the same default OpenAI-compatible model constant.
 - Local heuristic conversion from 3+ chapter manuscripts to screenplay YAML drafts.
 - YAML output validated by bundled JSON Schema.
+- Scene drafts include per-scene objective, conflict, and turning point fields for dramatic-function review.
 - Fountain screenplay export.
 - Markdown revision brief export with coverage summary, scorecard, priority actions, structure beats, and scene index.
 - Local browser workbench through `novel2script-web` and `python -m novel2script.web`.
@@ -22,6 +23,7 @@ Initial release candidate.
 - Local Web adaptation inspector highlights the next revision focus with priority, score, note, and coverage rationale.
 - Local Web adaptation inspector shows chapter-to-scene mapping so source coverage can be audited directly in the browser.
 - Local Web scene index shows scene block counts and action/dialogue/voice-over/transition previews.
+- Local Web scene index shows each scene's objective, conflict, and turning point.
 - Local Web adaptation inspector shows Story Bible panels for character continuity, locations, props/clues, and open questions.
 - Local Web UI refuses non-loopback hosts unless `--allow-remote` is provided and sends basic browser security headers.
 - Local Web conversion API rejects non-JSON and cross-origin browser requests.

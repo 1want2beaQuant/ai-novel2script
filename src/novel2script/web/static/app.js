@@ -413,6 +413,12 @@ function renderScenes(scenes) {
       const summary = document.createElement("p");
       summary.textContent = scene.summary || "";
 
+      const dramaticList = document.createElement("dl");
+      dramaticList.className = "scene-dramatic-list";
+      appendSceneDramaticItem(dramaticList, "目标", scene.objective);
+      appendSceneDramaticItem(dramaticList, "冲突", scene.conflict);
+      appendSceneDramaticItem(dramaticList, "转折", scene.turning_point);
+
       const counts = scene.block_counts || {};
       const blockMeta = document.createElement("div");
       blockMeta.className = "scene-block-meta";
@@ -437,13 +443,23 @@ function renderScenes(scenes) {
         blockList.append(blockItem);
       }
 
-      item.append(title, meta, summary, blockMeta);
+      item.append(title, meta, summary, dramaticList, blockMeta);
       if (previewBlocks.length) {
         item.append(blockList);
       }
       return item;
     })
   );
+}
+
+function appendSceneDramaticItem(list, label, value) {
+  const term = document.createElement("dt");
+  term.textContent = label;
+
+  const description = document.createElement("dd");
+  description.textContent = value || "待补充";
+
+  list.append(term, description);
 }
 
 function blockTypeLabel(type) {
