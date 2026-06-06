@@ -162,6 +162,7 @@ def _missing_static_shell_markers(body: str) -> list[str]:
         'class="quality-overview"',
         'id="qualityOverviewState"',
         'id="qualityCoverageMeter"',
+        'id="qualityCheckList"',
     ]
     return [marker for marker in required if marker not in body]
 
@@ -214,8 +215,11 @@ def _missing_static_app_markers(body: str) -> list[str]:
         "createZipBlob",
         "currentOutputStaleReason",
         "renderQualityOverview",
+        "renderQualityChecks",
+        "qualityCheckStatusLabel",
         "qualityHealthLabel",
         "lowestCoverageScore",
+        "summary.quality_checks",
         "riskMeterPercent",
         "arrayItems",
         "setConversionInputLock",

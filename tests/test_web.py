@@ -207,6 +207,14 @@ def test_convert_payload_returns_output_and_summary() -> None:
     assert result["summary"]["strengths"]
     assert result["summary"]["weaknesses"]
     assert result["summary"]["quality_flags"]
+    assert result["summary"]["quality_checks"]
+    assert result["summary"]["quality_checks"][0] == {
+        "id": "chapter_coverage",
+        "label": "章节覆盖",
+        "status": "pass",
+        "value": "3/3 场",
+        "detail": "所有源章节都有可追溯场景。",
+    }
     assert result["summary"]["scenes"][0]["summary"]
     assert result["summary"]["scenes"][0]["objective"]
     assert result["summary"]["scenes"][0]["conflict"]
@@ -478,6 +486,8 @@ def test_web_server_serves_static_assets_and_conversion_api() -> None:
         assert 'id="qualityDialogueMeter"' in body
         assert 'id="qualityLowestScoreMeter"' in body
         assert 'id="qualityRiskMeter"' in body
+        assert 'id="qualityCheckList"' in body
+        assert 'aria-label="质量评测闸门"' in body
         assert "质量概览" in body
         assert "对白占比" in body
         assert "最低分项" in body
@@ -688,6 +698,9 @@ def test_web_static_assets_include_conversion_status_ui() -> None:
         assert "function renderStoryLocations" in script
         assert "function renderStoryProps" in script
         assert "function renderQualityOverview" in script
+        assert "function renderQualityChecks" in script
+        assert "function qualityCheckStatusLabel" in script
+        assert "function firstOpenQualityCheck" in script
         assert "function updateQualityMeter" in script
         assert "function lowestCoverageScore" in script
         assert "function qualityRiskCount" in script
@@ -697,8 +710,11 @@ def test_web_static_assets_include_conversion_status_ui() -> None:
         assert "function clampPercent" in script
         assert "function arrayItems" in script
         assert "qualityOverviewState" in script
+        assert "qualityCheckList" in script
         assert "qualityCoverageMeter" in script
         assert "metrics.dialogue_ratio" in script
+        assert "summary.quality_checks" in script
+        assert "转换后显示覆盖、对白、地点、人物和场景功能评测。" in script
         assert "可进入精修" in script
         assert "需要定向修订" in script
         assert "需要补强" in script
@@ -1016,6 +1032,8 @@ def test_web_static_assets_include_conversion_status_ui() -> None:
         assert ".quality-track-grid" in stylesheet
         assert ".quality-track-head" in stylesheet
         assert ".quality-meter" in stylesheet
+        assert ".quality-check-list" in stylesheet
+        assert ".quality-check-status" in stylesheet
         assert "width: var(--quality, 0%)" in stylesheet
         assert ".output-tabs" in stylesheet
         assert ".output-tabs button.is-selected" in stylesheet

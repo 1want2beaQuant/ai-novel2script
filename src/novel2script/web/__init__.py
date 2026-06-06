@@ -228,6 +228,16 @@ def summarize_script(data: dict[str, Any]) -> dict[str, Any]:
             "dialogue_blocks": metrics.get("dialogue_blocks", 0),
             "dialogue_ratio": metrics.get("dialogue_ratio", 0),
         },
+        "quality_checks": [
+            {
+                "id": check.get("id", ""),
+                "label": check.get("label", ""),
+                "status": check.get("status", ""),
+                "value": check.get("value", ""),
+                "detail": check.get("detail", ""),
+            }
+            for check in _dict_list(adaptation.get("quality_checks"))
+        ],
         "quality_flags": _string_list(adaptation.get("quality_flags")),
         "revision_checklist": revision_checklist,
         "structure_beats": [

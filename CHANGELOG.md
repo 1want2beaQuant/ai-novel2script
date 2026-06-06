@@ -16,7 +16,9 @@ Initial release candidate.
 - CLI `--model` falls back to the default OpenAI-compatible model when given a blank value.
 - CLI and Web conversion paths share the same default OpenAI-compatible model constant.
 - Local heuristic conversion from 3+ chapter manuscripts to screenplay YAML drafts.
+- Local heuristic conversion now includes a long-form realistic quality fixture covering recurring characters, locations, props, dialogue density, and scene-function fidelity.
 - YAML output validated by bundled JSON Schema.
+- YAML schema version is now `1.6.0` and includes structured `adaptation_report.quality_checks` for machine-checkable quality gates.
 - Scene drafts include per-scene objective, conflict, and turning point fields for dramatic-function review.
 - OpenAI-compatible enhancement prompts preserve the baseline JSON shape and cover scene objective, conflict, and turning point text.
 - Fountain screenplay export.
@@ -24,6 +26,7 @@ Initial release candidate.
 - Local browser workbench through `novel2script-web` and `python -m novel2script.web`.
 - Local Web adaptation inspector with coverage scores, structure beats, revision actions, risk notes, and scene index panels.
 - Local Web adaptation inspector shows a quality overview for chapter coverage, dialogue ratio, lowest coverage score, and risk count.
+- Local Web adaptation inspector renders quality gates for chapter coverage, dialogue density, visual specificity, character presence, and dramatic function.
 - Local Web adaptation inspector highlights the next revision focus with priority, score, note, and coverage rationale.
 - Local Web adaptation inspector shows chapter-to-scene mapping so source coverage can be audited directly in the browser.
 - Local Web scene index shows scene block counts and action/dialogue/voice-over/transition previews.

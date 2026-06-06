@@ -152,6 +152,7 @@
         "chapter_coverage",
         "scene_map",
         "metrics",
+        "quality_checks",
         "quality_flags",
         "revision_checklist"
       ],
@@ -256,6 +257,43 @@
           "items": {
             "type": "string",
             "minLength": 1
+          }
+        },
+        "quality_checks": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "required": ["id", "label", "status", "value", "detail"],
+            "additionalProperties": false,
+            "properties": {
+              "id": {
+                "type": "string",
+                "enum": [
+                  "chapter_coverage",
+                  "dialogue_density",
+                  "visual_specificity",
+                  "character_presence",
+                  "dramatic_function"
+                ]
+              },
+              "label": {
+                "type": "string",
+                "minLength": 1
+              },
+              "status": {
+                "type": "string",
+                "enum": ["pass", "warn", "fail"]
+              },
+              "value": {
+                "type": "string",
+                "minLength": 1
+              },
+              "detail": {
+                "type": "string",
+                "minLength": 1
+              }
+            }
           }
         },
         "revision_checklist": {

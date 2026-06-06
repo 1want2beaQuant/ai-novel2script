@@ -5,7 +5,7 @@
 ## 顶层结构
 
 ```yaml
-schema_version: 1.5.0
+schema_version: 1.6.0
 title: 雾城来信
 language: zh-CN
 generated_at: 2026-06-05T00:00:00+00:00
@@ -75,6 +75,12 @@ adaptation_report:
     action_blocks: 6
     dialogue_blocks: 3
     dialogue_ratio: 0.25
+  quality_checks:
+    - id: dialogue_density
+      label: 对白密度
+      status: pass
+      value: 25%
+      detail: 3/3 场包含对白，共 3 个对白块。
   quality_flags:
     - 未发现结构性风险，建议进入人物动机和对白语气复核。
   revision_checklist:
@@ -154,6 +160,7 @@ revision_notes:
 - `chapter_coverage` 记录总章节数、已改编章节数、覆盖率和缺失章节。
 - `scene_map` 将每个源章节映射到生成场景，便于作者回到原文核对。
 - `metrics` 统计场景数、文本块数、动作块数、对白块数和对白比例。
+- `quality_checks` 输出可机器检查的质量闸门，覆盖章节映射、对白密度、地点具体性、人物识别和场景功能。
 - `quality_flags` 给出自动发现的结构风险，例如对白过少或地点待定。
 - `revision_checklist` 给出下一轮人工打磨建议。
 

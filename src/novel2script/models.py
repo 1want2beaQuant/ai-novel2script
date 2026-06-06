@@ -111,7 +111,7 @@ class ScriptDraft:
     adaptation_report: dict[str, Any]
     coverage_report: dict[str, Any]
     revision_notes: list[str]
-    schema_version: str = "1.5.0"
+    schema_version: str = "1.6.0"
     language: str = "zh-CN"
     generated_at: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
 

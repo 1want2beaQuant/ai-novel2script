@@ -138,6 +138,7 @@ const elements = {
   qualityLowestScoreMeter: document.querySelector("#qualityLowestScoreMeter"),
   qualityRiskValue: document.querySelector("#qualityRiskValue"),
   qualityRiskMeter: document.querySelector("#qualityRiskMeter"),
+  qualityCheckList: document.querySelector("#qualityCheckList"),
   revisionFocusArea: document.querySelector("#revisionFocusArea"),
   revisionFocusPriority: document.querySelector("#revisionFocusPriority"),
   revisionFocusScore: document.querySelector("#revisionFocusScore"),
@@ -330,6 +331,7 @@ function renderQualityOverview(summary) {
     updateQualityMeter(elements.qualityDialogueValue, elements.qualityDialogueMeter, 0, "0%");
     updateQualityMeter(elements.qualityLowestScoreValue, elements.qualityLowestScoreMeter, 0, "--");
     updateQualityMeter(elements.qualityRiskValue, elements.qualityRiskMeter, 0, "0");
+    renderQualityChecks([]);
     return;
   }
 
@@ -339,11 +341,15 @@ function renderQualityOverview(summary) {
   const dialoguePercent = clampPercent(Number(metrics.dialogue_ratio || 0) * 100);
   const lowestScore = lowestCoverageScore(summary.scores || []);
   const riskCount = qualityRiskCount(summary);
+  const failedChecks = arrayItems(summary.quality_checks).filter(
+    (check) => check.status === "fail"
+  ).length;
   const healthLabel = qualityHealthLabel({
     coveragePercent,
     dialoguePercent,
     lowestScore: lowestScore?.score ?? 0,
-    riskCount
+    riskCount,
+    failedChecks
   });
 
   elements.qualityOverviewState.textContent = healthLabel;
@@ -372,6 +378,7 @@ function renderQualityOverview(summary) {
     riskMeterPercent(riskCount),
     String(riskCount)
   );
+  renderQualityChecks(summary.quality_checks || []);
 }
 
 function updateQualityMeter(valueElement, meterElement, percent, label) {
@@ -388,14 +395,26 @@ function lowestCoverageScore(scores) {
 
 function qualityRiskCount(summary) {
   return [
-    ...arrayItems(summary.weaknesses),
-    ...arrayItems(summary.quality_flags),
-    ...arrayItems(summary.structure_diagnostics)
+    ...arrayItems(summary.weaknesses).filter(isActionableQualityText),
+    ...arrayItems(summary.quality_flags).filter(isActionableQualityText),
+    ...arrayItems(summary.quality_checks).filter((check) => check.status !== "pass"),
+    ...arrayItems(summary.structure_diagnostics).filter(isActionableQualityText)
   ].filter(Boolean).length;
 }
 
-function qualityHealthLabel({ coveragePercent, dialoguePercent, lowestScore, riskCount }) {
-  if (coveragePercent >= 95 && dialoguePercent >= 18 && lowestScore >= 70 && riskCount <= 2) {
+function isActionableQualityText(value) {
+  const text = String(value || "");
+  return Boolean(text) && !text.includes("未发现") && !text.includes("已分布到不同场景");
+}
+
+function qualityHealthLabel({ coveragePercent, dialoguePercent, lowestScore, riskCount, failedChecks }) {
+  if (
+    coveragePercent >= 95 &&
+    dialoguePercent >= 18 &&
+    lowestScore >= 70 &&
+    riskCount <= 2 &&
+    failedChecks === 0
+  ) {
     return "可进入精修";
   }
   if (coveragePercent >= 80 && lowestScore >= 55) {
@@ -407,9 +426,62 @@ function qualityHealthLabel({ coveragePercent, dialoguePercent, lowestScore, ris
 function qualityOverviewMeta(summary, lowestScore, riskCount) {
   const sceneCount = Number(summary.scene_count || 0);
   const focus = summary.revision_focus?.note || "";
+  const gate = firstOpenQualityCheck(summary.quality_checks || []);
   const lowestLabel = lowestScore ? scoreLabels[lowestScore.area] || lowestScore.area : "coverage";
-  const focusText = focus ? `下一步：${focus}` : `优先复核 ${lowestLabel}。`;
+  const focusText = gate
+    ? `先处理：${gate.label} ${gate.value}，${gate.detail}`
+    : focus
+    ? `下一步：${focus}`
+    : `优先复核 ${lowestLabel}。`;
   return `${sceneCount} 场已生成，${lowestLabel}是当前最低分项，风险提示 ${riskCount} 条。${focusText}`;
+}
+
+function firstOpenQualityCheck(checks) {
+  return arrayItems(checks).find((check) => check.status === "fail" || check.status === "warn");
+}
+
+function renderQualityChecks(checks) {
+  const items = arrayItems(checks);
+  elements.qualityCheckList.replaceChildren(
+    ...withEmpty(items, "转换后显示覆盖、对白、地点、人物和场景功能评测。").map((check) => {
+      const item = document.createElement("li");
+      if (typeof check === "string") {
+        item.className = "empty";
+        item.textContent = check;
+        return item;
+      }
+
+      const status = ["pass", "warn", "fail"].includes(check.status) ? check.status : "warn";
+      item.className = `quality-check quality-check-${status}`;
+
+      const badge = document.createElement("span");
+      badge.className = "quality-check-status";
+      badge.textContent = qualityCheckStatusLabel(status);
+
+      const content = document.createElement("div");
+      const head = document.createElement("strong");
+      head.textContent = check.label || "质量项";
+
+      const value = document.createElement("span");
+      value.textContent = check.value || "--";
+
+      const detail = document.createElement("p");
+      detail.textContent = check.detail || "等待质量评测结果。";
+
+      content.append(head, value, detail);
+      item.append(badge, content);
+      return item;
+    })
+  );
+}
+
+function qualityCheckStatusLabel(status) {
+  const labels = {
+    pass: "通过",
+    warn: "关注",
+    fail: "补强"
+  };
+  return labels[status] || "关注";
 }
 
 function riskMeterPercent(riskCount) {
