@@ -724,10 +724,19 @@ def test_web_static_assets_include_conversion_status_ui() -> None:
         assert "function selectedOutputLabel" in script
         assert "function outputForSelection" in script
         assert "function selectOutput" in script
+        assert "function selectOutputFromTab" in script
         assert "function renderOutputTabs" in script
+        assert "function handleOutputTabKeydown" in script
         assert "function outputExtension" in script
         assert "data-output-format" in script
         assert "button.dataset.outputFormat" in script
+        assert "button.tabIndex = state.exports && isSelected ? 0 : -1" in script
+        assert "ArrowLeft" in script
+        assert "ArrowRight" in script
+        assert 'event.key === "Home"' in script
+        assert 'event.key === "End"' in script
+        assert "event.preventDefault()" in script
+        assert 'button.addEventListener("keydown", handleOutputTabKeydown)' in script
         assert "function outputSelectionForFormat" in script
         assert 'format === "fountain" || format === "markdown"' in script
         assert "state.output = outputForSelection(state.selectedOutput)" in script
