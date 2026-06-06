@@ -1006,6 +1006,66 @@ pre {
   color: var(--muted);
 }
 
+.scene-block-meta {
+  margin-top: 7px;
+  color: var(--blue);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.scene-block-preview {
+  min-width: 0;
+  margin: 8px 0 0;
+  padding: 0;
+  display: grid;
+  gap: 6px;
+  list-style: none;
+}
+
+.scene-block-preview li {
+  min-width: 0;
+  display: grid;
+  grid-template-columns: 42px minmax(0, 1fr);
+  gap: 7px;
+  align-items: start;
+}
+
+.scene-block-preview li + li {
+  margin-top: 0;
+}
+
+.scene-block-preview p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+}
+
+.block-type {
+  min-width: 0;
+  border-radius: 999px;
+  padding: 2px 6px;
+  color: var(--surface);
+  background: var(--blue);
+  text-align: center;
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1.4;
+}
+
+.block-type-dialogue {
+  background: var(--teal);
+}
+
+.block-type-voice_over {
+  background: var(--amber);
+}
+
+.block-type-transition {
+  background: var(--muted);
+}
+
 .story-question-list {
   min-width: 0;
   max-height: 300px;

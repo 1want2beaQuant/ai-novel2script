@@ -149,6 +149,10 @@ def test_convert_payload_returns_output_and_summary() -> None:
     assert result["summary"]["quality_flags"]
     assert result["summary"]["scenes"][0]["summary"]
     assert isinstance(result["summary"]["scenes"][0]["characters"], list)
+    assert result["summary"]["scenes"][0]["block_counts"]["total"] >= 1
+    assert result["summary"]["scenes"][0]["block_counts"]["action"] >= 1
+    assert result["summary"]["scenes"][0]["blocks_preview"][0]["type"] == "action"
+    assert result["summary"]["scenes"][0]["blocks_preview"][0]["text"]
     story_bible = result["summary"]["story_bible"]
     assert story_bible["characters"][0]["name"]
     assert story_bible["characters"][0]["continuity_note"]
@@ -416,6 +420,8 @@ def test_web_server_serves_static_assets_and_conversion_api() -> None:
         assert data["summary"]["chapter_coverage"]["coverage_ratio"] == 1
         assert data["summary"]["structure_beats"]
         assert data["summary"]["scene_map"][0]["scene_id"] == "S001"
+        assert data["summary"]["scenes"][0]["block_counts"]["total"] >= 1
+        assert data["summary"]["scenes"][0]["blocks_preview"][0]["text"]
         assert data["summary"]["action_items"]
         assert data["summary"]["story_bible"]["characters"]
         assert data["summary"]["story_bible"]["locations"]
@@ -494,6 +500,10 @@ def test_web_static_assets_include_conversion_status_ui() -> None:
         assert "function renderSceneMap" in script
         assert "sceneMapList" in script
         assert "转换后显示源章节到生成场景的逐章映射。" in script
+        assert "function blockTypeLabel" in script
+        assert "blocks_preview" in script
+        assert "scene-block-preview" in script
+        assert "block-type-dialogue" in script
         assert "function renderStoryBible" in script
         assert "function renderStoryCharacters" in script
         assert "function renderStoryLocations" in script
@@ -649,6 +659,9 @@ def test_web_static_assets_include_conversion_status_ui() -> None:
         assert ".chapter-preview-list li.is-short" in stylesheet
         assert ".chapter-preview-content" in stylesheet
         assert ".chapter-preview.is-ready .chapter-preview-head strong" in stylesheet
+        assert ".scene-block-meta" in stylesheet
+        assert ".scene-block-preview" in stylesheet
+        assert ".block-type-dialogue" in stylesheet
         assert ".output-tabs" in stylesheet
         assert ".output-tabs button.is-selected" in stylesheet
         assert ".scene-map-panel" in stylesheet

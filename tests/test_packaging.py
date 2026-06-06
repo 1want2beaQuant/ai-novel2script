@@ -130,6 +130,8 @@ def test_local_web_workbench_is_documented_for_release() -> None:
     assert "显示每章字数，并标记正文偏短的章节" in readme
     assert "短章提示不会阻止满足 3 章要求的手稿继续转换" in readme
     assert "章节到场景映射" in readme
+    assert "场景块预览" in readme
+    assert "每场的剧本块统计和动作/对白/旁白/转场预览" in readme
     assert "coverage 分项评分" in readme
     assert "结构节拍" in readme
     assert "优先修订动作" in readme
@@ -153,6 +155,8 @@ def test_local_web_workbench_is_documented_for_release() -> None:
     assert "Markdown revision brief" in changelog
     assert "Local Web adaptation inspector" in changelog
     assert "chapter-to-scene mapping" in changelog
+    assert "scene block counts" in changelog
+    assert "action/dialogue/voice-over/transition previews" in changelog
     assert "Story Bible panels" in changelog
     assert "four-step workflow progress strip" in changelog
     assert "per-chapter manuscript size" in changelog
