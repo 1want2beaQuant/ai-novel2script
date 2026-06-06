@@ -624,6 +624,8 @@ pre {
 .export-manifest-list li {
   min-width: 0;
   padding: 10px 12px;
+  display: grid;
+  gap: 8px;
   border-right: 1px solid var(--line);
   background: var(--surface);
 }
@@ -634,6 +636,10 @@ pre {
 
 .export-manifest-list li.is-selected {
   box-shadow: inset 0 3px 0 var(--teal);
+}
+
+.export-file-detail {
+  min-width: 0;
 }
 
 .export-manifest-list strong,
@@ -655,8 +661,35 @@ pre {
   font-size: 11px;
 }
 
+.export-file-actions {
+  min-width: 0;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 6px;
+}
+
+.export-file-actions button {
+  min-width: 0;
+  min-height: 30px;
+  padding: 0 8px;
+  border-color: var(--line);
+  background: transparent;
+  color: var(--ink);
+  font-size: 12px;
+}
+
+.export-file-actions button:hover:not(:disabled) {
+  border-color: var(--teal);
+  color: var(--teal);
+}
+
+.export-file-actions button:disabled {
+  cursor: not-allowed;
+}
+
 .export-manifest-list .empty {
   grid-column: 1 / -1;
+  display: list-item;
   color: var(--muted);
   font-style: italic;
 }
@@ -1491,15 +1524,15 @@ pre {
   }
 
   .export-manifest-list {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-columns: 1fr;
   }
 
   .export-manifest-list li {
-    border-bottom: 1px solid var(--line);
-  }
-
-  .export-manifest-list li:nth-child(2n) {
+    grid-template-columns: minmax(0, 1fr) minmax(126px, auto);
+    align-items: center;
+    gap: 12px;
     border-right: 0;
+    border-bottom: 1px solid var(--line);
   }
 
   .export-manifest-list li:last-child {
