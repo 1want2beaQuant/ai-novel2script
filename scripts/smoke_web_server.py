@@ -28,7 +28,10 @@ Mara and Jon played the tape together. The hidden name finally connected every c
 
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
-        description="Start the installed Web server and verify health, static assets, and preview."
+        description=(
+            "Start the installed Web server and verify health, static assets, preview, "
+            "conversion, and exports."
+        )
     )
     parser.add_argument(
         "--python",
@@ -69,6 +72,7 @@ def main(argv: list[str] | None = None) -> int:
         _check_health(base_url)
         _check_static_app(base_url)
         _check_preview(base_url)
+        _check_conversion(base_url)
     finally:
         _terminate(process)
 
@@ -143,6 +147,72 @@ def _check_preview(base_url: str) -> None:
         raise AssertionError(f"Preview failed with status {status}: {response!r}")
     if response.get("ready") is not True or response.get("chapter_count") != 3:
         raise AssertionError(f"Unexpected preview payload: {response!r}")
+
+
+def _check_conversion(base_url: str) -> None:
+    payload = json.dumps(
+        {
+            "text": MANUSCRIPT,
+            "title": "The Locked Room",
+            "format": "markdown",
+            "provider": "local",
+            "validate": True,
+        }
+    ).encode("utf-8")
+    status, response = _request_json(
+        base_url,
+        "POST",
+        "/api/convert",
+        body=payload,
+        headers={"Content-Type": "application/json"},
+    )
+    if status != 200:
+        raise AssertionError(f"Conversion failed with status {status}: {response!r}")
+
+    exports = response.get("exports")
+    manifest = response.get("export_manifest")
+    summary = response.get("summary")
+    provider_status = response.get("provider_status")
+    if not isinstance(exports, dict):
+        raise AssertionError(f"Conversion exports missing or invalid: {response!r}")
+    if not isinstance(manifest, dict):
+        raise AssertionError(f"Conversion export manifest missing or invalid: {response!r}")
+    if not isinstance(summary, dict):
+        raise AssertionError(f"Conversion summary missing or invalid: {response!r}")
+    if not isinstance(provider_status, dict):
+        raise AssertionError(f"Conversion provider status missing or invalid: {response!r}")
+
+    required_exports = ["yaml", "fountain", "markdown", "draft_json", "summary_json"]
+    if set(exports) != set(required_exports):
+        raise AssertionError(f"Unexpected export keys: {sorted(exports)!r}")
+    if response.get("format") != "markdown" or response.get("output") != exports["markdown"]:
+        raise AssertionError(f"Unexpected selected conversion output: {response!r}")
+    if summary.get("scene_count") != 3 or len(summary.get("scenes", [])) != 3:
+        raise AssertionError(f"Unexpected conversion summary: {summary!r}")
+    if provider_status.get("actual") != "local" or provider_status.get("remote") is not False:
+        raise AssertionError(f"Unexpected provider status: {provider_status!r}")
+
+    if manifest.get("selected") != "markdown":
+        raise AssertionError(f"Unexpected selected export manifest entry: {manifest!r}")
+    bundle = manifest.get("bundle")
+    files = manifest.get("files")
+    if not isinstance(bundle, dict) or bundle.get("file_count") != 5:
+        raise AssertionError(f"Unexpected export manifest bundle: {manifest!r}")
+    if not isinstance(files, list) or [file.get("key") for file in files] != required_exports:
+        raise AssertionError(f"Unexpected export manifest files: {manifest!r}")
+
+    draft_json = json.loads(exports["draft_json"])
+    summary_json = json.loads(exports["summary_json"])
+    if draft_json.get("title") != "The Locked Room":
+        raise AssertionError(f"Unexpected draft JSON export: {draft_json!r}")
+    if summary_json.get("scene_count") != summary.get("scene_count"):
+        raise AssertionError(f"Unexpected summary JSON export: {summary_json!r}")
+    if "title: The Locked Room" not in exports["yaml"]:
+        raise AssertionError("YAML export did not include the smoke title.")
+    if "Title: The Locked Room" not in exports["fountain"]:
+        raise AssertionError("Fountain export did not include the smoke title.")
+    if "# The Locked Room 修订简报" not in exports["markdown"]:
+        raise AssertionError("Markdown export did not include the smoke title.")
 
 
 def _request_json(
