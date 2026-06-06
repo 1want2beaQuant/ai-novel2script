@@ -789,6 +789,7 @@ def test_web_static_assets_include_conversion_status_ui() -> None:
         assert "clearLocalDraft()" in script
         assert "草稿已清除" in script
         assert "storage.removeItem(localDraftStorageKey)" in script
+        assert 'setConversionStatus("待输入", "工作台已清空，等待手稿输入。", "neutral")' in script
         assert "工作台已清空，等待手稿输入。" in script
         assert (
             'elements.manuscript.value = text;\n  if (options.resetPicker) {\n    elements.file.value = "";'
