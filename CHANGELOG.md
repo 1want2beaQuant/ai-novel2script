@@ -64,6 +64,7 @@ Initial release candidate.
 - Local Web workbench shows live input size, chapter estimate, provider privacy status, conversion freshness, and export readiness.
 - Local Web workbench shows the backend chapter preflight list before conversion so users can confirm parser results.
 - Local Web chapter preflight now shows per-chapter manuscript size and non-blocking short-chapter warnings before conversion.
+- Local Web chapter preflight cancels stale preview requests when the manuscript changes.
 - Local Web copy action reports clipboard permission failures instead of silently failing.
 - Local Web workbench preflights chapter detection through the backend parser before conversion.
 - Local Web workbench disables conversion until backend chapter preflight confirms at least 3 chapters.

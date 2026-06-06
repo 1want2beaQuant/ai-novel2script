@@ -134,6 +134,8 @@ def _check_static_app(base_url: str) -> None:
         "maxRequestBytes",
         "updateRuntimeRequestLimit",
         "max_request_bytes",
+        "AbortController",
+        "abortPreviewRequest",
         "isPreviewReady",
         "showPreflightBlockedConversion",
         "showFileImportSizeError",

@@ -27,6 +27,7 @@ const state = {
   draftSaveTimer: 0,
   previewLabelTimer: 0,
   previewRequestId: 0,
+  previewAbortController: null,
   previewInput: "",
   isPreviewPending: false,
   isPreviewReady: false,
@@ -745,6 +746,7 @@ function updateInputStatus() {
   elements.inputSize.textContent = `${formatNumber(characterCount)} 字 / 预检中`;
 
   clearTimeout(state.previewLabelTimer);
+  abortPreviewRequest();
   state.isPreviewPending = false;
   state.isPreviewReady = false;
   state.previewWarningCount = 0;
@@ -789,6 +791,9 @@ function updateInputStatus() {
 
 function schedulePreview(text) {
   const requestId = ++state.previewRequestId;
+  abortPreviewRequest();
+  const controller = new AbortController();
+  state.previewAbortController = controller;
   state.previewInput = text;
   state.isPreviewPending = true;
   state.isPreviewReady = false;
@@ -796,8 +801,16 @@ function schedulePreview(text) {
   syncConvertAvailability();
   clearTimeout(state.previewLabelTimer);
   state.previewLabelTimer = window.setTimeout(() => {
-    void runPreview(text, requestId);
+    void runPreview(text, requestId, controller.signal);
   }, 260);
+}
+
+function abortPreviewRequest() {
+  if (!state.previewAbortController) {
+    return;
+  }
+  state.previewAbortController.abort();
+  state.previewAbortController = null;
 }
 
 function isCurrentRequestTooLarge() {
@@ -1175,14 +1188,18 @@ function showPreflightBlockedConversion() {
   syncConvertAvailability();
 }
 
-async function runPreview(text, requestId) {
+async function runPreview(text, requestId, signal) {
   try {
     const response = await fetch("/api/preview", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
+      signal,
       body: JSON.stringify({ text })
     });
     const preview = await readJsonResponse(response, "服务返回了无法解析的预检响应。");
+    if (state.previewAbortController?.signal === signal) {
+      state.previewAbortController = null;
+    }
     if (requestId !== state.previewRequestId || text !== elements.manuscript.value) {
       return;
     }
@@ -1191,6 +1208,12 @@ async function runPreview(text, requestId) {
     }
     renderPreview(preview);
   } catch (error) {
+    if (error instanceof DOMException && error.name === "AbortError") {
+      return;
+    }
+    if (state.previewAbortController?.signal === signal) {
+      state.previewAbortController = null;
+    }
     if (requestId !== state.previewRequestId || text !== elements.manuscript.value) {
       return;
     }
@@ -1941,6 +1964,7 @@ function clearWorkbench() {
   state.exportManifest = null;
   state.selectedOutput = outputSelectionForFormat(elements.format.value);
   state.previewRequestId += 1;
+  abortPreviewRequest();
   state.previewInput = "";
   state.isPreviewPending = false;
   state.isPreviewReady = false;

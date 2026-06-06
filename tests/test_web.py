@@ -596,6 +596,12 @@ def test_web_static_assets_include_conversion_status_ui() -> None:
         assert "openAiConfirmedFor" in script
         assert "isPreviewPending" in script
         assert "isPreviewReady" in script
+        assert "previewAbortController" in script
+        assert "new AbortController" in script
+        assert "function abortPreviewRequest" in script
+        assert "state.previewAbortController.abort()" in script
+        assert "signal," in script
+        assert 'error.name === "AbortError"' in script
         assert "workflowSteps" in script
         assert "function updateWorkflowSteps" in script
         assert "function setWorkflowStep" in script
