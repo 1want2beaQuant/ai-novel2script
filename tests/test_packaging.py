@@ -121,13 +121,21 @@ def test_web_smoke_script_covers_conversion_exports_for_release() -> None:
     assert "Conversion failed with status" in smoke_script
 
 
-def test_web_smoke_static_app_diagnostics_report_missing_markers() -> None:
+def test_web_smoke_static_asset_diagnostics_report_missing_markers() -> None:
     from scripts import smoke_web_server
 
+    shell_missing = smoke_web_server._missing_static_shell_markers("<h1>小说改编工作台</h1>")
     missing = smoke_web_server._missing_static_app_markers("fetch(\"/api/preview\"")
 
+    assert 'id="fileInput"' in shell_missing
+    assert 'role="tabpanel"' in shell_missing
+    assert 'aria-labelledby="viewYamlButton"' in shell_missing
+    assert "<h1>小说改编工作台</h1>" not in shell_missing
     assert "providerStatusSummary" in missing
     assert "showFileImportSizeError" in missing
+    assert "showFileImportEmptyError" in missing
+    assert 'elements.output.setAttribute("aria-busy", "true")' in missing
+    assert "setConversionStatus(\"待输入\", \"工作台已清空，等待手稿输入。\", \"neutral\")" in missing
     assert "fetch(\"/api/preview\"" not in missing
 
 

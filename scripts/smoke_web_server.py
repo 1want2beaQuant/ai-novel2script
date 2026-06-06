@@ -72,7 +72,7 @@ def main(argv: list[str] | None = None) -> int:
     try:
         base_url = _read_server_url(process, timeout_seconds=args.startup_timeout)
         _check_health(base_url)
-        _check_static_app(base_url)
+        _check_static_assets(base_url)
         _check_preview(base_url)
         _check_conversion(base_url)
     finally:
@@ -124,13 +124,43 @@ def _check_health(base_url: str) -> None:
         raise AssertionError(f"Unexpected health request limit: {payload!r}")
 
 
-def _check_static_app(base_url: str) -> None:
+def _check_static_assets(base_url: str) -> None:
+    status, body = _request_text(base_url, "GET", "/")
+    missing = _missing_static_shell_markers(body)
+    if status != 200 or missing:
+        raise AssertionError(
+            f"Unexpected Web shell response: {status}; missing markers: {missing!r}"
+        )
+
     status, body = _request_text(base_url, "GET", "/app.js")
     missing = _missing_static_app_markers(body)
     if status != 200 or missing:
         raise AssertionError(
             f"Unexpected app.js response: {status}; missing markers: {missing!r}"
         )
+
+
+def _missing_static_shell_markers(body: str) -> list[str]:
+    required = [
+        "<h1>小说改编工作台</h1>",
+        'id="fileInput"',
+        'accept=".txt,text/plain"',
+        'id="inputDropZone"',
+        'id="dropOverlay"',
+        'role="status" aria-live="polite" aria-atomic="true"',
+        'class="chapter-preview" aria-label="章节预检" role="status" aria-live="polite"',
+        'role="tablist"',
+        'role="tab"',
+        'id="outputBox"',
+        'role="tabpanel"',
+        'aria-busy="false"',
+        'aria-labelledby="viewYamlButton"',
+        'id="exportManifestList"',
+        'id="bundleButton"',
+        'id="remoteConfirmPanel"',
+        'id="sceneFilterInput"',
+    ]
+    return [marker for marker in required if marker not in body]
 
 
 def _missing_static_app_markers(body: str) -> list[str]:
@@ -146,10 +176,26 @@ def _missing_static_app_markers(body: str) -> list[str]:
         "abortPreviewRequest",
         "isPreviewReady",
         "showPreflightBlockedConversion",
+        "setConversionStatus(\"预检中\", pendingDetail, \"active\")",
         "showFileImportSizeError",
         "showFileImportTypeError",
+        "showFileImportReadError",
+        "showFileImportEmptyError",
+        "if (!text.trim())",
+        "已导入 ${file.name}，正在等待章节预检。",
         "handleDropZoneDrop",
         "setDropZoneActive",
+        "elements.dropOverlay.setAttribute(\"aria-hidden\", String(!isActive))",
+        "clearWorkbench",
+        "setConversionStatus(\"待输入\", \"工作台已清空，等待手稿输入。\", \"neutral\")",
+        "renderOutputTabs",
+        "handleOutputTabKeydown",
+        "elements.output.setAttribute(\"aria-busy\", \"true\")",
+        "elements.output.setAttribute(\"aria-labelledby\", selectedTab.id)",
+        "renderExportManifest",
+        "downloadBundle",
+        "createZipBlob",
+        "currentOutputStaleReason",
     ]
     return [marker for marker in required if marker not in body]
 
