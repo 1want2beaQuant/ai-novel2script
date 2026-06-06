@@ -211,6 +211,7 @@ async function convertManuscript() {
   setConversionStatus("转换中", "正在生成剧本草稿。", "active");
   refreshExportReadiness();
   elements.output.classList.remove("is-error");
+  elements.output.setAttribute("aria-busy", "true");
   elements.output.textContent = "转换中...";
 
   try {
@@ -236,6 +237,7 @@ async function convertManuscript() {
     state.lastProviderStatus = result.provider_status || null;
     state.lastSummary = result.summary;
     state.lastDurationMs = Math.max(0, Math.round(performance.now() - startedAt));
+    elements.output.setAttribute("aria-busy", "false");
     elements.output.textContent = state.output;
     renderOutputTabs();
     renderExportManifest();
@@ -259,6 +261,7 @@ async function convertManuscript() {
     renderExportManifest();
     state.lastProviderStatus = null;
     elements.output.classList.add("is-error");
+    elements.output.setAttribute("aria-busy", "false");
     elements.output.textContent = error instanceof Error ? error.message : String(error);
     renderSummary(null);
     renderProviderSelectionStatus();
@@ -885,6 +888,7 @@ function selectOutput(selection) {
   state.selectedOutput = selection;
   state.output = outputForSelection(selection);
   elements.output.classList.remove("is-error");
+  elements.output.setAttribute("aria-busy", "false");
   elements.output.textContent = state.output;
   renderOutputTabs();
   renderExportManifest();
@@ -899,6 +903,12 @@ function selectOutputFromTab(button, options = {}) {
 }
 
 function renderOutputTabs() {
+  const selectedTab = elements.outputTabs.find(
+    (button) => button.dataset.outputFormat === state.selectedOutput
+  );
+  if (selectedTab) {
+    elements.output.setAttribute("aria-labelledby", selectedTab.id);
+  }
   for (const button of elements.outputTabs) {
     const isSelected = button.dataset.outputFormat === state.selectedOutput;
     button.disabled = !state.exports;
@@ -1030,6 +1040,7 @@ function initializeWorkbench() {
   }
 
   elements.output.textContent = "转换结果会显示在这里。";
+  elements.output.setAttribute("aria-busy", "false");
   setOutputActions(false);
   renderSummary(null);
   renderOutputTabs();
@@ -2175,6 +2186,7 @@ function clearWorkbench() {
   elements.file.value = "";
   elements.sceneFilterInput.value = "";
   elements.output.classList.remove("is-error");
+  elements.output.setAttribute("aria-busy", "false");
   elements.output.textContent = "转换结果会显示在这里。";
   elements.copy.textContent = "复制";
   elements.download.textContent = "下载";

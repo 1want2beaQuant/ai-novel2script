@@ -417,6 +417,7 @@ def test_web_server_serves_static_assets_and_conversion_api() -> None:
         assert "清空当前工作台" in body
         assert "Adaptation Inspector" in body
         assert 'aria-label="转换状态"' in body
+        assert 'role="status" aria-live="polite" aria-atomic="true"' in body
         assert 'id="inputSize"' in body
         assert 'id="providerMode"' in body
         assert 'id="conversionState"' in body
@@ -446,6 +447,7 @@ def test_web_server_serves_static_assets_and_conversion_api() -> None:
         assert "放开导入手稿" in body
         assert 'id="chapterPreviewState"' in body
         assert 'id="chapterPreviewList"' in body
+        assert 'aria-label="章节预检" role="status" aria-live="polite"' in body
         assert "章节预检" in body
         assert 'id="bundleButton"' in body
         assert "打包下载所有导出文件" in body
@@ -461,6 +463,10 @@ def test_web_server_serves_static_assets_and_conversion_api() -> None:
         assert "Revision" in body
         assert 'data-output-format="draftJson"' in body
         assert 'data-output-format="summaryJson"' in body
+        assert 'id="outputBox"' in body
+        assert 'role="tabpanel"' in body
+        assert 'aria-busy="false"' in body
+        assert 'aria-labelledby="viewYamlButton"' in body
         assert 'id="scoresList"' in body
         assert 'id="actionItems"' in body
         assert 'class="revision-focus"' in body
@@ -818,6 +824,9 @@ def test_web_static_assets_include_conversion_status_ui() -> None:
         assert "data-output-format" in script
         assert "button.dataset.outputFormat" in script
         assert "button.tabIndex = state.exports && isSelected ? 0 : -1" in script
+        assert 'elements.output.setAttribute("aria-labelledby", selectedTab.id)' in script
+        assert 'elements.output.setAttribute("aria-busy", "true")' in script
+        assert 'elements.output.setAttribute("aria-busy", "false")' in script
         assert "ArrowLeft" in script
         assert "ArrowRight" in script
         assert 'event.key === "Home"' in script
