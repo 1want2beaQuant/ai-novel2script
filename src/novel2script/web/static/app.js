@@ -24,6 +24,7 @@ const state = {
   copyLabelTimer: 0,
   downloadLabelTimer: 0,
   bundleLabelTimer: 0,
+  clearConfirmTimer: 0,
   draftSaveTimer: 0,
   previewLabelTimer: 0,
   previewRequestId: 0,
@@ -48,6 +49,7 @@ const state = {
   lastConversionFailed: false,
   visibleScenes: [],
   sceneFilter: "",
+  isClearConfirmationPending: false,
   dragDepth: 0
 };
 
@@ -188,6 +190,7 @@ async function readJsonResponse(response, fallbackMessage) {
 }
 
 async function convertManuscript() {
+  dismissClearConfirmation();
   if (isCurrentRequestTooLarge()) {
     showRequestSizeError();
     syncConvertAvailability();
@@ -553,6 +556,7 @@ function renderSceneFilterMeta(filteredCount, totalCount) {
 }
 
 function updateSceneFilter() {
+  dismissClearConfirmation();
   state.sceneFilter = elements.sceneFilterInput.value.trim();
   renderScenes(state.visibleScenes);
 }
@@ -885,6 +889,7 @@ function selectOutput(selection) {
   if (!state.exports || !Object.prototype.hasOwnProperty.call(state.exports, selection)) {
     return;
   }
+  dismissClearConfirmation();
   state.selectedOutput = selection;
   state.output = outputForSelection(selection);
   elements.output.classList.remove("is-error");
@@ -2002,6 +2007,7 @@ function emptyItem(text) {
 }
 
 function replaceManuscriptText(text, options = {}) {
+  dismissClearConfirmation();
   dismissRemoteConfirmation();
   elements.manuscript.value = text;
   saveLocalDraft();
@@ -2116,6 +2122,7 @@ function handleDropZoneDrop(event) {
     return;
   }
   event.preventDefault();
+  dismissClearConfirmation();
   state.dragDepth = 0;
   setDropZoneActive(false);
   if (state.isWorking) {
@@ -2137,6 +2144,7 @@ function setDropZoneActive(isActive) {
 }
 
 async function copyOutput() {
+  dismissClearConfirmation();
   if (state.isWorking || !state.output) {
     return;
   }
@@ -2167,6 +2175,7 @@ function downloadOutput() {
 }
 
 function downloadExportFile(selection, options = {}) {
+  dismissClearConfirmation();
   if (state.isWorking) {
     return;
   }
@@ -2231,12 +2240,51 @@ function outputExtension(selection) {
   return "yaml";
 }
 
+function requestClearWorkbench() {
+  if (state.isWorking) {
+    return;
+  }
+
+  if (state.isClearConfirmationPending) {
+    clearWorkbench();
+    return;
+  }
+
+  state.isClearConfirmationPending = true;
+  clearTimeout(state.clearConfirmTimer);
+  elements.clear.textContent = "确认清空";
+  elements.clear.classList.add("is-danger");
+  elements.clear.setAttribute("aria-label", "再次点击确认清空当前工作台");
+  setConversionStatus(
+    "确认清空",
+    "再次点击清空会移除当前手稿、标题、生成结果、诊断状态和浏览器本地草稿。",
+    "warn"
+  );
+  state.clearConfirmTimer = window.setTimeout(dismissClearConfirmation, 4200);
+}
+
+function dismissClearConfirmation() {
+  if (!state.isClearConfirmationPending) {
+    return;
+  }
+
+  clearTimeout(state.clearConfirmTimer);
+  state.clearConfirmTimer = 0;
+  state.isClearConfirmationPending = false;
+  elements.clear.textContent = "清空";
+  elements.clear.classList.remove("is-danger");
+  elements.clear.setAttribute("aria-label", "清空当前工作台");
+}
+
 function clearWorkbench() {
   clearTimeout(state.previewLabelTimer);
   clearTimeout(state.copyLabelTimer);
   clearTimeout(state.downloadLabelTimer);
   clearTimeout(state.bundleLabelTimer);
+  clearTimeout(state.clearConfirmTimer);
   clearTimeout(state.draftSaveTimer);
+  state.clearConfirmTimer = 0;
+  state.isClearConfirmationPending = false;
   state.output = "";
   state.exports = null;
   state.exportManifest = null;
@@ -2271,6 +2319,9 @@ function clearWorkbench() {
   elements.copy.textContent = "复制";
   elements.download.textContent = "下载";
   elements.bundle.textContent = "打包";
+  elements.clear.textContent = "清空";
+  elements.clear.classList.remove("is-danger");
+  elements.clear.setAttribute("aria-label", "清空当前工作台");
   renderSummary(null);
   renderProviderSelectionStatus();
   renderOutputTabs();
@@ -2294,6 +2345,7 @@ function clearLocalDraft() {
 }
 
 function downloadBundle() {
+  dismissClearConfirmation();
   if (state.isWorking || !state.output || !state.exports) {
     return;
   }
@@ -2467,8 +2519,9 @@ function setOutputActions(isEnabled) {
 elements.sample.addEventListener("click", () => {
   replaceManuscriptText(sampleText);
 });
-elements.clear.addEventListener("click", clearWorkbench);
+elements.clear.addEventListener("click", requestClearWorkbench);
 elements.fileButton.addEventListener("click", () => {
+  dismissClearConfirmation();
   elements.file.click();
 });
 elements.file.addEventListener("change", loadFile);
@@ -2477,6 +2530,7 @@ elements.inputDropZone?.addEventListener("dragover", handleDropZoneDragOver);
 elements.inputDropZone?.addEventListener("dragleave", handleDropZoneDragLeave);
 elements.inputDropZone?.addEventListener("drop", handleDropZoneDrop);
 elements.title.addEventListener("input", () => {
+  dismissClearConfirmation();
   dismissRemoteConfirmation();
   scheduleLocalDraftSave();
   clearConversionFailure();
@@ -2486,11 +2540,13 @@ elements.title.addEventListener("input", () => {
   updateConversionFreshness();
 });
 elements.manuscript.addEventListener("input", () => {
+  dismissClearConfirmation();
   dismissRemoteConfirmation();
   scheduleLocalDraftSave();
   updateInputStatus();
 });
 elements.provider.addEventListener("change", () => {
+  dismissClearConfirmation();
   dismissRemoteConfirmation();
   scheduleLocalDraftSave();
   clearConversionFailure();
@@ -2499,6 +2555,7 @@ elements.provider.addEventListener("change", () => {
   updateProviderStatus();
 });
 elements.model.addEventListener("input", () => {
+  dismissClearConfirmation();
   dismissRemoteConfirmation();
   scheduleLocalDraftSave();
   clearConversionFailure();
@@ -2508,6 +2565,7 @@ elements.model.addEventListener("input", () => {
   updateConversionFreshness();
 });
 elements.format.addEventListener("change", () => {
+  dismissClearConfirmation();
   scheduleLocalDraftSave();
   clearConversionFailure();
   syncConvertAvailability();
@@ -2521,6 +2579,7 @@ elements.format.addEventListener("change", () => {
   refreshExportReadiness();
 });
 elements.validate.addEventListener("change", () => {
+  dismissClearConfirmation();
   scheduleLocalDraftSave();
   clearConversionFailure();
   syncConvertAvailability();

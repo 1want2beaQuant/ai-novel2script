@@ -148,6 +148,7 @@ def test_web_privacy_and_security_docs_cover_local_server_risks() -> None:
     assert "Markdown revision brief" in privacy
     assert "browser `localStorage`" in privacy
     assert "generated outputs and remote confirmation state are not restored" in privacy
+    assert "requires a second confirmation click" in privacy
     assert "--allow-remote" in privacy
     assert "preflight and conversion endpoints accept JSON requests only" in privacy
     assert "Cache-Control: no-store" in privacy

@@ -60,9 +60,10 @@ When using the Web UI:
   Schema validation setting in browser `localStorage` so a refresh can restore the local draft;
 - generated outputs and remote confirmation state are not restored from that local draft, so a
   restored manuscript must be converted again before copy, download, or bundle actions are enabled;
-- the Web UI clear action removes the current manuscript, title, generated outputs, diagnostics,
-  selected file reference, and pending remote confirmation from the browser workbench state, but it
-  cannot remove files you already downloaded or content you already copied elsewhere;
+- the Web UI clear action requires a second confirmation click before it removes the current
+  manuscript, title, generated outputs, diagnostics, selected file reference, and pending remote
+  confirmation from the browser workbench state, but it cannot remove files you already downloaded
+  or content you already copied elsewhere;
 - static assets and JSON API responses are sent with `Cache-Control: no-store` to reduce
   browser or intermediary caching of manuscript-derived responses, and include restrictive
   framing and browser-permission headers such as `X-Frame-Options: DENY`, `frame-ancestors 'none'`,

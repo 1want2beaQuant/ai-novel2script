@@ -137,6 +137,8 @@ def test_web_smoke_static_asset_diagnostics_report_missing_markers() -> None:
     assert "preserveCurrentInputAfterImportError" in missing
     assert "当前手稿和章节预检已保留。" in missing
     assert "replaceManuscriptText" in missing
+    assert "requestClearWorkbench" in missing
+    assert "dismissClearConfirmation" in missing
     assert "setConversionInputLock" in missing
     assert 'elements.output.setAttribute("aria-busy", "true")' in missing
     assert "setConversionStatus(\"待输入\", \"工作台已清空，等待手稿输入。\", \"neutral\")" in missing
@@ -197,7 +199,8 @@ def test_local_web_workbench_is_documented_for_release() -> None:
     assert "打包下载会生成包含全部导出文件的 zip" in readme
     assert "自动保存当前手稿、片名、输出格式、处理模式、模型和 Schema 开关到本机浏览器" in readme
     assert "刷新页面后自动恢复" in readme
-    assert "清空按钮会移除当前手稿、标题、生成结果、诊断状态、选中文件引用、远程确认状态和浏览器本地保存的草稿" in readme
+    assert "清空按钮第一次点击会进入确认清空状态" in readme
+    assert "再次点击才会移除当前手稿、标题、生成结果、诊断状态、选中文件引用、远程确认状态和浏览器本地保存的草稿" in readme
     assert "顶部状态会显示当前后端版本" in readme
     assert "`/api/health` 会返回版本、默认模型和 Web 请求上限" in readme
     assert "Web 页面会在开始远程转换前按当前手稿、片名和模型要求确认" in readme
