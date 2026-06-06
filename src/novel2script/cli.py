@@ -54,7 +54,7 @@ def main(argv: list[str] | None = None) -> int:
 
     try:
         if args.output:
-            _validate_output_path(args.output)
+            _validate_output_path(args.output, input_path=args.input)
 
         text = _read_input_text(args.input)
         model = _normalize_model(args.model)
@@ -115,11 +115,20 @@ def _write_output(draft: ScriptDraft, output_path: Path, output_format: str) -> 
         write_markdown(draft, output_path)
 
 
-def _validate_output_path(output_path: Path) -> None:
+def _validate_output_path(output_path: Path, *, input_path: Path) -> None:
     if output_path.is_dir():
         raise ValueError(f"Output path is a directory, expected a file path: {output_path}")
     if output_path.parent.exists() and not output_path.parent.is_dir():
         raise ValueError(f"Output parent path is not a directory: {output_path.parent}")
+    if _same_path(output_path, input_path):
+        raise ValueError(f"Output path must not overwrite the input file: {output_path}")
+
+
+def _same_path(left: Path, right: Path) -> bool:
+    try:
+        return left.resolve() == right.resolve()
+    except OSError:
+        return left.absolute() == right.absolute()
 
 
 if __name__ == "__main__":
