@@ -2291,9 +2291,6 @@ function setOutputActions(isEnabled) {
   elements.copy.disabled = !isEnabled;
   elements.download.disabled = !isEnabled;
   elements.bundle.disabled = !isEnabled;
-  for (const button of elements.outputTabs) {
-    button.disabled = !isEnabled;
-  }
 }
 
 elements.sample.addEventListener("click", () => {
