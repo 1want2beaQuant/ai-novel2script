@@ -1875,10 +1875,22 @@ function clearWorkbench() {
   renderProviderSelectionStatus();
   renderOutputTabs();
   renderExportManifest();
-  saveLocalDraft();
+  clearLocalDraft();
   updateInputStatus();
   setConversionStatus("待转换", "工作台已清空，等待手稿输入。", "neutral");
   updateExportStatus();
+}
+
+function clearLocalDraft() {
+  const storage = localDraftStorage();
+  if (!storage) {
+    setDraftStatus("保存不可用", "warn");
+    return false;
+  }
+
+  removeLocalDraft(storage);
+  setDraftStatus("草稿已清除", "neutral");
+  return true;
 }
 
 function downloadBundle() {

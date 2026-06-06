@@ -682,6 +682,7 @@ def test_web_static_assets_include_conversion_status_ui() -> None:
         assert "setConversionStatus(\"导入失败\"" in script
         assert "elements.file.value = \"\"" in script
         assert "function clearWorkbench" in script
+        assert "function clearLocalDraft" in script
         assert "elements.clear.addEventListener(\"click\", clearWorkbench)" in script
         assert "elements.clear.disabled = isWorking" in script
         assert "state.openAiConfirmedFor = \"\"" in script
@@ -689,6 +690,9 @@ def test_web_static_assets_include_conversion_status_ui() -> None:
         assert "state.previewRequestId += 1" in script
         assert "elements.manuscript.value = \"\"" in script
         assert "elements.title.value = \"\"" in script
+        assert "clearLocalDraft()" in script
+        assert "草稿已清除" in script
+        assert "storage.removeItem(localDraftStorageKey)" in script
         assert "工作台已清空，等待手稿输入。" in script
         assert (
             'elements.manuscript.value = text;\n  elements.file.value = "";\n  if (!elements.title.value)'
