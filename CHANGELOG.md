@@ -16,6 +16,7 @@ Initial release candidate.
 - Local heuristic conversion from 3+ chapter manuscripts to screenplay YAML drafts.
 - YAML output validated by bundled JSON Schema.
 - Scene drafts include per-scene objective, conflict, and turning point fields for dramatic-function review.
+- OpenAI-compatible enhancement prompts preserve the baseline JSON shape and cover scene objective, conflict, and turning point text.
 - Fountain screenplay export.
 - Markdown revision brief export with coverage summary, scorecard, priority actions, structure beats, and scene index.
 - Local browser workbench through `novel2script-web` and `python -m novel2script.web`.
