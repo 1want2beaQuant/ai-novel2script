@@ -33,6 +33,17 @@ def oversized_content_length() -> str:
     return str(web_module.MAX_REQUEST_BYTES + 1)
 
 
+def numbered_manuscript(chapter_count: int) -> str:
+    return "\n\n".join(
+        (
+            f"Chapter {index} Case File\n"
+            f"Mara and Jon investigate clue {index}. "
+            f"The scene turns when the file points to room {index}."
+        )
+        for index in range(1, chapter_count + 1)
+    )
+
+
 def test_web_version_option_reports_package_version(
     capsys: pytest.CaptureFixture[str],
 ) -> None:
@@ -196,6 +207,21 @@ def test_convert_payload_returns_output_and_summary() -> None:
     assert story_bible["locations"][0]["scene_ids"]
     assert isinstance(story_bible["props"], list)
     assert story_bible["open_questions"]
+
+
+def test_convert_payload_summary_includes_all_scene_index_entries() -> None:
+    result = convert_payload(
+        {
+            "text": numbered_manuscript(13),
+            "title": "Long Case",
+            "format": "yaml",
+            "provider": "local",
+        }
+    )
+
+    assert result["summary"]["scene_count"] == 13
+    assert len(result["summary"]["scenes"]) == result["summary"]["scene_count"]
+    assert result["summary"]["scenes"][-1]["source_chapter"] == 13
 
 
 def test_convert_payload_supports_fountain_output() -> None:
@@ -559,6 +585,7 @@ def test_web_static_assets_include_conversion_status_ui() -> None:
         assert "function renderSceneMap" in script
         assert "sceneMapList" in script
         assert "转换后显示源章节到生成场景的逐章映射。" in script
+        assert "转换后显示全部场景的章节来源、地点和人物。" in script
         assert "function appendSceneDramaticItem" in script
         assert "scene-dramatic-list" in script
         assert "scene.objective" in script

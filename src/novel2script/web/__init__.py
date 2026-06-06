@@ -279,7 +279,7 @@ def summarize_script(data: dict[str, Any]) -> dict[str, Any]:
                 "block_counts": _scene_block_counts(scene),
                 "blocks_preview": _scene_blocks_preview(scene),
             }
-            for act, scene in scenes[:12]
+            for act, scene in scenes
         ],
     }
 
