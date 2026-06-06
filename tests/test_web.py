@@ -792,6 +792,10 @@ def test_web_static_assets_include_conversion_status_ui() -> None:
         assert "setConversionStatus(\"导入失败\"" in script
         assert "已导入 ${file.name}，正在等待章节预检。" in script
         assert "已导入 ${file.name}，但文件内容为空。" in script
+        assert "function replaceManuscriptText" in script
+        assert "replaceManuscriptText(sampleText)" in script
+        assert "replaceManuscriptText(text, {" in script
+        assert "dismissRemoteConfirmation()" in script
         assert "elements.file.value = \"\"" in script
         assert "function clearWorkbench" in script
         assert "function clearLocalDraft" in script
@@ -819,7 +823,7 @@ def test_web_static_assets_include_conversion_status_ui() -> None:
         assert 'setConversionStatus("待输入", "工作台已清空，等待手稿输入。", "neutral")' in script
         assert "工作台已清空，等待手稿输入。" in script
         assert (
-            'elements.manuscript.value = text;\n  if (options.resetPicker) {\n    elements.file.value = "";'
+            'if (options.resetPicker) {\n    elements.file.value = "";'
             in normalized_script
         )
         assert "function copyOutput" in script

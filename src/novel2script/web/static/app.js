@@ -2001,6 +2001,13 @@ function emptyItem(text) {
   return item;
 }
 
+function replaceManuscriptText(text, options = {}) {
+  dismissRemoteConfirmation();
+  elements.manuscript.value = text;
+  saveLocalDraft();
+  updateInputStatus(options);
+}
+
 async function loadFile() {
   const [file] = elements.file.files;
   if (!file) {
@@ -2041,15 +2048,13 @@ async function importFile(file, options = {}) {
     showFileImportEmptyError(file);
     return;
   }
-  elements.manuscript.value = text;
   if (options.resetPicker) {
     elements.file.value = "";
   }
   if (!elements.title.value) {
     elements.title.value = file.name.replace(/\.[^.]+$/, "");
   }
-  saveLocalDraft();
-  updateInputStatus({
+  replaceManuscriptText(text, {
     pendingDetail: `已导入 ${file.name}，正在等待章节预检。`,
     emptyDetail: `已导入 ${file.name}，但文件内容为空。`
   });
@@ -2460,9 +2465,7 @@ function setOutputActions(isEnabled) {
 }
 
 elements.sample.addEventListener("click", () => {
-  elements.manuscript.value = sampleText;
-  saveLocalDraft();
-  updateInputStatus();
+  replaceManuscriptText(sampleText);
 });
 elements.clear.addEventListener("click", clearWorkbench);
 elements.fileButton.addEventListener("click", () => {

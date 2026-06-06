@@ -185,6 +185,7 @@ def _missing_static_app_markers(body: str) -> list[str]:
         "showFileImportEmptyError",
         "if (!text.trim())",
         "已导入 ${file.name}，正在等待章节预检。",
+        "replaceManuscriptText",
         "handleDropZoneDrop",
         "setDropZoneActive",
         "elements.dropOverlay.setAttribute(\"aria-hidden\", String(!isActive))",
