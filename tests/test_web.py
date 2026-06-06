@@ -680,6 +680,10 @@ def test_web_static_assets_include_conversion_status_ui() -> None:
         assert "正在解析章节" in script
         assert "const payload = conversionPayload()" in script
         assert "state.lastConvertedInput = payload.text" in script
+        assert "lastConversionFailed" in script
+        assert "function clearConversionFailure" in script
+        assert "预检已通过，可以重新转换。" in script
+        assert 'setWorkflowStep("convert", "error", "转换失败")' in script
         assert "updateConversionFreshness()" in script
         assert "至少需要 3 章通过预检后才能转换。" in script
         assert "state.isPreviewPending" in script

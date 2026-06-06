@@ -46,6 +46,7 @@ Initial release candidate.
 - Local Web export manifest actions refresh immediately when generated output becomes stale.
 - Local Web result tabs stay available for reviewing stale generated output while export actions remain disabled.
 - Local Web export actions are disabled while a new conversion is running so stale prior results cannot be downloaded mid-run.
+- Local Web workflow progress keeps the conversion step in an error state after a failed conversion until the user changes inputs or retries.
 - Local Web conversion and preflight APIs return 413 for oversized requests, and the browser workbench warns before sending manuscripts over the 2 MB request limit.
 - Local Web file import refuses oversized manuscripts before reading them into the workbench.
 - Local Web file import reports local read failures without replacing the current manuscript.
