@@ -51,6 +51,7 @@ const state = {
   sceneFilter: "",
   isClearConfirmationPending: false,
   localDraftCleared: false,
+  isSeedSampleDraft: false,
   dragDepth: 0
 };
 
@@ -1039,6 +1040,7 @@ function initializeWorkbench() {
   const restored = restoreLocalDraft();
   if (!restored) {
     elements.manuscript.value = sampleText;
+    state.isSeedSampleDraft = true;
     state.selectedOutput = outputSelectionForFormat(elements.format.value);
     if (localDraftStorage() && elements.draftStatus.textContent === "示例草稿") {
       setDraftStatus("示例草稿", "neutral");
@@ -1121,6 +1123,10 @@ function saveLocalDraft() {
     setDraftStatus("草稿已清除", "neutral");
     return false;
   }
+  if (isSeedSampleState()) {
+    setDraftStatus("示例草稿", "neutral");
+    return false;
+  }
 
   const storage = localDraftStorage();
   if (!storage) {
@@ -1147,8 +1153,25 @@ function saveLocalDraft() {
   }
 
   state.localDraftCleared = false;
+  state.isSeedSampleDraft = false;
   setDraftStatus("草稿已保存", "ready");
   return true;
+}
+
+function isSeedSampleState() {
+  return (
+    state.isSeedSampleDraft &&
+    elements.manuscript.value === sampleText &&
+    !elements.title.value.trim() &&
+    elements.format.value === "yaml" &&
+    elements.provider.value === "local" &&
+    normalizedModel() === defaultModel &&
+    elements.validate.checked
+  );
+}
+
+function markDraftUserOwned() {
+  state.isSeedSampleDraft = false;
 }
 
 function hasDraftContent() {
@@ -2021,6 +2044,7 @@ function replaceManuscriptText(text, options = {}) {
   dismissClearConfirmation({ quiet: true });
   dismissRemoteConfirmation();
   state.localDraftCleared = false;
+  markDraftUserOwned();
   elements.manuscript.value = text;
   saveLocalDraft();
   updateInputStatus(options);
@@ -2350,6 +2374,7 @@ function clearWorkbench() {
   state.visibleScenes = [];
   state.sceneFilter = "";
   state.localDraftCleared = true;
+  markDraftUserOwned();
 
   elements.manuscript.value = "";
   elements.title.value = "";
@@ -2574,6 +2599,7 @@ elements.inputDropZone?.addEventListener("drop", handleDropZoneDrop);
 elements.title.addEventListener("input", () => {
   dismissClearConfirmation();
   dismissRemoteConfirmation();
+  markDraftUserOwned();
   scheduleLocalDraftSave();
   clearConversionFailure();
   resetProviderRunStatus();
@@ -2584,12 +2610,14 @@ elements.title.addEventListener("input", () => {
 elements.manuscript.addEventListener("input", () => {
   dismissClearConfirmation();
   dismissRemoteConfirmation();
+  markDraftUserOwned();
   scheduleLocalDraftSave();
   updateInputStatus();
 });
 elements.provider.addEventListener("change", () => {
   dismissClearConfirmation();
   dismissRemoteConfirmation();
+  markDraftUserOwned();
   scheduleLocalDraftSave();
   clearConversionFailure();
   syncConvertAvailability();
@@ -2599,6 +2627,7 @@ elements.provider.addEventListener("change", () => {
 elements.model.addEventListener("input", () => {
   dismissClearConfirmation();
   dismissRemoteConfirmation();
+  markDraftUserOwned();
   scheduleLocalDraftSave();
   clearConversionFailure();
   resetProviderRunStatus();
@@ -2608,6 +2637,7 @@ elements.model.addEventListener("input", () => {
 });
 elements.format.addEventListener("change", () => {
   dismissClearConfirmation();
+  markDraftUserOwned();
   scheduleLocalDraftSave();
   clearConversionFailure();
   syncConvertAvailability();
@@ -2622,6 +2652,7 @@ elements.format.addEventListener("change", () => {
 });
 elements.validate.addEventListener("change", () => {
   dismissClearConfirmation();
+  markDraftUserOwned();
   scheduleLocalDraftSave();
   clearConversionFailure();
   syncConvertAvailability();
