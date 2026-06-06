@@ -4,6 +4,7 @@ import pytest
 
 import novel2script.ai_provider as ai_provider
 from novel2script.ai_provider import (
+    _enhancement_user_prompt,
     _parse_response_json,
     convert_with_optional_ai,
     convert_with_provider_status,
@@ -160,6 +161,31 @@ def test_openai_provider_rejects_invalid_enhancement(monkeypatch: pytest.MonkeyP
 
     with pytest.raises(ValueError, match="<root>"):
         convert_with_optional_ai(SAMPLE, title="雾城来信", provider="openai", model="test")
+
+
+def test_enhancement_user_prompt_covers_required_scene_function_fields() -> None:
+    prompt = _enhancement_user_prompt(
+        "第 1 章\n林晚在雨夜发现旧信。",
+        {
+            "title": "雾城来信",
+            "scenes": [
+                {
+                    "id": "S1",
+                    "objective": "林晚要确认旧信来源。",
+                    "conflict": "旧信内容与家族记忆冲突。",
+                    "turning_point": "她发现信封里的码头地址。",
+                }
+            ],
+        },
+    )
+
+    assert "保持字段结构不变" in prompt
+    assert "baseline JSON 全部必填字段" in prompt
+    assert "objective" in prompt
+    assert "conflict" in prompt
+    assert "turning_point" in prompt
+    assert "baseline JSON" in prompt
+    assert "林晚要确认旧信来源" in prompt
 
 
 def test_parse_response_json_accepts_raw_json_object() -> None:

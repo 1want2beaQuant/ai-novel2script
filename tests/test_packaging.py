@@ -113,9 +113,12 @@ def test_openai_validation_behavior_is_documented_for_release() -> None:
     assert "返回内容会按 JSON 对象解析" in readme
     assert "fenced JSON" in readme
     assert "内置 Schema 校验" in readme
+    assert "保留 baseline JSON 的完整字段结构" in readme
+    assert "场景目标、冲突、转折" in readme
     assert "OpenAI-compatible enhancement responses are parsed as JSON objects" in changelog
     assert "tolerate fenced JSON blocks" in changelog
     assert "validated against the bundled schema" in changelog
+    assert "cover scene objective, conflict, and turning point text" in changelog
 
 
 def test_local_web_workbench_is_documented_for_release() -> None:

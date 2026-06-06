@@ -135,17 +135,24 @@ def _enhance_with_openai(text: str, baseline: dict[str, Any], model: str) -> dic
             {"role": "system", "content": SYSTEM_PROMPT},
             {
                 "role": "user",
-                "content": (
-                    "请在保持字段结构不变的前提下，增强下面 baseline 剧本 JSON："
-                    "补强 logline、人物描述、场景 summary、beats 和 blocks 文本。"
-                    "\n\n小说章节摘要：\n"
-                    f"{chapter_digest}\n\nbaseline JSON:\n{json.dumps(baseline, ensure_ascii=False)}"
-                ),
+                "content": _enhancement_user_prompt(chapter_digest, baseline),
             },
         ],
     )
     content = response.output_text.strip()
     return _parse_response_json(content)
+
+
+def _enhancement_user_prompt(chapter_digest: str, baseline: dict[str, Any]) -> str:
+    return (
+        "请在保持字段结构不变、保留 baseline JSON 全部必填字段的前提下，"
+        "增强下面 baseline 剧本 JSON："
+        "重点补强 logline、人物描述、场景 summary、objective、conflict、turning_point、"
+        "beats 和 blocks 文本。"
+        "不要删除、重命名或省略任何字段，只返回增强后的 JSON 对象。"
+        "\n\n小说章节摘要：\n"
+        f"{chapter_digest}\n\nbaseline JSON:\n{json.dumps(baseline, ensure_ascii=False)}"
+    )
 
 
 def _parse_response_json(content: str) -> dict[str, Any]:
