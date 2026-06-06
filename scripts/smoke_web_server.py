@@ -168,6 +168,8 @@ def _missing_static_app_markers(body: str) -> list[str]:
         "fetch(\"/api/preview\"",
         "providerStatusSummary",
         "localDraftStorageKey",
+        "localDraftCleared",
+        "hasDraftContent",
         "Revision brief",
         "maxRequestBytes",
         "updateRuntimeRequestLimit",
