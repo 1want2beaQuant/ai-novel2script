@@ -114,6 +114,25 @@ def test_convert_payload_returns_output_and_summary() -> None:
     assert "## Priority Actions" in result["exports"]["markdown"]
     assert json.loads(result["exports"]["draft_json"])["title"] == "The Locked Room"
     assert json.loads(result["exports"]["summary_json"])["scene_count"] == 3
+    assert result["export_manifest"]["selected"] == "yaml"
+    assert [file["key"] for file in result["export_manifest"]["files"]] == [
+        "yaml",
+        "fountain",
+        "markdown",
+        "draft_json",
+        "summary_json",
+    ]
+    assert result["export_manifest"]["files"][0]["label"] == "YAML"
+    assert result["export_manifest"]["files"][0]["extension"] == "yaml"
+    assert result["export_manifest"]["files"][0]["byte_size"] == len(
+        result["exports"]["yaml"].encode("utf-8")
+    )
+    assert result["export_manifest"]["bundle"] == {
+        "file_count": 5,
+        "content_bytes": sum(
+            len(content.encode("utf-8")) for content in result["exports"].values()
+        ),
+    }
     assert result["provider_status"] == {
         "requested": "local",
         "actual": "local",
@@ -373,6 +392,10 @@ def test_web_server_serves_static_assets_and_conversion_api() -> None:
         assert "章节预检" in body
         assert 'id="bundleButton"' in body
         assert "打包下载所有导出文件" in body
+        assert 'class="export-manifest"' in body
+        assert 'id="exportBundleMeta"' in body
+        assert 'id="exportManifestList"' in body
+        assert "导出清单" in body
         assert 'class="output-tabs"' in body
         assert 'data-output-format="yaml"' in body
         assert 'data-output-format="fountain"' in body
@@ -448,6 +471,9 @@ def test_web_server_serves_static_assets_and_conversion_api() -> None:
         assert data["summary"]["story_bible"]["characters"]
         assert data["summary"]["story_bible"]["locations"]
         assert data["summary"]["story_bible"]["open_questions"]
+        assert data["export_manifest"]["selected"] == "fountain"
+        assert data["export_manifest"]["bundle"]["file_count"] == 5
+        assert data["export_manifest"]["bundle"]["content_bytes"] > 0
         assert "title:" in data["exports"]["yaml"]
         assert data["exports"]["fountain"] == data["output"]
         assert "# Chapter 1 The Locked Room 修订简报" in data["exports"]["markdown"]

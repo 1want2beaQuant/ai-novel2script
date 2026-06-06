@@ -72,6 +72,13 @@ def convert_payload(payload: dict[str, Any]) -> dict[str, Any]:
     yaml_output = draft_to_yaml(draft)
     fountain_output = draft_to_fountain(draft)
     markdown_output = draft_to_markdown(draft)
+    exports = {
+        "yaml": yaml_output,
+        "fountain": fountain_output,
+        "markdown": markdown_output,
+        "draft_json": json.dumps(data, ensure_ascii=False, indent=2) + "\n",
+        "summary_json": json.dumps(summary, ensure_ascii=False, indent=2) + "\n",
+    }
     outputs = {
         "yaml": yaml_output,
         "fountain": fountain_output,
@@ -80,13 +87,8 @@ def convert_payload(payload: dict[str, Any]) -> dict[str, Any]:
     return {
         "format": output_format,
         "output": outputs[output_format],
-        "exports": {
-            "yaml": yaml_output,
-            "fountain": fountain_output,
-            "markdown": markdown_output,
-            "draft_json": json.dumps(data, ensure_ascii=False, indent=2) + "\n",
-            "summary_json": json.dumps(summary, ensure_ascii=False, indent=2) + "\n",
-        },
+        "exports": exports,
+        "export_manifest": export_manifest(exports, selected=output_format),
         "summary": summary,
         "draft": data,
         "provider_status": conversion.provider_status.to_dict(),
@@ -293,6 +295,43 @@ def _string_list(value: object) -> list[str]:
 
 def _number_list(value: object) -> list[int | float]:
     return [item for item in value if isinstance(item, int | float)] if isinstance(value, list) else []
+
+
+def export_manifest(exports: dict[str, str], *, selected: str) -> dict[str, Any]:
+    files = [
+        _export_file_manifest("yaml", "YAML", "yaml", exports.get("yaml", "")),
+        _export_file_manifest("fountain", "Fountain", "fountain", exports.get("fountain", "")),
+        _export_file_manifest(
+            "markdown",
+            "Markdown 修订简报",
+            "revision.md",
+            exports.get("markdown", ""),
+        ),
+        _export_file_manifest("draft_json", "Draft JSON", "draft.json", exports.get("draft_json", "")),
+        _export_file_manifest(
+            "summary_json",
+            "Summary JSON",
+            "summary.json",
+            exports.get("summary_json", ""),
+        ),
+    ]
+    return {
+        "selected": selected,
+        "files": files,
+        "bundle": {
+            "file_count": len(files),
+            "content_bytes": sum(file["byte_size"] for file in files),
+        },
+    }
+
+
+def _export_file_manifest(key: str, label: str, extension: str, content: str) -> dict[str, Any]:
+    return {
+        "key": key,
+        "label": label,
+        "extension": extension,
+        "byte_size": len(content.encode("utf-8")),
+    }
 
 
 def _revision_focus(

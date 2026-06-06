@@ -17,6 +17,7 @@ const crc32Table = buildCrc32Table();
 const state = {
   output: "",
   exports: null,
+  exportManifest: null,
   selectedOutput: "yaml",
   isWorking: false,
   copyLabelTimer: 0,
@@ -103,6 +104,8 @@ const elements = {
   conversionMeta: document.querySelector("#conversionMeta"),
   exportState: document.querySelector("#exportState"),
   exportMeta: document.querySelector("#exportMeta"),
+  exportBundleMeta: document.querySelector("#exportBundleMeta"),
+  exportManifestList: document.querySelector("#exportManifestList"),
   coverageRatio: document.querySelector("#coverageRatio"),
   chapterCount: document.querySelector("#chapterCount"),
   sceneCount: document.querySelector("#sceneCount"),
@@ -186,6 +189,7 @@ async function convertManuscript() {
     }
 
     state.exports = normalizeExports(result);
+    state.exportManifest = normalizeExportManifest(result.export_manifest, state.exports);
     state.selectedOutput = outputSelectionForFormat(result.format);
     state.output = outputForSelection(state.selectedOutput);
     state.lastConvertedInput = payload.text;
@@ -198,6 +202,7 @@ async function convertManuscript() {
     state.lastDurationMs = Math.max(0, Math.round(performance.now() - startedAt));
     elements.output.textContent = state.output;
     renderOutputTabs();
+    renderExportManifest();
     renderSummary(result.summary);
     renderProviderRunStatus(state.lastProviderStatus);
     updateExportStatus();
@@ -212,7 +217,9 @@ async function convertManuscript() {
   } catch (error) {
     state.output = "";
     state.exports = null;
+    state.exportManifest = null;
     renderOutputTabs();
+    renderExportManifest();
     state.lastProviderStatus = null;
     elements.output.classList.add("is-error");
     elements.output.textContent = error instanceof Error ? error.message : String(error);
@@ -736,6 +743,7 @@ function selectOutput(selection) {
   elements.output.classList.remove("is-error");
   elements.output.textContent = state.output;
   renderOutputTabs();
+  renderExportManifest();
   updateExportStatus();
 }
 
@@ -746,6 +754,44 @@ function renderOutputTabs() {
     button.classList.toggle("is-selected", Boolean(state.exports) && isSelected);
     button.setAttribute("aria-selected", String(Boolean(state.exports) && isSelected));
   }
+}
+
+function renderExportManifest() {
+  if (!state.exportManifest || !state.exports) {
+    elements.exportBundleMeta.textContent = "等待转换";
+    elements.exportManifestList.replaceChildren(emptyExportManifestItem("转换后显示可下载文件。"));
+    return;
+  }
+
+  const files = state.exportManifest.files || [];
+  const bundle = state.exportManifest.bundle || {};
+  elements.exportBundleMeta.textContent = `${bundle.file_count ?? files.length} 个文件 · ${formatFileSize(
+    Number(bundle.content_bytes || 0)
+  )}`;
+  elements.exportManifestList.replaceChildren(
+    ...files.map((file) => {
+      const item = document.createElement("li");
+      item.className = file.key === state.selectedOutput ? "is-selected" : "";
+
+      const title = document.createElement("strong");
+      title.textContent = file.label || exportLabelForKey(file.key);
+
+      const meta = document.createElement("span");
+      meta.textContent = `${file.extension || outputExtension(file.key)} · ${formatFileSize(
+        Number(file.byte_size || 0)
+      )}`;
+
+      item.append(title, meta);
+      return item;
+    })
+  );
+}
+
+function emptyExportManifestItem(text) {
+  const item = document.createElement("li");
+  item.className = "empty";
+  item.textContent = text;
+  return item;
 }
 
 function requestByteLength(payload) {
@@ -770,6 +816,7 @@ function initializeWorkbench() {
   setOutputActions(false);
   renderSummary(null);
   renderOutputTabs();
+  renderExportManifest();
   updateInputStatus();
   updateProviderStatus();
   updateExportStatus();
@@ -1452,6 +1499,62 @@ function normalizeExports(result) {
   };
 }
 
+function normalizeExportManifest(manifest, exports) {
+  const files = Array.isArray(manifest?.files)
+    ? manifest.files.map(normalizeExportManifestFile).filter(Boolean)
+    : fallbackExportManifestFiles(exports);
+  const contentBytes = files.reduce((total, file) => total + Number(file.byte_size || 0), 0);
+  return {
+    selected: normalizeExportKey(manifest?.selected || state.selectedOutput),
+    files,
+    bundle: {
+      file_count: Number(manifest?.bundle?.file_count || files.length),
+      content_bytes: Number(manifest?.bundle?.content_bytes || contentBytes)
+    }
+  };
+}
+
+function normalizeExportManifestFile(file) {
+  if (!file || typeof file !== "object") {
+    return null;
+  }
+  const key = normalizeExportKey(file.key);
+  return {
+    key,
+    label: file.label || exportLabelForKey(key),
+    extension: file.extension || outputExtension(key),
+    byte_size: Number(file.byte_size || 0)
+  };
+}
+
+function fallbackExportManifestFiles(exports) {
+  return ["yaml", "fountain", "markdown", "draftJson", "summaryJson"].map((key) => ({
+    key,
+    label: exportLabelForKey(key),
+    extension: outputExtension(key),
+    byte_size: textEncoder.encode(exports[key] || "").length
+  }));
+}
+
+function normalizeExportKey(key) {
+  const keys = {
+    draft_json: "draftJson",
+    summary_json: "summaryJson"
+  };
+  return keys[key] || key || "yaml";
+}
+
+function exportLabelForKey(key) {
+  const labels = {
+    yaml: "YAML",
+    fountain: "Fountain",
+    markdown: "Markdown 修订简报",
+    draftJson: "Draft JSON",
+    summaryJson: "Summary JSON"
+  };
+  return labels[key] || selectedOutputLabel();
+}
+
 function downloadBaseName() {
   const title = elements.title.value.trim() || state.lastSummary?.title || "";
   const safeTitle = safeFilenameSegment(title);
@@ -1607,6 +1710,7 @@ function clearWorkbench() {
   clearTimeout(state.draftSaveTimer);
   state.output = "";
   state.exports = null;
+  state.exportManifest = null;
   state.selectedOutput = outputSelectionForFormat(elements.format.value);
   state.previewRequestId += 1;
   state.previewInput = "";
@@ -1635,6 +1739,7 @@ function clearWorkbench() {
   renderSummary(null);
   renderProviderSelectionStatus();
   renderOutputTabs();
+  renderExportManifest();
   saveLocalDraft();
   updateInputStatus();
   setConversionStatus("待转换", "工作台已清空，等待手稿输入。", "neutral");
