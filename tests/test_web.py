@@ -783,6 +783,10 @@ def test_web_static_assets_include_conversion_status_ui() -> None:
         assert "文件过大，未导入" in script
         assert "function showFileImportReadError" in script
         assert "文件读取失败，当前手稿已保留" in script
+        assert "function showFileImportEmptyError" in script
+        assert "文件为空，当前手稿已保留" in script
+        assert "没有可导入的手稿内容。" in script
+        assert "if (!text.trim())" in script
         assert "setConversionStatus(\"导入失败\"" in script
         assert "已导入 ${file.name}，正在等待章节预检。" in script
         assert "已导入 ${file.name}，但文件内容为空。" in script

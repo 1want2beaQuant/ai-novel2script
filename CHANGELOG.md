@@ -53,6 +53,7 @@ Initial release candidate.
 - Local Web conversion and preflight APIs return 413 for oversized requests, and the browser workbench warns before sending manuscripts over the 2 MB request limit.
 - Local Web file import refuses oversized manuscripts before reading them into the workbench.
 - Local Web file import reports local read failures without replacing the current manuscript.
+- Local Web file import rejects empty text files without replacing the current manuscript.
 - Local Web file import resets the picker after a successful import so the same file can be selected again.
 - Local Web manuscript input supports drag-and-drop text import with the same size and read-error safeguards as the file picker.
 - Local Web manuscript import rejects non-text files before reading them, preserving the current workbench draft.
