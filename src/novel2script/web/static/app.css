@@ -534,6 +534,13 @@ select {
     var(--surface);
 }
 
+.manuscript-drop-area.is-locked textarea {
+  color: var(--muted);
+  background:
+    linear-gradient(135deg, rgba(47, 95, 151, 0.06), rgba(15, 113, 108, 0.04)),
+    var(--surface);
+}
+
 .drop-overlay {
   position: absolute;
   inset: 14px;

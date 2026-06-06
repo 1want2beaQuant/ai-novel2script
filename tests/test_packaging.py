@@ -136,6 +136,7 @@ def test_web_smoke_static_asset_diagnostics_report_missing_markers() -> None:
     assert "showFileImportEmptyError" in missing
     assert "preserveCurrentInputAfterImportError" in missing
     assert "当前手稿和章节预检已保留。" in missing
+    assert "setConversionInputLock" in missing
     assert 'elements.output.setAttribute("aria-busy", "true")' in missing
     assert "setConversionStatus(\"待输入\", \"工作台已清空，等待手稿输入。\", \"neutral\")" in missing
     assert "fetch(\"/api/preview\"" not in missing
