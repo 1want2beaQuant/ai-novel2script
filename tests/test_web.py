@@ -144,6 +144,21 @@ def test_convert_payload_returns_output_and_summary() -> None:
         "scene_title": "Chapter 1 The Locked Room",
     }
     assert result["summary"]["action_items"][0]["priority"] in {"high", "medium", "low"}
+    assert result["summary"]["revision_focus"] == {
+        "area": result["summary"]["action_items"][0]["area"],
+        "priority": result["summary"]["action_items"][0]["priority"],
+        "score": next(
+            score["score"]
+            for score in result["summary"]["scores"]
+            if score["area"] == result["summary"]["action_items"][0]["area"]
+        ),
+        "note": result["summary"]["action_items"][0]["note"],
+        "rationale": next(
+            score["rationale"]
+            for score in result["summary"]["scores"]
+            if score["area"] == result["summary"]["action_items"][0]["area"]
+        ),
+    }
     assert result["summary"]["strengths"]
     assert result["summary"]["weaknesses"]
     assert result["summary"]["quality_flags"]
@@ -368,6 +383,12 @@ def test_web_server_serves_static_assets_and_conversion_api() -> None:
         assert 'data-output-format="summaryJson"' in body
         assert 'id="scoresList"' in body
         assert 'id="actionItems"' in body
+        assert 'class="revision-focus"' in body
+        assert 'id="revisionFocusArea"' in body
+        assert 'id="revisionFocusPriority"' in body
+        assert 'id="revisionFocusScore"' in body
+        assert 'id="revisionFocusNote"' in body
+        assert "下一轮修订重点" in body
         assert 'class="scene-map-panel"' in body
         assert 'id="sceneMapList"' in body
         assert "章节映射" in body
@@ -423,6 +444,7 @@ def test_web_server_serves_static_assets_and_conversion_api() -> None:
         assert data["summary"]["scenes"][0]["block_counts"]["total"] >= 1
         assert data["summary"]["scenes"][0]["blocks_preview"][0]["text"]
         assert data["summary"]["action_items"]
+        assert data["summary"]["revision_focus"]["note"] == data["summary"]["action_items"][0]["note"]
         assert data["summary"]["story_bible"]["characters"]
         assert data["summary"]["story_bible"]["locations"]
         assert data["summary"]["story_bible"]["open_questions"]

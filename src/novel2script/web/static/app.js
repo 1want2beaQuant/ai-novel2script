@@ -112,6 +112,11 @@ const elements = {
   coverageScore: document.querySelector("#coverageScore"),
   verdict: document.querySelector("#verdict"),
   logline: document.querySelector("#loglineText"),
+  revisionFocusArea: document.querySelector("#revisionFocusArea"),
+  revisionFocusPriority: document.querySelector("#revisionFocusPriority"),
+  revisionFocusScore: document.querySelector("#revisionFocusScore"),
+  revisionFocusNote: document.querySelector("#revisionFocusNote"),
+  revisionFocusRationale: document.querySelector("#revisionFocusRationale"),
   scoresList: document.querySelector("#scoresList"),
   actionItems: document.querySelector("#actionItems"),
   beatsList: document.querySelector("#beatsList"),
@@ -239,6 +244,7 @@ function renderSummary(summary) {
   elements.verdict.textContent = summary?.verdict || "draft";
   elements.logline.textContent = summary?.logline || "完成转换后，这里会显示一句话故事、coverage 分数和下一轮修订入口。";
 
+  renderRevisionFocus(summary?.revision_focus || null);
   renderScores(summary?.scores || []);
   renderActionItems(summary?.action_items || summary?.revision_checklist || []);
   renderBeats(summary?.structure_beats || []);
@@ -251,6 +257,28 @@ function renderSummary(summary) {
     [...(summary?.weaknesses || []), ...(summary?.structure_diagnostics || [])]
   );
   renderTextList(elements.qualityList, summary?.quality_flags || summary?.revision_checklist || []);
+}
+
+function renderRevisionFocus(focus) {
+  const hasFocus = Boolean(focus && (focus.area || focus.note || focus.rationale));
+  const score =
+    focus?.score !== undefined && focus?.score !== null && focus?.score !== ""
+      ? focus.score
+      : "--";
+
+  elements.revisionFocusArea.textContent = hasFocus
+    ? scoreLabels[focus.area] || focus.area || "未命名"
+    : "待生成";
+  elements.revisionFocusPriority.textContent = hasFocus
+    ? priorityLabels[focus.priority] || focus.priority || "中"
+    : "中";
+  elements.revisionFocusScore.textContent = hasFocus ? score : "--";
+  elements.revisionFocusNote.textContent = hasFocus
+    ? focus.note || "检查优先修订动作，并把下一轮修订目标写成可执行改稿任务。"
+    : "转换后会根据 coverage 和优先修订动作提示下一轮最该处理的问题。";
+  elements.revisionFocusRationale.textContent = hasFocus
+    ? focus.rationale || "该重点来自当前最低分项或优先修订动作。"
+    : "分数理由会显示在这里，便于定位对应的 coverage 维度。";
 }
 
 function renderScores(scores) {

@@ -160,6 +160,24 @@ def summarize_script(data: dict[str, Any]) -> dict[str, Any]:
     source = _as_dict(data.get("source"))
     chapter_coverage = _as_dict(adaptation.get("chapter_coverage"))
     metrics = _as_dict(adaptation.get("metrics"))
+    scores = [
+        {
+            "area": score.get("area", ""),
+            "score": score.get("score", 0),
+            "rationale": score.get("rationale", ""),
+        }
+        for score in _dict_list(coverage.get("scores"))
+    ]
+    weaknesses = _string_list(coverage.get("weaknesses"))
+    action_items = [
+        {
+            "priority": item.get("priority", ""),
+            "area": item.get("area", ""),
+            "note": item.get("note", ""),
+        }
+        for item in _dict_list(coverage.get("action_items"))
+    ]
+    revision_checklist = _string_list(adaptation.get("revision_checklist"))
     return {
         "title": data.get("title", ""),
         "logline": data.get("logline", ""),
@@ -169,24 +187,16 @@ def summarize_script(data: dict[str, Any]) -> dict[str, Any]:
         "character_count": len(data.get("characters", [])),
         "coverage_score": coverage.get("overall_score", 0),
         "verdict": coverage.get("verdict", ""),
-        "scores": [
-            {
-                "area": score.get("area", ""),
-                "score": score.get("score", 0),
-                "rationale": score.get("rationale", ""),
-            }
-            for score in _dict_list(coverage.get("scores"))
-        ],
+        "scores": scores,
         "strengths": _string_list(coverage.get("strengths")),
-        "weaknesses": _string_list(coverage.get("weaknesses")),
-        "action_items": [
-            {
-                "priority": item.get("priority", ""),
-                "area": item.get("area", ""),
-                "note": item.get("note", ""),
-            }
-            for item in _dict_list(coverage.get("action_items"))
-        ],
+        "weaknesses": weaknesses,
+        "action_items": action_items,
+        "revision_focus": _revision_focus(
+            scores=scores,
+            action_items=action_items,
+            weaknesses=weaknesses,
+            revision_checklist=revision_checklist,
+        ),
         "chapter_coverage": {
             "total_chapters": chapter_coverage.get("total_chapters", 0),
             "adapted_chapters": chapter_coverage.get("adapted_chapters", 0),
@@ -200,7 +210,7 @@ def summarize_script(data: dict[str, Any]) -> dict[str, Any]:
             "dialogue_ratio": metrics.get("dialogue_ratio", 0),
         },
         "quality_flags": _string_list(adaptation.get("quality_flags")),
-        "revision_checklist": _string_list(adaptation.get("revision_checklist")),
+        "revision_checklist": revision_checklist,
         "structure_beats": [
             {
                 "id": beat.get("id", ""),
@@ -283,6 +293,40 @@ def _string_list(value: object) -> list[str]:
 
 def _number_list(value: object) -> list[int | float]:
     return [item for item in value if isinstance(item, int | float)] if isinstance(value, list) else []
+
+
+def _revision_focus(
+    *,
+    scores: list[dict[str, Any]],
+    action_items: list[dict[str, Any]],
+    weaknesses: list[str],
+    revision_checklist: list[str],
+) -> dict[str, Any]:
+    score_by_area = {
+        str(score.get("area", "")): score
+        for score in scores
+        if isinstance(score.get("area"), str) and score.get("area")
+    }
+    lowest_score = min(scores, key=lambda score: _score_value(score.get("score")), default={})
+    first_action = action_items[0] if action_items else {}
+    area = str(first_action.get("area") or lowest_score.get("area") or "")
+    score = score_by_area.get(area, lowest_score)
+    note = (
+        str(first_action.get("note") or "")
+        or (weaknesses[0] if weaknesses else "")
+        or (revision_checklist[0] if revision_checklist else "")
+    )
+    return {
+        "area": area,
+        "priority": str(first_action.get("priority") or "medium"),
+        "score": score.get("score", 0),
+        "note": note,
+        "rationale": str(score.get("rationale") or ""),
+    }
+
+
+def _score_value(value: object) -> int | float:
+    return value if isinstance(value, int | float) else 0
 
 
 def _scene_block_counts(scene: dict[str, Any]) -> dict[str, int]:
