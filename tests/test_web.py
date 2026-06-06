@@ -799,7 +799,17 @@ def test_web_static_assets_include_conversion_status_ui() -> None:
         assert "elements.file.value = \"\"" in script
         assert "function clearWorkbench" in script
         assert "function clearLocalDraft" in script
-        assert "elements.clear.addEventListener(\"click\", clearWorkbench)" in script
+        assert "function requestClearWorkbench" in script
+        assert "function dismissClearConfirmation" in script
+        assert "clearConfirmTimer" in script
+        assert "isClearConfirmationPending" in script
+        assert "确认清空" in script
+        assert "再次点击清空会移除当前手稿、标题、生成结果、诊断状态和浏览器本地草稿。" in script
+        assert 'elements.clear.classList.add("is-danger")' in script
+        assert 'elements.clear.classList.remove("is-danger")' in script
+        assert "window.setTimeout(dismissClearConfirmation, 4200)" in script
+        assert "elements.clear.addEventListener(\"click\", requestClearWorkbench)" in script
+        assert "elements.clear.addEventListener(\"click\", clearWorkbench)" not in script
         assert "elements.clear.disabled = isWorking" in script
         assert "function setConversionInputLock" in script
         assert "setConversionInputLock(isWorking)" in script
@@ -932,6 +942,7 @@ def test_web_static_assets_include_conversion_status_ui() -> None:
         assert ".status-pill.is-warn" in stylesheet
         assert ".status-card.is-warn strong" in stylesheet
         assert ".status-card.is-error strong" in stylesheet
+        assert ".button-row button.is-danger" in stylesheet
         assert ".input-pane" in stylesheet
         assert ".manuscript-drop-area" in stylesheet
         assert ".manuscript-drop-area.is-drop-active textarea" in stylesheet

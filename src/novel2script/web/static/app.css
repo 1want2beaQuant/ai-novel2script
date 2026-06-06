@@ -76,6 +76,19 @@ button:disabled {
   color: var(--teal);
 }
 
+.pane-head button.is-danger,
+.button-row button.is-danger {
+  border-color: var(--accent-strong);
+  background: var(--accent-strong);
+  color: var(--surface);
+}
+
+.pane-head button.is-danger:hover,
+.button-row button.is-danger:hover {
+  border-color: var(--accent-strong);
+  color: var(--surface);
+}
+
 .shell {
   min-height: 100vh;
   padding: 24px;
