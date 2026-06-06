@@ -89,6 +89,7 @@ def test_package_data_and_manifest_include_release_assets() -> None:
         "static/*.html",
         "static/*.css",
         "static/*.js",
+        "static/*.svg",
     ]
     assert {
         "include LICENSE",
@@ -102,7 +103,7 @@ def test_package_data_and_manifest_include_release_assets() -> None:
         "recursive-include docs *.md",
         "recursive-include examples *.txt",
         "recursive-include scripts *.py",
-        "recursive-include src/novel2script/web/static *.html *.css *.js",
+        "recursive-include src/novel2script/web/static *.html *.css *.js *.svg",
     } <= manifest_entries
 
 

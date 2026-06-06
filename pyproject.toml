@@ -77,7 +77,7 @@ where = ["src"]
 
 [tool.setuptools.package-data]
 novel2script = ["schemas/*.json"]
-"novel2script.web" = ["static/*.html", "static/*.css", "static/*.js"]
+"novel2script.web" = ["static/*.html", "static/*.css", "static/*.js", "static/*.svg"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

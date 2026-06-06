@@ -408,6 +408,7 @@ def test_web_server_serves_static_assets_and_conversion_api() -> None:
         assert response.getheader("Cache-Control") == "no-store"
         assert_security_headers(response)
         assert "novel2script Studio" in body
+        assert '<link rel="icon" href="/favicon.svg" type="image/svg+xml" />' in body
         assert f'id="modelInput" type="text" value="{novel2script.DEFAULT_MODEL}"' in body
         assert 'id="draftStatus"' in body
         assert "示例草稿" in body
@@ -481,6 +482,16 @@ def test_web_server_serves_static_assets_and_conversion_api() -> None:
         assert 'id="storyLocationsList"' in body
         assert 'id="storyPropsList"' in body
         assert 'id="storyQuestionsList"' in body
+
+        connection.request("GET", "/favicon.svg")
+        response = connection.getresponse()
+        favicon = response.read().decode("utf-8")
+        assert response.status == HTTPStatus.OK
+        assert response.getheader("Content-Type") == "image/svg+xml; charset=utf-8"
+        assert response.getheader("Cache-Control") == "no-store"
+        assert_security_headers(response)
+        assert "<svg" in favicon
+        assert "novel2script" in favicon
         assert "人物连续性" in body
         assert "道具 / 线索" in body
 
