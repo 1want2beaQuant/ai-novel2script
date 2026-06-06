@@ -94,14 +94,14 @@ def test_pytest_basetemp_must_stay_inside_workspace() -> None:
 def test_console_script_resolves_from_installed_metadata(
     monkeypatch: pytest.MonkeyPatch, tmp_path: Path
 ) -> None:
-    script = tmp_path / "Scripts" / "novel2script.exe"
+    script = tmp_path / "bin" / "novel2script"
     script.parent.mkdir()
     script.write_text("", encoding="utf-8")
     site_packages = tmp_path / "site-packages"
     site_packages.mkdir()
 
     class FakeDistribution:
-        files = [Path("..") / "Scripts" / "novel2script.exe"]
+        files = [Path("..") / "bin" / "novel2script"]
 
         @staticmethod
         def locate_file(file: Path) -> Path:
