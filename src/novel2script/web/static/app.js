@@ -207,6 +207,7 @@ async function convertManuscript() {
   const requestModel = normalizedModel();
   setWorking(true);
   setConversionStatus("转换中", "正在生成剧本草稿。", "active");
+  refreshExportReadiness();
   elements.output.classList.remove("is-error");
   elements.output.textContent = "转换中...";
 
@@ -935,6 +936,7 @@ function renderExportManifest() {
   const files = state.exportManifest.files || [];
   const bundle = state.exportManifest.bundle || {};
   const isStale = Boolean(currentOutputStaleReason());
+  const downloadsDisabled = state.isWorking || isStale;
   elements.exportBundleMeta.textContent = `${bundle.file_count ?? files.length} 个文件 · ${formatFileSize(
     Number(bundle.content_bytes || 0)
   )}`;
@@ -978,7 +980,7 @@ function renderExportManifest() {
       downloadButton.type = "button";
       downloadButton.textContent = "下载";
       downloadButton.dataset.exportAction = "download";
-      downloadButton.disabled = isStale;
+      downloadButton.disabled = downloadsDisabled;
       downloadButton.setAttribute("aria-label", `下载 ${file.label || exportLabelForKey(file.key)}`);
       downloadButton.addEventListener("click", () => downloadExportFile(file.key));
 
@@ -1512,6 +1514,15 @@ function updateExportStatus() {
   const validationLabel = elements.validate.checked ? "Schema 校验开启" : "Schema 校验关闭";
 
   if (state.output) {
+    if (state.isWorking) {
+      elements.exportState.textContent = "转换中";
+      elements.exportMeta.textContent = "正在生成新结果，完成后再复制、下载或打包。";
+      setStatusTone(elements.exportState.parentElement, "active");
+      setOutputActions(false);
+      updateWorkflowSteps();
+      return;
+    }
+
     const staleReason = currentOutputStaleReason();
     if (staleReason) {
       elements.exportState.textContent = "需重新转换";
@@ -1664,12 +1675,12 @@ function updateWorkflowSteps() {
     setWorkflowStep("convert", "neutral", "等待预检通过");
   }
 
-  if (state.output && staleReason) {
+  if (state.isWorking) {
+    setWorkflowStep("export", "active", "等待生成结果");
+  } else if (state.output && staleReason) {
     setWorkflowStep("export", "warn", "结果已过期");
   } else if (state.output) {
     setWorkflowStep("export", "ready", `${selectedOutputLabel()} 可用`);
-  } else if (state.isWorking) {
-    setWorkflowStep("export", "active", "等待生成结果");
   } else {
     setWorkflowStep("export", "neutral", "等待生成结果");
   }
@@ -1984,7 +1995,7 @@ function setDropZoneActive(isActive) {
 }
 
 async function copyOutput() {
-  if (!state.output) {
+  if (state.isWorking || !state.output) {
     return;
   }
   const staleReason = currentOutputStaleReason();
@@ -2014,6 +2025,9 @@ function downloadOutput() {
 }
 
 function downloadExportFile(selection, options = {}) {
+  if (state.isWorking) {
+    return;
+  }
   const exportText = outputForSelection(selection);
   if (!exportText) {
     return;
@@ -2136,7 +2150,7 @@ function clearLocalDraft() {
 }
 
 function downloadBundle() {
-  if (!state.output || !state.exports) {
+  if (state.isWorking || !state.output || !state.exports) {
     return;
   }
   const staleReason = currentOutputStaleReason();
@@ -2276,6 +2290,7 @@ function setWorking(isWorking) {
   elements.fileButton.disabled = isWorking;
   elements.sample.disabled = isWorking;
   elements.clear.disabled = isWorking;
+  refreshExportReadiness();
 }
 
 function syncConvertAvailability() {

@@ -708,6 +708,11 @@ def test_web_static_assets_include_conversion_status_ui() -> None:
         assert "OpenAI 模型已变更" in script
         assert "return elements.model.value.trim() || defaultModel" in script
         assert "重新转换后再复制、下载或打包。" in script
+        assert "正在生成新结果，完成后再复制、下载或打包。" in script
+        assert "const downloadsDisabled = state.isWorking || isStale" in script
+        assert "downloadButton.disabled = downloadsDisabled" in script
+        assert "if (state.isWorking || !state.output)" in script
+        assert "if (state.isWorking || !state.output || !state.exports)" in script
         assert "function renderProviderRunStatus" in script
         assert "function providerStatusSummary" in script
         assert "本地回退" in script
@@ -803,7 +808,7 @@ def test_web_static_assets_include_conversion_status_ui() -> None:
         assert "selectOutput(selection)" in script
         assert "const isStale = Boolean(currentOutputStaleReason())" in script
         assert 'isStale ? "is-stale" : ""' in script
-        assert "downloadButton.disabled = isStale" in script
+        assert "downloadButton.disabled = downloadsDisabled" in script
         assert "refreshExportReadiness()" in script
         assert "item.dataset.exportKey = file.key" in script
         assert 'item.setAttribute("aria-current", "true")' in script
