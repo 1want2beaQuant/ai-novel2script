@@ -59,6 +59,7 @@ Initial release candidate.
 - Local Web downloads use the screenplay title when naming exported YAML or Fountain files.
 - Local Web conversion responses include an export manifest, and the result pane shows file extensions, byte sizes, and bundle totals before download.
 - Local Web export manifest entries can directly switch to or download each generated export file.
+- Local Web status cards, chapter preflight, and result panel expose live-region and tabpanel semantics for assistive technology.
 - Local Web workbench can package YAML, Fountain, Markdown revision brief, draft JSON, and summary JSON exports into one browser-generated zip.
 - Local Web result pane can switch between YAML, Fountain, Markdown revision brief, draft JSON, and summary JSON views without rerunning conversion.
 - Local Web result tabs support keyboard navigation with arrow keys, Home, and End.

@@ -54,22 +54,22 @@
         </section>
 
         <section class="status-grid" aria-label="转换状态">
-          <div class="status-card">
+          <div class="status-card" role="status" aria-live="polite" aria-atomic="true">
             <span>输入规模</span>
             <strong id="inputSize">0 字 / 0 章</strong>
             <p id="inputHint">至少 3 章后开始转换。</p>
           </div>
-          <div class="status-card">
+          <div class="status-card" role="status" aria-live="polite" aria-atomic="true">
             <span>处理模式</span>
             <strong id="providerMode">本地</strong>
             <p id="privacyHint">仅在本机转换。</p>
           </div>
-          <div class="status-card">
+          <div class="status-card" role="status" aria-live="polite" aria-atomic="true">
             <span>转换状态</span>
             <strong id="conversionState">待转换</strong>
             <p id="conversionMeta">等待手稿输入。</p>
           </div>
-          <div class="status-card">
+          <div class="status-card" role="status" aria-live="polite" aria-atomic="true">
             <span>导出状态</span>
             <strong id="exportState">未生成</strong>
             <p id="exportMeta">YAML / Schema 校验开启。</p>
@@ -160,7 +160,7 @@
                 <span>.txt / text/plain</span>
               </div>
             </div>
-            <div class="chapter-preview" aria-label="章节预检">
+            <div class="chapter-preview" aria-label="章节预检" role="status" aria-live="polite">
               <div class="chapter-preview-head">
                 <span>章节预检</span>
                 <strong id="chapterPreviewState">等待输入</strong>
@@ -227,7 +227,13 @@
                 </button>
               </div>
             </div>
-            <pre id="outputBox" aria-live="polite"></pre>
+            <pre
+              id="outputBox"
+              role="tabpanel"
+              aria-live="polite"
+              aria-busy="false"
+              aria-labelledby="viewYamlButton"
+            ></pre>
             <div class="export-manifest" aria-label="导出清单">
               <div class="export-manifest-head">
                 <span>导出清单</span>
