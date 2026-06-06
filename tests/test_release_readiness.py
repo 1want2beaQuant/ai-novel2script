@@ -147,3 +147,12 @@ def test_twine_check_requires_built_distributions(
 
     with pytest.raises(RuntimeError, match="No built distributions"):
         readiness._twine_check_distributions("python")
+
+
+def test_twine_check_reports_missing_dist_directory(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    monkeypatch.setattr(readiness, "DIST_DIR", tmp_path / "missing-dist")
+
+    with pytest.raises(RuntimeError, match="No built distributions"):
+        readiness._twine_check_distributions("python")

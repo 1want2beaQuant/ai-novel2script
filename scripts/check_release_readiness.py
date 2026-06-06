@@ -288,6 +288,8 @@ def _compare_schema_copies() -> None:
 
 
 def _twine_check_distributions(python: str) -> None:
+    if not DIST_DIR.exists():
+        raise RuntimeError("No built distributions found in dist/. Run build first.")
     distributions = sorted(
         str(path)
         for path in DIST_DIR.iterdir()
