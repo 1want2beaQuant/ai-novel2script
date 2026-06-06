@@ -138,6 +138,7 @@ def test_local_web_workbench_is_documented_for_release() -> None:
     assert "每场输出戏剧目标、冲突和转折" in readme
     assert "每场的戏剧目标、冲突、转折" in readme
     assert "剧本块统计和动作/对白/旁白/转场预览" in readme
+    assert "按人物、地点、目标、冲突、转折或块预览文本筛选" in readme
     assert "coverage 分项评分" in readme
     assert "下一轮修订重点" in readme
     assert "聚合优先级、分项分数和评分理由" in readme
@@ -169,6 +170,7 @@ def test_local_web_workbench_is_documented_for_release() -> None:
     assert "scene block counts" in changelog
     assert "action/dialogue/voice-over/transition previews" in changelog
     assert "objective, conflict, and turning point" in changelog
+    assert "filtered by character, location, scene function, or block preview text" in changelog
     assert "export manifest" in changelog
     assert "file extensions, byte sizes, and bundle totals" in changelog
     assert "Story Bible panels" in changelog

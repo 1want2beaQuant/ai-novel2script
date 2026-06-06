@@ -41,7 +41,9 @@ const state = {
   lastModel: "",
   lastProviderStatus: null,
   lastSummary: null,
-  lastDurationMs: 0
+  lastDurationMs: 0,
+  visibleScenes: [],
+  sceneFilter: ""
 };
 
 const scoreLabels = {
@@ -124,6 +126,9 @@ const elements = {
   actionItems: document.querySelector("#actionItems"),
   beatsList: document.querySelector("#beatsList"),
   sceneMapList: document.querySelector("#sceneMapList"),
+  sceneFilterInput: document.querySelector("#sceneFilterInput"),
+  sceneFilterClear: document.querySelector("#sceneFilterClear"),
+  sceneFilterMeta: document.querySelector("#sceneFilterMeta"),
   scenesList: document.querySelector("#scenesList"),
   storyCharactersList: document.querySelector("#storyCharactersList"),
   storyLocationsList: document.querySelector("#storyLocationsList"),
@@ -394,8 +399,18 @@ function renderSceneMap(sceneMap) {
 }
 
 function renderScenes(scenes) {
+  state.visibleScenes = Array.isArray(scenes) ? scenes : [];
+  const filter = state.sceneFilter.trim().toLocaleLowerCase("zh-CN");
+  const filteredScenes = filter
+    ? state.visibleScenes.filter((scene) => sceneMatchesFilter(scene, filter))
+    : state.visibleScenes;
+  const emptyMessage = filter
+    ? `没有匹配“${state.sceneFilter.trim()}”的场景。`
+    : "转换后显示前 12 场的章节来源、地点和人物。";
+
+  renderSceneFilterMeta(filteredScenes.length, state.visibleScenes.length);
   elements.scenesList.replaceChildren(
-    ...withEmpty(scenes, "转换后显示前 12 场的章节来源、地点和人物。").map((scene) => {
+    ...withEmpty(filteredScenes, emptyMessage).map((scene) => {
       const item = document.createElement("li");
       if (typeof scene === "string") {
         item.className = "empty";
@@ -450,6 +465,66 @@ function renderScenes(scenes) {
       return item;
     })
   );
+}
+
+function sceneMatchesFilter(scene, filter) {
+  return sceneSearchText(scene).includes(filter);
+}
+
+function sceneSearchText(scene) {
+  if (!scene || typeof scene !== "object") {
+    return "";
+  }
+
+  const blocks = Array.isArray(scene.blocks_preview) ? scene.blocks_preview : [];
+  const values = [
+    scene.act_id,
+    scene.id,
+    scene.title,
+    scene.location,
+    scene.time,
+    scene.summary,
+    scene.objective,
+    scene.conflict,
+    scene.turning_point,
+    scene.source_chapter,
+    ...(Array.isArray(scene.characters) ? scene.characters : []),
+    ...blocks.flatMap((block) => [
+      blockTypeLabel(block.type),
+      block.type,
+      block.character,
+      block.text
+    ])
+  ];
+  return values
+    .filter((value) => value !== undefined && value !== null && value !== "")
+    .join("\n")
+    .toLocaleLowerCase("zh-CN");
+}
+
+function renderSceneFilterMeta(filteredCount, totalCount) {
+  elements.sceneFilterClear.disabled = !state.sceneFilter;
+  if (!totalCount) {
+    elements.sceneFilterMeta.textContent = "等待转换";
+    return;
+  }
+
+  if (state.sceneFilter) {
+    elements.sceneFilterMeta.textContent = `匹配 ${filteredCount} / ${totalCount} 场`;
+    return;
+  }
+
+  elements.sceneFilterMeta.textContent = `显示 ${totalCount} 场`;
+}
+
+function updateSceneFilter() {
+  state.sceneFilter = elements.sceneFilterInput.value.trim();
+  renderScenes(state.visibleScenes);
+}
+
+function clearSceneFilter() {
+  elements.sceneFilterInput.value = "";
+  updateSceneFilter();
 }
 
 function appendSceneDramaticItem(list, label, value) {
@@ -1743,10 +1818,13 @@ function clearWorkbench() {
   state.lastProviderStatus = null;
   state.lastSummary = null;
   state.lastDurationMs = 0;
+  state.visibleScenes = [];
+  state.sceneFilter = "";
 
   elements.manuscript.value = "";
   elements.title.value = "";
   elements.file.value = "";
+  elements.sceneFilterInput.value = "";
   elements.output.classList.remove("is-error");
   elements.output.textContent = "转换结果会显示在这里。";
   elements.copy.textContent = "复制";
@@ -1979,6 +2057,8 @@ elements.convert.addEventListener("click", convertManuscript);
 elements.copy.addEventListener("click", copyOutput);
 elements.download.addEventListener("click", downloadOutput);
 elements.bundle.addEventListener("click", downloadBundle);
+elements.sceneFilterInput.addEventListener("input", updateSceneFilter);
+elements.sceneFilterClear.addEventListener("click", clearSceneFilter);
 elements.remoteConfirmCancel?.addEventListener("click", () => resolveRemoteConfirmation(false));
 elements.remoteConfirmProceed?.addEventListener("click", () => resolveRemoteConfirmation(true));
 for (const button of elements.outputTabs) {

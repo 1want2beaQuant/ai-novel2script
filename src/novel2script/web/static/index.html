@@ -333,6 +333,16 @@
             <section class="diagnostic-panel" aria-label="场景索引">
               <div class="panel-head">
                 <h3>场景索引</h3>
+                <div class="scene-filter" aria-label="场景筛选">
+                  <input
+                    id="sceneFilterInput"
+                    type="search"
+                    placeholder="筛人物、地点、目标、冲突"
+                    aria-label="筛选场景索引"
+                  />
+                  <button id="sceneFilterClear" type="button">清除</button>
+                </div>
+                <p id="sceneFilterMeta" class="scene-filter-meta">等待转换</p>
               </div>
               <ol id="scenesList" class="scenes-list"></ol>
             </section>
