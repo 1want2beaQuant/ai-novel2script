@@ -2179,7 +2179,7 @@ function clearWorkbench() {
   renderExportManifest();
   clearLocalDraft();
   updateInputStatus();
-  setConversionStatus("待转换", "工作台已清空，等待手稿输入。", "neutral");
+  setConversionStatus("待输入", "工作台已清空，等待手稿输入。", "neutral");
   updateExportStatus();
 }
 
