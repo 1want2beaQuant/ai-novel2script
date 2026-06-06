@@ -50,6 +50,7 @@ const state = {
   visibleScenes: [],
   sceneFilter: "",
   isClearConfirmationPending: false,
+  localDraftCleared: false,
   dragDepth: 0
 };
 
@@ -1116,6 +1117,11 @@ function scheduleLocalDraftSave() {
 }
 
 function saveLocalDraft() {
+  if (state.localDraftCleared && !hasDraftContent()) {
+    setDraftStatus("草稿已清除", "neutral");
+    return false;
+  }
+
   const storage = localDraftStorage();
   if (!storage) {
     setDraftStatus("保存不可用", "warn");
@@ -1140,8 +1146,13 @@ function saveLocalDraft() {
     return false;
   }
 
+  state.localDraftCleared = false;
   setDraftStatus("草稿已保存", "ready");
   return true;
+}
+
+function hasDraftContent() {
+  return Boolean(elements.manuscript.value.trim() || elements.title.value.trim());
 }
 
 function localDraftStorage() {
@@ -2009,6 +2020,7 @@ function emptyItem(text) {
 function replaceManuscriptText(text, options = {}) {
   dismissClearConfirmation({ quiet: true });
   dismissRemoteConfirmation();
+  state.localDraftCleared = false;
   elements.manuscript.value = text;
   saveLocalDraft();
   updateInputStatus(options);
@@ -2337,6 +2349,7 @@ function clearWorkbench() {
   state.lastConversionFailed = false;
   state.visibleScenes = [];
   state.sceneFilter = "";
+  state.localDraftCleared = true;
 
   elements.manuscript.value = "";
   elements.title.value = "";

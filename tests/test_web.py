@@ -604,6 +604,9 @@ def test_web_static_assets_include_conversion_status_ui() -> None:
         assert "function isLocalDraft" in script
         assert "function scheduleLocalDraftSave" in script
         assert "function saveLocalDraft" in script
+        assert "localDraftCleared" in script
+        assert "function hasDraftContent" in script
+        assert "state.localDraftCleared && !hasDraftContent()" in script
         assert "function localDraftStorage" in script
         assert "window.localStorage" in script
         assert "function removeLocalDraft" in script
