@@ -143,6 +143,12 @@ def test_convert_payload_returns_output_and_summary() -> None:
     assert result["summary"]["quality_flags"]
     assert result["summary"]["scenes"][0]["summary"]
     assert isinstance(result["summary"]["scenes"][0]["characters"], list)
+    story_bible = result["summary"]["story_bible"]
+    assert story_bible["characters"][0]["name"]
+    assert story_bible["characters"][0]["continuity_note"]
+    assert story_bible["locations"][0]["scene_ids"]
+    assert isinstance(story_bible["props"], list)
+    assert story_bible["open_questions"]
 
 
 def test_convert_payload_supports_fountain_output() -> None:
@@ -334,6 +340,13 @@ def test_web_server_serves_static_assets_and_conversion_api() -> None:
         assert 'data-output-format="summaryJson"' in body
         assert 'id="scoresList"' in body
         assert 'id="actionItems"' in body
+        assert 'class="story-bible-grid"' in body
+        assert 'id="storyCharactersList"' in body
+        assert 'id="storyLocationsList"' in body
+        assert 'id="storyPropsList"' in body
+        assert 'id="storyQuestionsList"' in body
+        assert "人物连续性" in body
+        assert "道具 / 线索" in body
 
         preview_payload_bytes = json.dumps({"text": MANUSCRIPT}).encode("utf-8")
         connection.request(
@@ -374,6 +387,9 @@ def test_web_server_serves_static_assets_and_conversion_api() -> None:
         assert data["summary"]["chapter_coverage"]["coverage_ratio"] == 1
         assert data["summary"]["structure_beats"]
         assert data["summary"]["action_items"]
+        assert data["summary"]["story_bible"]["characters"]
+        assert data["summary"]["story_bible"]["locations"]
+        assert data["summary"]["story_bible"]["open_questions"]
         assert "title:" in data["exports"]["yaml"]
         assert data["exports"]["fountain"] == data["output"]
         assert "# Chapter 1 The Locked Room 修订简报" in data["exports"]["markdown"]
@@ -445,6 +461,17 @@ def test_web_static_assets_include_conversion_status_ui() -> None:
         assert "textFingerprint(text)" in script
         assert "function showPreflightBlockedConversion" in script
         assert "function renderChapterPreview" in script
+        assert "function renderStoryBible" in script
+        assert "function renderStoryCharacters" in script
+        assert "function renderStoryLocations" in script
+        assert "function renderStoryProps" in script
+        assert "storyCharactersList" in script
+        assert "storyLocationsList" in script
+        assert "storyPropsList" in script
+        assert "storyQuestionsList" in script
+        assert "转换后显示主要人物的首次出场和连续性复核提示。" in script
+        assert "转换后显示地点资产和关联场景。" in script
+        assert "转换后显示道具、线索和来源章节。" in script
         assert "chapterPreviewState" in script
         assert "chapterPreviewList" in script
         assert "preview.chapters || []" in script
@@ -583,6 +610,10 @@ def test_web_static_assets_include_conversion_status_ui() -> None:
         assert ".chapter-preview.is-ready .chapter-preview-head strong" in stylesheet
         assert ".output-tabs" in stylesheet
         assert ".output-tabs button.is-selected" in stylesheet
+        assert ".story-bible-grid" in stylesheet
+        assert ".story-bible-panel" in stylesheet
+        assert ".asset-list" in stylesheet
+        assert ".story-question-list" in stylesheet
     finally:
         server.shutdown()
         server.server_close()

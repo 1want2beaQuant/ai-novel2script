@@ -115,6 +115,10 @@ const elements = {
   actionItems: document.querySelector("#actionItems"),
   beatsList: document.querySelector("#beatsList"),
   scenesList: document.querySelector("#scenesList"),
+  storyCharactersList: document.querySelector("#storyCharactersList"),
+  storyLocationsList: document.querySelector("#storyLocationsList"),
+  storyPropsList: document.querySelector("#storyPropsList"),
+  storyQuestionsList: document.querySelector("#storyQuestionsList"),
   strengthsList: document.querySelector("#strengthsList"),
   weaknessesList: document.querySelector("#weaknessesList"),
   qualityList: document.querySelector("#qualityList")
@@ -237,6 +241,7 @@ function renderSummary(summary) {
   renderActionItems(summary?.action_items || summary?.revision_checklist || []);
   renderBeats(summary?.structure_beats || []);
   renderScenes(summary?.scenes || []);
+  renderStoryBible(summary?.story_bible || {});
   renderTextList(elements.strengthsList, summary?.strengths || []);
   renderTextList(
     elements.weaknessesList,
@@ -344,6 +349,94 @@ function renderScenes(scenes) {
       summary.textContent = scene.summary || "";
 
       item.append(title, meta, summary);
+      return item;
+    })
+  );
+}
+
+function renderStoryBible(storyBible) {
+  renderStoryCharacters(storyBible.characters || []);
+  renderStoryLocations(storyBible.locations || []);
+  renderStoryProps(storyBible.props || []);
+  renderTextList(elements.storyQuestionsList, storyBible.open_questions || []);
+}
+
+function renderStoryCharacters(characters) {
+  elements.storyCharactersList.replaceChildren(
+    ...withEmpty(characters, "转换后显示主要人物的首次出场和连续性复核提示。").map((character) => {
+      const item = document.createElement("li");
+      if (typeof character === "string") {
+        item.className = "empty";
+        item.textContent = character;
+        return item;
+      }
+
+      const title = document.createElement("strong");
+      title.textContent = `${character.name || "未命名人物"} · ${character.role || "role"}`;
+
+      const meta = document.createElement("span");
+      meta.textContent = character.first_seen_scene
+        ? `首次出场 ${character.first_seen_scene}`
+        : "首次出场待补充";
+
+      const note = document.createElement("p");
+      note.textContent = character.continuity_note || "复核目标、关系和称呼是否一致。";
+
+      item.append(title, meta, note);
+      return item;
+    })
+  );
+}
+
+function renderStoryLocations(locations) {
+  elements.storyLocationsList.replaceChildren(
+    ...withEmpty(locations, "转换后显示地点资产和关联场景。").map((location) => {
+      const item = document.createElement("li");
+      if (typeof location === "string") {
+        item.className = "empty";
+        item.textContent = location;
+        return item;
+      }
+
+      const title = document.createElement("strong");
+      title.textContent = location.name || "待定地点";
+
+      const meta = document.createElement("span");
+      const sceneIds = Array.isArray(location.scene_ids) ? location.scene_ids.join("、") : "";
+      meta.textContent = sceneIds ? `关联场景 ${sceneIds}` : "关联场景待补充";
+
+      const note = document.createElement("p");
+      note.textContent = location.note || "补充空间特征和可拍摄视觉元素。";
+
+      item.append(title, meta, note);
+      return item;
+    })
+  );
+}
+
+function renderStoryProps(props) {
+  elements.storyPropsList.replaceChildren(
+    ...withEmpty(props, "转换后显示道具、线索和来源章节。").map((prop) => {
+      const item = document.createElement("li");
+      if (typeof prop === "string") {
+        item.className = "empty";
+        item.textContent = prop;
+        return item;
+      }
+
+      const title = document.createElement("strong");
+      title.textContent = prop.name || "未命名线索";
+
+      const meta = document.createElement("span");
+      const chapters = Array.isArray(prop.source_chapters)
+        ? prop.source_chapters.join("、")
+        : "";
+      meta.textContent = chapters ? `来源章节 ${chapters}` : "来源章节待补充";
+
+      const note = document.createElement("p");
+      note.textContent = prop.dramatic_function || "标记出现、推进和回收方式。";
+
+      item.append(title, meta, note);
       return item;
     })
   );

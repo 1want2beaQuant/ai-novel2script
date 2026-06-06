@@ -129,6 +129,10 @@ def test_local_web_workbench_is_documented_for_release() -> None:
     assert "coverage 分项评分" in readme
     assert "结构节拍" in readme
     assert "优先修订动作" in readme
+    assert "人物连续性" in readme
+    assert "地点资产" in readme
+    assert "道具/线索" in readme
+    assert "待解问题" in readme
     assert "实际处理方式" in readme
     assert "Draft JSON" in readme
     assert "Summary JSON" in readme
@@ -144,6 +148,7 @@ def test_local_web_workbench_is_documented_for_release() -> None:
     assert "Local browser workbench" in changelog
     assert "Markdown revision brief" in changelog
     assert "Local Web adaptation inspector" in changelog
+    assert "Story Bible panels" in changelog
     assert "four-step workflow progress strip" in changelog
     assert "inline remote confirmation panel" in changelog
     assert "pending confirmations are invalidated" in changelog

@@ -142,6 +142,7 @@ def summarize_script(data: dict[str, Any]) -> dict[str, Any]:
     coverage = _as_dict(data.get("coverage_report"))
     adaptation = _as_dict(data.get("adaptation_report"))
     structure = _as_dict(data.get("structure_map"))
+    story_bible = _as_dict(data.get("story_bible"))
     source = _as_dict(data.get("source"))
     chapter_coverage = _as_dict(adaptation.get("chapter_coverage"))
     metrics = _as_dict(adaptation.get("metrics"))
@@ -199,6 +200,34 @@ def summarize_script(data: dict[str, Any]) -> dict[str, Any]:
             for beat in _dict_list(structure.get("beats"))
         ],
         "structure_diagnostics": _string_list(structure.get("diagnostics")),
+        "story_bible": {
+            "characters": [
+                {
+                    "name": character.get("name", ""),
+                    "role": character.get("role", ""),
+                    "first_seen_scene": character.get("first_seen_scene", ""),
+                    "continuity_note": character.get("continuity_note", ""),
+                }
+                for character in _dict_list(story_bible.get("characters"))
+            ],
+            "locations": [
+                {
+                    "name": location.get("name", ""),
+                    "scene_ids": _string_list(location.get("scene_ids")),
+                    "note": location.get("note", ""),
+                }
+                for location in _dict_list(story_bible.get("locations"))
+            ],
+            "props": [
+                {
+                    "name": prop.get("name", ""),
+                    "source_chapters": _number_list(prop.get("source_chapters")),
+                    "dramatic_function": prop.get("dramatic_function", ""),
+                }
+                for prop in _dict_list(story_bible.get("props"))
+            ],
+            "open_questions": _string_list(story_bible.get("open_questions")),
+        },
         "scenes": [
             {
                 "act_id": act.get("id", ""),
