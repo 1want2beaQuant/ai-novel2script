@@ -844,13 +844,51 @@ function selectOutput(selection) {
   updateExportStatus();
 }
 
+function selectOutputFromTab(button, options = {}) {
+  selectOutput(button.dataset.outputFormat || "yaml");
+  if (options.focus) {
+    button.focus();
+  }
+}
+
 function renderOutputTabs() {
   for (const button of elements.outputTabs) {
     const isSelected = button.dataset.outputFormat === state.selectedOutput;
     button.disabled = !state.exports;
     button.classList.toggle("is-selected", Boolean(state.exports) && isSelected);
     button.setAttribute("aria-selected", String(Boolean(state.exports) && isSelected));
+    button.tabIndex = state.exports && isSelected ? 0 : -1;
   }
+}
+
+function handleOutputTabKeydown(event) {
+  if (!state.exports) {
+    return;
+  }
+  const currentIndex = elements.outputTabs.indexOf(event.currentTarget);
+  if (currentIndex < 0) {
+    return;
+  }
+
+  const keyOffsets = {
+    ArrowLeft: -1,
+    ArrowUp: -1,
+    ArrowRight: 1,
+    ArrowDown: 1
+  };
+  let nextIndex = currentIndex;
+  if (event.key === "Home") {
+    nextIndex = 0;
+  } else if (event.key === "End") {
+    nextIndex = elements.outputTabs.length - 1;
+  } else if (Object.prototype.hasOwnProperty.call(keyOffsets, event.key)) {
+    nextIndex = (currentIndex + keyOffsets[event.key] + elements.outputTabs.length) % elements.outputTabs.length;
+  } else {
+    return;
+  }
+
+  event.preventDefault();
+  selectOutputFromTab(elements.outputTabs[nextIndex], { focus: true });
 }
 
 function renderExportManifest() {
@@ -2122,8 +2160,9 @@ elements.remoteConfirmCancel?.addEventListener("click", () => resolveRemoteConfi
 elements.remoteConfirmProceed?.addEventListener("click", () => resolveRemoteConfirmation(true));
 for (const button of elements.outputTabs) {
   button.addEventListener("click", () => {
-    selectOutput(button.dataset.outputFormat || "yaml");
+    selectOutputFromTab(button);
   });
+  button.addEventListener("keydown", handleOutputTabKeydown);
 }
 window.addEventListener("beforeunload", saveLocalDraft);
 
