@@ -133,6 +133,8 @@ def test_local_web_workbench_is_documented_for_release() -> None:
     assert "场景块预览" in readme
     assert "每场的剧本块统计和动作/对白/旁白/转场预览" in readme
     assert "coverage 分项评分" in readme
+    assert "下一轮修订重点" in readme
+    assert "聚合优先级、分项分数和评分理由" in readme
     assert "结构节拍" in readme
     assert "优先修订动作" in readme
     assert "人物连续性" in readme
@@ -154,6 +156,8 @@ def test_local_web_workbench_is_documented_for_release() -> None:
     assert "Local browser workbench" in changelog
     assert "Markdown revision brief" in changelog
     assert "Local Web adaptation inspector" in changelog
+    assert "next revision focus" in changelog
+    assert "priority, score, note, and coverage rationale" in changelog
     assert "chapter-to-scene mapping" in changelog
     assert "scene block counts" in changelog
     assert "action/dialogue/voice-over/transition previews" in changelog
