@@ -663,6 +663,16 @@ def test_web_static_assets_include_conversion_status_ui() -> None:
         assert "state.isPreviewPending" in script
         assert "!state.isPreviewReady" in script
         assert "Boolean(state.remoteConfirmationResolve)" in script
+        assert "remoteConfirmationReturnFocus" in script
+        assert "function handleRemoteConfirmationKeydown" in script
+        assert 'event.key !== "Escape"' in script
+        assert "resolveRemoteConfirmation(false, { restoreFocus: true })" in script
+        assert "function restoreRemoteConfirmationFocus" in script
+        assert "elements.convert.focus()" in script
+        assert (
+            'elements.remoteConfirmPanel?.addEventListener("keydown", '
+            "handleRemoteConfirmationKeydown)"
+        ) in script
         assert "未确认远程发送" in script
         assert "需重新转换" in script
         assert "function currentOutputStaleReason" in script

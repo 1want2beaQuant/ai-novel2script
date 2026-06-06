@@ -33,6 +33,7 @@ const state = {
   previewWarningCount: 0,
   remoteConfirmationKey: "",
   remoteConfirmationResolve: null,
+  remoteConfirmationReturnFocus: null,
   remoteConfirmationInvalidated: false,
   openAiConfirmedFor: "",
   lastConvertedInput: "",
@@ -1315,6 +1316,11 @@ function requestRemoteConfirmation(confirmationKey) {
   dismissRemoteConfirmation({ quiet: true });
   state.remoteConfirmationKey = confirmationKey;
   state.remoteConfirmationInvalidated = false;
+  const activeElement = document.activeElement;
+  state.remoteConfirmationReturnFocus =
+    activeElement instanceof HTMLElement && activeElement !== document.body
+      ? activeElement
+      : elements.convert;
   const confirmation = new Promise((resolve) => {
     state.remoteConfirmationResolve = resolve;
   });
@@ -1332,6 +1338,15 @@ function requestRemoteConfirmation(confirmationKey) {
   return confirmation;
 }
 
+function handleRemoteConfirmationKeydown(event) {
+  if (event.key !== "Escape") {
+    return;
+  }
+
+  event.preventDefault();
+  resolveRemoteConfirmation(false, { restoreFocus: true });
+}
+
 function updateRemoteConfirmationPanel() {
   if (elements.remoteConfirmModel) {
     elements.remoteConfirmModel.textContent = normalizedModel();
@@ -1346,7 +1361,7 @@ function updateRemoteConfirmationPanel() {
   }
 }
 
-function resolveRemoteConfirmation(confirmed) {
+function resolveRemoteConfirmation(confirmed, options = {}) {
   if (!state.remoteConfirmationResolve) {
     return;
   }
@@ -1362,6 +1377,11 @@ function resolveRemoteConfirmation(confirmed) {
 
   if (!confirmed) {
     state.remoteConfirmationInvalidated = false;
+    if (options.restoreFocus) {
+      restoreRemoteConfirmationFocus();
+    } else {
+      state.remoteConfirmationReturnFocus = null;
+    }
     resolve(false);
     return;
   }
@@ -1373,10 +1393,12 @@ function resolveRemoteConfirmation(confirmed) {
       "手稿、片名、模型或模式已变化，请重新检查后再确认远程发送。",
       "warn"
     );
+    restoreRemoteConfirmationFocus();
     resolve(false);
     return;
   }
 
+  state.remoteConfirmationReturnFocus = null;
   resolve(true);
 }
 
@@ -1388,6 +1410,7 @@ function dismissRemoteConfirmation(options = {}) {
   state.remoteConfirmationResolve = null;
   state.remoteConfirmationKey = "";
   state.remoteConfirmationInvalidated = true;
+  state.remoteConfirmationReturnFocus = null;
   if (elements.remoteConfirmPanel) {
     elements.remoteConfirmPanel.classList.add("is-hidden");
   }
@@ -1398,6 +1421,18 @@ function dismissRemoteConfirmation(options = {}) {
       "手稿、片名、模型或模式已变化，请重新检查后再确认远程发送。",
       "warn"
     );
+  }
+}
+
+function restoreRemoteConfirmationFocus() {
+  const target = state.remoteConfirmationReturnFocus;
+  state.remoteConfirmationReturnFocus = null;
+  if (target instanceof HTMLElement && !target.disabled) {
+    target.focus();
+    return;
+  }
+  if (!elements.convert.disabled) {
+    elements.convert.focus();
   }
 }
 
@@ -2173,7 +2208,10 @@ elements.download.addEventListener("click", downloadOutput);
 elements.bundle.addEventListener("click", downloadBundle);
 elements.sceneFilterInput.addEventListener("input", updateSceneFilter);
 elements.sceneFilterClear.addEventListener("click", clearSceneFilter);
-elements.remoteConfirmCancel?.addEventListener("click", () => resolveRemoteConfirmation(false));
+elements.remoteConfirmPanel?.addEventListener("keydown", handleRemoteConfirmationKeydown);
+elements.remoteConfirmCancel?.addEventListener("click", () =>
+  resolveRemoteConfirmation(false, { restoreFocus: true })
+);
 elements.remoteConfirmProceed?.addEventListener("click", () => resolveRemoteConfirmation(true));
 for (const button of elements.outputTabs) {
   button.addEventListener("click", () => {
