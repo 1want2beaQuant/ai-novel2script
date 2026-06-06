@@ -674,6 +674,7 @@ pre {
 .inspector-head,
 .summary-strip,
 .diagnostic-grid,
+.story-bible-grid,
 .notes-grid {
   min-width: 0;
 }
@@ -772,6 +773,12 @@ pre {
   border-bottom: 1px solid var(--line);
 }
 
+.story-bible-grid {
+  display: grid;
+  grid-template-columns: minmax(260px, 1.1fr) minmax(230px, 0.9fr) minmax(230px, 0.9fr) minmax(260px, 1fr);
+  border-bottom: 1px solid var(--line);
+}
+
 .diagnostic-panel {
   min-width: 0;
   min-height: 240px;
@@ -779,7 +786,15 @@ pre {
   background: var(--surface);
 }
 
-.diagnostic-panel:last-child {
+.story-bible-panel {
+  min-width: 0;
+  min-height: 220px;
+  border-right: 1px solid var(--line);
+  background: var(--surface);
+}
+
+.diagnostic-panel:last-child,
+.story-bible-panel:last-child {
   border-right: 0;
 }
 
@@ -837,7 +852,8 @@ pre {
 
 .action-list,
 .beats-list,
-.scenes-list {
+.scenes-list,
+.asset-list {
   min-width: 0;
   max-height: 300px;
   margin: 0;
@@ -849,13 +865,15 @@ pre {
 
 .action-list li,
 .beats-list li,
-.scenes-list li {
+.scenes-list li,
+.asset-list li {
   padding-right: 4px;
 }
 
 .action-list li + li,
 .beats-list li + li,
-.scenes-list li + li {
+.scenes-list li + li,
+.asset-list li + li {
   margin-top: 10px;
 }
 
@@ -893,12 +911,14 @@ pre {
 }
 
 .beats-list strong,
-.scenes-list strong {
+.scenes-list strong,
+.asset-list strong {
   display: block;
   font-size: 13px;
 }
 
-.scenes-list span {
+.scenes-list span,
+.asset-list span {
   display: block;
   margin-top: 3px;
   color: var(--blue);
@@ -907,9 +927,25 @@ pre {
 
 .beats-list p,
 .scenes-list p,
+.asset-list p,
 .action-list p {
   margin-top: 4px;
   color: var(--muted);
+}
+
+.story-question-list {
+  min-width: 0;
+  max-height: 300px;
+  margin: 0;
+  padding: 14px 14px 14px 32px;
+  overflow: auto;
+  color: var(--muted);
+  line-height: 1.45;
+  font-size: 13px;
+}
+
+.story-question-list li + li {
+  margin-top: 8px;
 }
 
 .notes-grid {
@@ -964,6 +1000,7 @@ pre {
   .panes,
   .summary-strip,
   .diagnostic-grid,
+  .story-bible-grid,
   .notes-grid {
     grid-template-columns: 1fr;
   }
@@ -1016,13 +1053,15 @@ pre {
   }
 
   .diagnostic-panel,
+  .story-bible-panel,
   .notes-grid section {
     border-right: 0;
     border-bottom: 1px solid var(--line);
   }
 
   .notes-grid section:last-child,
-  .diagnostic-panel:last-child {
+  .diagnostic-panel:last-child,
+  .story-bible-panel:last-child {
     border-bottom: 0;
   }
 
