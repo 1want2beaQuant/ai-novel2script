@@ -128,12 +128,14 @@ def test_web_smoke_static_asset_diagnostics_report_missing_markers() -> None:
     missing = smoke_web_server._missing_static_app_markers("fetch(\"/api/preview\"")
 
     assert 'id="fileInput"' in shell_missing
+    assert 'accept=".txt,.md,.markdown,text/plain,text/markdown"' in shell_missing
     assert 'role="tabpanel"' in shell_missing
     assert 'aria-labelledby="viewYamlButton"' in shell_missing
     assert "<h1>小说改编工作台</h1>" not in shell_missing
     assert "providerStatusSummary" in missing
     assert "showFileImportSizeError" in missing
     assert "showFileImportEmptyError" in missing
+    assert "stripLeadingByteOrderMark" in missing
     assert "preserveCurrentInputAfterImportError" in missing
     assert "当前手稿和章节预检已保留。" in missing
     assert "replaceManuscriptText" in missing

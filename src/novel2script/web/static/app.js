@@ -1271,10 +1271,10 @@ function showFileImportTypeError(file) {
 
   state.isPreviewPending = false;
   state.isPreviewReady = false;
-  elements.inputHint.textContent = "仅支持 .txt 或 text/plain 文本文件，当前手稿已保留。";
+  elements.inputHint.textContent = "仅支持 .txt、.md 或 text/plain/markdown 文本文件，当前手稿已保留。";
   setStatusTone(elements.inputSize.parentElement, "warn");
   renderChapterPreview("无法导入", [], {
-    emptyMessage: "请选择 .txt 文本手稿",
+    emptyMessage: "请选择 .txt 或 .md 文本手稿",
     tone: "warn"
   });
   setConversionStatus("导入失败", `${file.name || "所选文件"} 不是可导入的文本手稿。`, "warn");
@@ -2083,6 +2083,7 @@ async function importFile(file, options = {}) {
     showFileImportReadError(file);
     return;
   }
+  text = stripLeadingByteOrderMark(text);
   if (!text.trim()) {
     if (options.resetPicker) {
       elements.file.value = "";
@@ -2102,10 +2103,20 @@ async function importFile(file, options = {}) {
   });
 }
 
+function stripLeadingByteOrderMark(text) {
+  return text.charCodeAt(0) === 0xfeff ? text.slice(1) : text;
+}
+
 function isImportableTextFile(file) {
   const name = String(file.name || "").toLocaleLowerCase("zh-CN");
   const type = String(file.type || "").toLocaleLowerCase("zh-CN");
-  return name.endsWith(".txt") || type === "text/plain";
+  return (
+    name.endsWith(".txt") ||
+    name.endsWith(".md") ||
+    name.endsWith(".markdown") ||
+    type === "text/plain" ||
+    type === "text/markdown"
+  );
 }
 
 function handleDropZoneDragEnter(event) {
