@@ -75,6 +75,37 @@
           </div>
         </section>
 
+        <section class="workflow-steps" aria-label="工作流进度">
+          <div class="workflow-step" data-workflow-step="input">
+            <span class="step-index">1</span>
+            <div>
+              <strong>输入</strong>
+              <p id="inputStepMeta">等待手稿</p>
+            </div>
+          </div>
+          <div class="workflow-step" data-workflow-step="preview">
+            <span class="step-index">2</span>
+            <div>
+              <strong>预检</strong>
+              <p id="previewStepMeta">等待章节解析</p>
+            </div>
+          </div>
+          <div class="workflow-step" data-workflow-step="convert">
+            <span class="step-index">3</span>
+            <div>
+              <strong>转换</strong>
+              <p id="convertStepMeta">等待预检通过</p>
+            </div>
+          </div>
+          <div class="workflow-step" data-workflow-step="export">
+            <span class="step-index">4</span>
+            <div>
+              <strong>导出</strong>
+              <p id="exportStepMeta">等待生成结果</p>
+            </div>
+          </div>
+        </section>
+
         <section class="panes">
           <div class="pane input-pane">
             <div class="pane-head">
