@@ -44,6 +44,21 @@ def numbered_manuscript(chapter_count: int) -> str:
     )
 
 
+def assert_security_headers(response) -> None:
+    csp = response.getheader("Content-Security-Policy") or ""
+    permissions = response.getheader("Permissions-Policy") or ""
+
+    assert response.getheader("X-Content-Type-Options") == "nosniff"
+    assert response.getheader("X-Frame-Options") == "DENY"
+    assert response.getheader("Referrer-Policy") == "no-referrer"
+    assert "default-src 'self'" in csp
+    assert "object-src 'none'" in csp
+    assert "frame-ancestors 'none'" in csp
+    assert "camera=()" in permissions
+    assert "microphone=()" in permissions
+    assert "geolocation=()" in permissions
+
+
 def test_web_version_option_reports_package_version(
     capsys: pytest.CaptureFixture[str],
 ) -> None:
@@ -381,10 +396,8 @@ def test_web_server_serves_static_assets_and_conversion_api() -> None:
         response = connection.getresponse()
         body = response.read().decode("utf-8")
         assert response.status == HTTPStatus.OK
-        assert response.getheader("X-Content-Type-Options") == "nosniff"
-        assert response.getheader("Referrer-Policy") == "no-referrer"
         assert response.getheader("Cache-Control") == "no-store"
-        assert "default-src 'self'" in (response.getheader("Content-Security-Policy") or "")
+        assert_security_headers(response)
         assert "novel2script Studio" in body
         assert f'id="modelInput" type="text" value="{novel2script.DEFAULT_MODEL}"' in body
         assert 'id="draftStatus"' in body
@@ -490,9 +503,8 @@ def test_web_server_serves_static_assets_and_conversion_api() -> None:
         response = connection.getresponse()
         data = json.loads(response.read().decode("utf-8"))
         assert response.status == HTTPStatus.OK
-        assert response.getheader("X-Content-Type-Options") == "nosniff"
-        assert response.getheader("Referrer-Policy") == "no-referrer"
         assert response.getheader("Cache-Control") == "no-store"
+        assert_security_headers(response)
         assert data["format"] == "fountain"
         assert data["summary"]["scene_count"] == 3
         assert data["summary"]["chapter_coverage"]["coverage_ratio"] == 1
@@ -822,6 +834,7 @@ def test_web_server_rejects_non_json_convert_request() -> None:
 
         assert response.status == HTTPStatus.BAD_REQUEST
         assert response.getheader("Cache-Control") == "no-store"
+        assert_security_headers(response)
         assert data == {"error": "Request Content-Type must be application/json."}
     finally:
         server.shutdown()
@@ -845,7 +858,7 @@ def test_web_server_supports_head_without_body() -> None:
         assert response.getheader("Content-Type") == "application/json; charset=utf-8"
         assert response.getheader("Content-Length") == str(len(b'{"status": "ok"}'))
         assert response.getheader("Cache-Control") == "no-store"
-        assert response.getheader("X-Content-Type-Options") == "nosniff"
+        assert_security_headers(response)
         assert body == b""
     finally:
         server.shutdown()
@@ -869,7 +882,7 @@ def test_web_server_options_reports_allowed_methods() -> None:
         assert response.getheader("Allow") == web_module.ALLOWED_METHODS_HEADER
         assert response.getheader("Content-Length") == "0"
         assert response.getheader("Cache-Control") == "no-store"
-        assert response.getheader("X-Content-Type-Options") == "nosniff"
+        assert_security_headers(response)
         assert body == b""
     finally:
         server.shutdown()
@@ -894,7 +907,7 @@ def test_web_server_rejects_unsupported_methods_with_json() -> None:
             assert response.getheader("Allow") == web_module.ALLOWED_METHODS_HEADER
             assert response.getheader("Content-Type") == "application/json; charset=utf-8"
             assert response.getheader("Cache-Control") == "no-store"
-            assert response.getheader("X-Content-Type-Options") == "nosniff"
+            assert_security_headers(response)
             assert data == {"error": "Method not allowed."}
             connection.close()
     finally:
@@ -919,7 +932,7 @@ def test_web_server_rejects_unknown_methods_with_json() -> None:
         assert response.getheader("Allow") == web_module.ALLOWED_METHODS_HEADER
         assert response.getheader("Content-Type") == "application/json; charset=utf-8"
         assert response.getheader("Cache-Control") == "no-store"
-        assert response.getheader("X-Content-Type-Options") == "nosniff"
+        assert_security_headers(response)
         assert data == {"error": "Method not allowed."}
     finally:
         server.shutdown()
@@ -946,6 +959,7 @@ def test_web_server_accepts_utf8_bom_json_payload() -> None:
         data = json.loads(response.read().decode("utf-8"))
 
         assert response.status == HTTPStatus.OK
+        assert_security_headers(response)
         assert data["summary"]["chapter_count"] == 3
     finally:
         server.shutdown()
@@ -996,6 +1010,7 @@ def test_web_server_rejects_oversized_json_payload() -> None:
             data = json.loads(response.read().decode("utf-8"))
 
             assert response.status == HTTPStatus.REQUEST_ENTITY_TOO_LARGE
+            assert_security_headers(response)
             assert data == {"error": "Request body is too large."}
             connection.close()
     finally:
@@ -1026,6 +1041,7 @@ def test_web_server_rejects_cross_origin_convert_request() -> None:
         data = json.loads(response.read().decode("utf-8"))
 
         assert response.status == HTTPStatus.BAD_REQUEST
+        assert_security_headers(response)
         assert data == {"error": "Request Origin must match the local Web UI host."}
 
         connection.request(
@@ -1041,6 +1057,7 @@ def test_web_server_rejects_cross_origin_convert_request() -> None:
         data = json.loads(response.read().decode("utf-8"))
 
         assert response.status == HTTPStatus.BAD_REQUEST
+        assert_security_headers(response)
         assert data == {"error": "Request Origin must match the local Web UI host."}
     finally:
         server.shutdown()
@@ -1073,6 +1090,7 @@ def test_web_server_reports_unexpected_conversion_error(
         data = json.loads(response.read().decode("utf-8"))
 
         assert response.status == HTTPStatus.INTERNAL_SERVER_ERROR
+        assert_security_headers(response)
         assert data == {"error": "Conversion failed unexpectedly."}
     finally:
         server.shutdown()
@@ -1105,6 +1123,7 @@ def test_web_server_reports_unexpected_preview_error(
         data = json.loads(response.read().decode("utf-8"))
 
         assert response.status == HTTPStatus.INTERNAL_SERVER_ERROR
+        assert_security_headers(response)
         assert data == {"error": "Preview failed unexpectedly."}
     finally:
         server.shutdown()

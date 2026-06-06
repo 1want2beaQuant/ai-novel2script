@@ -64,7 +64,9 @@ When using the Web UI:
   selected file reference, and pending remote confirmation from the browser workbench state, but it
   cannot remove files you already downloaded or content you already copied elsewhere;
 - static assets and JSON API responses are sent with `Cache-Control: no-store` to reduce
-  browser or intermediary caching of manuscript-derived responses.
+  browser or intermediary caching of manuscript-derived responses, and include restrictive
+  framing and browser-permission headers such as `X-Frame-Options: DENY`, `frame-ancestors 'none'`,
+  and `Permissions-Policy`.
 
 Binding the Web UI to a non-loopback host requires `--allow-remote`. That can expose manuscript text,
 generated output, and provider choices to other devices on the network. Use it only on trusted networks

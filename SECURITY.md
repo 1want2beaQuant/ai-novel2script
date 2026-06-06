@@ -28,5 +28,7 @@ The preflight and conversion APIs accept `application/json` requests only and de
 including payloads with a UTF-8 BOM. Browser requests carrying an `Origin` header are rejected
 unless the origin matches the current local Web UI host.
 
-Static assets and JSON API responses include `Cache-Control: no-store`; malformed or oversized
-request bodies are rejected before conversion.
+Static assets and JSON API responses include `Cache-Control: no-store`, `X-Frame-Options: DENY`,
+a restrictive `Content-Security-Policy` with `frame-ancestors 'none'` and `object-src 'none'`,
+and a limited `Permissions-Policy`; malformed or oversized request bodies are rejected before
+conversion.

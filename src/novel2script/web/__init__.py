@@ -27,6 +27,14 @@ MIN_PREVIEW_CHAPTER_CHARACTERS = 40
 STATIC_FILES = {"index.html", "app.css", "app.js"}
 LOCAL_HOSTS = {"localhost", "127.0.0.1", "::1"}
 ALLOWED_METHODS_HEADER = "GET, HEAD, OPTIONS, POST"
+CONTENT_SECURITY_POLICY = (
+    "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; "
+    "connect-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'; "
+    "frame-ancestors 'none'"
+)
+PERMISSIONS_POLICY = (
+    "camera=(), microphone=(), geolocation=(), payment=(), usb=(), fullscreen=(self)"
+)
 
 
 class RequestTooLargeError(ValueError):
@@ -643,12 +651,10 @@ class Novel2ScriptWebHandler(BaseHTTPRequestHandler):
 
     def _send_security_headers(self) -> None:
         self.send_header("X-Content-Type-Options", "nosniff")
+        self.send_header("X-Frame-Options", "DENY")
         self.send_header("Referrer-Policy", "no-referrer")
-        self.send_header(
-            "Content-Security-Policy",
-            "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; "
-            "connect-src 'self'; base-uri 'none'; form-action 'none'",
-        )
+        self.send_header("Permissions-Policy", PERMISSIONS_POLICY)
+        self.send_header("Content-Security-Policy", CONTENT_SECURITY_POLICY)
 
 
 def _required_string(payload: dict[str, Any], key: str) -> str:

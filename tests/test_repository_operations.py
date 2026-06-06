@@ -151,6 +151,9 @@ def test_web_privacy_and_security_docs_cover_local_server_risks() -> None:
     assert "--allow-remote" in privacy
     assert "preflight and conversion endpoints accept JSON requests only" in privacy
     assert "Cache-Control: no-store" in privacy
+    assert "X-Frame-Options: DENY" in privacy
+    assert "frame-ancestors 'none'" in privacy
+    assert "Permissions-Policy" in privacy
     assert "Origin" in privacy
 
     assert "Local Web UI" in security
@@ -158,5 +161,9 @@ def test_web_privacy_and_security_docs_cover_local_server_risks() -> None:
     assert "does not implement authentication" in security
     assert "preflight and conversion APIs accept `application/json` requests only" in security
     assert "Cache-Control: no-store" in security
+    assert "X-Frame-Options: DENY" in security
+    assert "frame-ancestors 'none'" in security
+    assert "object-src 'none'" in security
+    assert "Permissions-Policy" in security
     assert "malformed or oversized" in security
     assert "Origin" in security
