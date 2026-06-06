@@ -40,12 +40,13 @@ def test_pull_request_template_keeps_release_validation_prompts() -> None:
     assert "## Validation" in template
     assert "## Checklist" in template
     assert "`python -m pytest`" in template
+    assert "`python scripts\\check_release_readiness.py --dry-run`" in template
     assert "`python -m ruff check .`" in template
     assert "`python -m pip_audit --skip-editable`" in template
     assert "`python -m build`" in template
     assert "`python -m twine check dist\\*`" in template
     assert "`python scripts\\smoke_web_server.py`" in template
-    assert "schemas\\script.schema.json src\\novel2script\\schemas\\script.schema.json" in template
+    assert "`python scripts\\check_release_readiness.py --schema-only`" in template
     assert "`PRIVACY.md` is updated" in template
     assert "`CHANGELOG.md` is updated" in template
 
@@ -85,6 +86,8 @@ def test_documented_local_commands_are_cross_shell_safe() -> None:
     assert "python -m pip install -e .[dev]" not in readme
     assert 'python -m pip install -e ".[dev,release,security]"' in release_checklist
     assert "python -m pip install -e .[dev,release,security]" not in release_checklist
+    assert "python scripts\\check_release_readiness.py" in release_checklist
+    assert "它不会发布到 PyPI，也不会创建 Git tag" in release_checklist
 
     documented_commands = readme + "\n" + release_checklist
     assert "python -m novel2script.cli" not in documented_commands
@@ -103,6 +106,7 @@ def test_documented_local_commands_are_cross_shell_safe() -> None:
     assert "novel2script-web --version" in release_checklist
     assert "python -m novel2script.web --version" in release_checklist
     assert "python scripts\\smoke_web_server.py" in release_checklist
+    assert "python scripts\\check_release_readiness.py --schema-only" in release_checklist
 
 
 def test_local_validation_docs_clean_stale_distribution_artifacts_before_build() -> None:
@@ -115,6 +119,7 @@ def test_local_validation_docs_clean_stale_distribution_artifacts_before_build()
     for document in (contributing, release_checklist):
         assert cleanup in document
         assert document.index(cleanup) < document.index("python -m build")
+        assert "python scripts\\check_release_readiness.py" in document
 
 
 def test_readme_local_links_point_to_existing_files() -> None:

@@ -7,10 +7,18 @@
 1. 确认 `main` 分支 CI 全绿。
 2. 更新 `pyproject.toml` 中的 `version`。
 3. 如本次发布调整了 AI provider、远程请求 payload、输出文件或 API Key 处理方式，同步更新 `PRIVACY.md`。
-4. 本地执行：
+4. 本地执行集中 dry run。该脚本会清理旧 `dist`、运行测试/lint/audit、构建并检查
+   wheel/sdist、验证 CLI/Web 入口、运行 Web smoke、三种 CLI 输出 smoke 和 Schema 同步检查；
+   它不会发布到 PyPI，也不会创建 Git tag。
 
 ```powershell
 python -m pip install -e ".[dev,release,security]"
+python scripts\check_release_readiness.py
+```
+
+如需排查单个步骤，可按下面命令逐项执行：
+
+```powershell
 python -m pytest
 python -m ruff check .
 python -m pip_audit --skip-editable
@@ -28,7 +36,7 @@ python scripts\smoke_web_server.py
 python -m novel2script examples/three_chapters.txt --output outputs/release-smoke.yaml --validate
 python -m novel2script examples/three_chapters.txt --format fountain --output outputs/release-smoke.fountain
 python -m novel2script examples/three_chapters.txt --format markdown --output outputs/release-smoke.revision.md
-cmd /c fc /b schemas\script.schema.json src\novel2script\schemas\script.schema.json
+python scripts\check_release_readiness.py --schema-only
 ```
 
 5. 首次发布前，在 PyPI 账号的 **Publishing** 页面创建 pending publisher。`novel2script`
