@@ -863,6 +863,13 @@ function renderExportManifest() {
     ...files.map((file) => {
       const item = document.createElement("li");
       item.className = file.key === state.selectedOutput ? "is-selected" : "";
+      item.dataset.exportKey = file.key;
+      if (file.key === state.selectedOutput) {
+        item.setAttribute("aria-current", "true");
+      }
+
+      const detail = document.createElement("div");
+      detail.className = "export-file-detail";
 
       const title = document.createElement("strong");
       title.textContent = file.label || exportLabelForKey(file.key);
@@ -872,7 +879,27 @@ function renderExportManifest() {
         Number(file.byte_size || 0)
       )}`;
 
-      item.append(title, meta);
+      const actions = document.createElement("div");
+      actions.className = "export-file-actions";
+
+      const viewButton = document.createElement("button");
+      viewButton.type = "button";
+      viewButton.textContent = "查看";
+      viewButton.dataset.exportAction = "view";
+      viewButton.disabled = file.key === state.selectedOutput;
+      viewButton.setAttribute("aria-label", `查看 ${file.label || exportLabelForKey(file.key)}`);
+      viewButton.addEventListener("click", () => selectOutput(file.key));
+
+      const downloadButton = document.createElement("button");
+      downloadButton.type = "button";
+      downloadButton.textContent = "下载";
+      downloadButton.dataset.exportAction = "download";
+      downloadButton.setAttribute("aria-label", `下载 ${file.label || exportLabelForKey(file.key)}`);
+      downloadButton.addEventListener("click", () => downloadExportFile(file.key));
+
+      detail.append(title, meta);
+      actions.append(viewButton, downloadButton);
+      item.append(detail, actions);
       return item;
     })
   );
@@ -1742,7 +1769,12 @@ async function copyOutput() {
 }
 
 function downloadOutput() {
-  if (!state.output) {
+  downloadExportFile(state.selectedOutput, { updatePrimaryButton: true });
+}
+
+function downloadExportFile(selection, options = {}) {
+  const exportText = outputForSelection(selection);
+  if (!exportText) {
     return;
   }
   const staleReason = currentOutputStaleReason();
@@ -1751,19 +1783,26 @@ function downloadOutput() {
     setConversionStatus("需重新转换", staleReason.conversionDetail, "warn");
     return;
   }
-  clearTimeout(state.downloadLabelTimer);
+  if (options.updatePrimaryButton) {
+    clearTimeout(state.downloadLabelTimer);
+  }
   let objectUrl = "";
   try {
-    const extension = outputExtension(state.selectedOutput);
-    const blob = new Blob([state.output], { type: "text/plain;charset=utf-8" });
+    const extension = outputExtension(selection);
+    const blob = new Blob([exportText], { type: "text/plain;charset=utf-8" });
     const link = document.createElement("a");
     objectUrl = URL.createObjectURL(blob);
     link.href = objectUrl;
     link.download = `${downloadBaseName()}.${extension}`;
     link.click();
-    elements.download.textContent = "已下载";
+    if (options.updatePrimaryButton) {
+      elements.download.textContent = "已下载";
+    }
+    setConversionStatus("已下载", `${exportLabelForKey(selection)} 已开始下载。`, "ready");
   } catch {
-    elements.download.textContent = "下载失败";
+    if (options.updatePrimaryButton) {
+      elements.download.textContent = "下载失败";
+    }
     elements.exportState.textContent = "下载失败";
     elements.exportMeta.textContent = "浏览器未能启动下载，请复制结果后手动保存。";
     setStatusTone(elements.exportState.parentElement, "warn");
@@ -1771,9 +1810,11 @@ function downloadOutput() {
     if (objectUrl) {
       URL.revokeObjectURL(objectUrl);
     }
-    state.downloadLabelTimer = window.setTimeout(() => {
-      elements.download.textContent = "下载";
-    }, 1400);
+    if (options.updatePrimaryButton) {
+      state.downloadLabelTimer = window.setTimeout(() => {
+        elements.download.textContent = "下载";
+      }, 1400);
+    }
   }
 }
 

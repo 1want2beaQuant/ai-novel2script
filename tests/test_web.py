@@ -700,6 +700,8 @@ def test_web_static_assets_include_conversion_status_ui() -> None:
         assert "复制失败" in script
         assert "浏览器未允许写入剪贴板，请手动选中结果复制。" in script
         assert "function downloadOutput" in script
+        assert "function downloadExportFile" in script
+        assert "downloadExportFile(state.selectedOutput, { updatePrimaryButton: true })" in script
         assert "downloadLabelTimer" in script
         assert "selectedOutput" in script
         assert "function selectedOutputLabel" in script
@@ -713,6 +715,18 @@ def test_web_static_assets_include_conversion_status_ui() -> None:
         assert 'format === "fountain" || format === "markdown"' in script
         assert "state.output = outputForSelection(state.selectedOutput)" in script
         assert "selectOutput(selection)" in script
+        assert "item.dataset.exportKey = file.key" in script
+        assert 'item.setAttribute("aria-current", "true")' in script
+        assert 'viewButton.dataset.exportAction = "view"' in script
+        assert 'downloadButton.dataset.exportAction = "download"' in script
+        assert 'viewButton.addEventListener("click", () => selectOutput(file.key))' in script
+        assert (
+            'downloadButton.addEventListener("click", () => downloadExportFile(file.key))'
+            in script
+        )
+        assert "export-file-detail" in script
+        assert "export-file-actions" in script
+        assert "已开始下载。" in script
         assert "markdown" in script
         assert "Revision brief" in script
         assert "draftJson" in script
@@ -788,6 +802,9 @@ def test_web_static_assets_include_conversion_status_ui() -> None:
         assert ".scene-filter-meta" in stylesheet
         assert ".output-tabs" in stylesheet
         assert ".output-tabs button.is-selected" in stylesheet
+        assert ".export-file-detail" in stylesheet
+        assert ".export-file-actions" in stylesheet
+        assert ".export-file-actions button" in stylesheet
         assert ".scene-map-panel" in stylesheet
         assert ".scene-map-list" in stylesheet
         assert ".story-bible-grid" in stylesheet

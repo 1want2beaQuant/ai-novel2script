@@ -169,6 +169,7 @@ def test_local_web_workbench_is_documented_for_release() -> None:
     assert "Markdown 修订简报" in readme
     assert "结果区可在 YAML、Fountain、Markdown 修订简报、Draft JSON 和 Summary JSON 之间切换" in readme
     assert "导出清单会显示当前可下载文件、扩展名、字节大小和打包总量" in readme
+    assert "直接查看或下载任一导出文件" in readme
     assert "打包下载会生成包含全部导出文件的 zip" in readme
     assert "自动保存当前手稿、片名、输出格式、处理模式、模型和 Schema 开关到本机浏览器" in readme
     assert "刷新页面后自动恢复" in readme
@@ -179,6 +180,7 @@ def test_local_web_workbench_is_documented_for_release() -> None:
     assert "Local browser workbench" in changelog
     assert "Markdown revision brief" in changelog
     assert "Local Web adaptation inspector" in changelog
+    assert "export manifest entries can directly switch to or download" in changelog
     assert "next revision focus" in changelog
     assert "priority, score, note, and coverage rationale" in changelog
     assert "chapter-to-scene mapping" in changelog
