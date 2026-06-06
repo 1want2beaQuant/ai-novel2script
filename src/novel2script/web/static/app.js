@@ -73,6 +73,16 @@ const elements = {
   download: document.querySelector("#downloadButton"),
   bundle: document.querySelector("#bundleButton"),
   outputTabs: Array.from(document.querySelectorAll("[data-output-format]")),
+  workflowSteps: Object.fromEntries(
+    Array.from(document.querySelectorAll("[data-workflow-step]")).map((step) => [
+      step.dataset.workflowStep,
+      step
+    ])
+  ),
+  inputStepMeta: document.querySelector("#inputStepMeta"),
+  previewStepMeta: document.querySelector("#previewStepMeta"),
+  convertStepMeta: document.querySelector("#convertStepMeta"),
+  exportStepMeta: document.querySelector("#exportStepMeta"),
   draftStatus: document.querySelector("#draftStatus"),
   serverStatus: document.querySelector("#serverStatus"),
   inputSize: document.querySelector("#inputSize"),
@@ -872,6 +882,7 @@ function updateExportStatus() {
       elements.exportMeta.textContent = `${staleReason.exportDetail} 重新转换后再复制、下载或打包。`;
       setStatusTone(elements.exportState.parentElement, "warn");
       setOutputActions(false);
+      updateWorkflowSteps();
       return;
     }
 
@@ -879,6 +890,7 @@ function updateExportStatus() {
     elements.exportMeta.textContent = `${validationLabel} · 可复制、下载或打包。`;
     setStatusTone(elements.exportState.parentElement, "ready");
     setOutputActions(true);
+    updateWorkflowSteps();
     return;
   }
 
@@ -886,6 +898,7 @@ function updateExportStatus() {
   elements.exportMeta.textContent = `${formatLabel} / ${validationLabel}。`;
   setStatusTone(elements.exportState.parentElement, "neutral");
   setOutputActions(false);
+  updateWorkflowSteps();
 }
 
 function currentOutputStaleReason() {
@@ -931,6 +944,7 @@ function setConversionStatus(label, detail, tone) {
   elements.conversionState.textContent = label;
   elements.conversionMeta.textContent = detail;
   setStatusTone(elements.conversionState.parentElement, tone);
+  updateWorkflowSteps();
 }
 
 function updateConversionFreshness() {
@@ -961,6 +975,68 @@ function setStatusTone(element, tone) {
   element.classList.remove("is-active", "is-error", "is-ready", "is-warn");
   if (tone && tone !== "neutral") {
     element.classList.add(`is-${tone}`);
+  }
+}
+
+function updateWorkflowSteps() {
+  const characterCount = countCharacters(elements.manuscript.value);
+  const tooLarge = isCurrentRequestTooLarge();
+  const staleReason = state.output ? currentOutputStaleReason() : null;
+
+  if (!characterCount) {
+    setWorkflowStep("input", "neutral", "等待手稿");
+  } else if (tooLarge) {
+    setWorkflowStep("input", "error", "超过请求上限");
+  } else {
+    setWorkflowStep("input", "ready", `${formatNumber(characterCount)} 字`);
+  }
+
+  if (tooLarge) {
+    setWorkflowStep("preview", "error", "无法预检");
+  } else if (state.isPreviewPending) {
+    setWorkflowStep("preview", "active", "解析章节中");
+  } else if (state.isPreviewReady) {
+    setWorkflowStep("preview", "ready", "章节已通过");
+  } else if (characterCount) {
+    setWorkflowStep("preview", "warn", "未通过预检");
+  } else {
+    setWorkflowStep("preview", "neutral", "等待章节解析");
+  }
+
+  if (tooLarge) {
+    setWorkflowStep("convert", "error", "无法转换");
+  } else if (state.isWorking) {
+    setWorkflowStep("convert", "active", "生成剧本中");
+  } else if (state.output && staleReason) {
+    setWorkflowStep("convert", "warn", "需重新转换");
+  } else if (state.output) {
+    setWorkflowStep("convert", "ready", "结果已生成");
+  } else if (state.isPreviewReady) {
+    setWorkflowStep("convert", "active", "可开始转换");
+  } else {
+    setWorkflowStep("convert", "neutral", "等待预检通过");
+  }
+
+  if (state.output && staleReason) {
+    setWorkflowStep("export", "warn", "结果已过期");
+  } else if (state.output) {
+    setWorkflowStep("export", "ready", `${selectedOutputLabel()} 可用`);
+  } else if (state.isWorking) {
+    setWorkflowStep("export", "active", "等待生成结果");
+  } else {
+    setWorkflowStep("export", "neutral", "等待生成结果");
+  }
+}
+
+function setWorkflowStep(name, tone, detail) {
+  const step = elements.workflowSteps[name];
+  if (!step) {
+    return;
+  }
+  setStatusTone(step, tone);
+  const meta = elements[`${name}StepMeta`];
+  if (meta) {
+    meta.textContent = detail;
   }
 }
 

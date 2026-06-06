@@ -301,6 +301,15 @@ def test_web_server_serves_static_assets_and_conversion_api() -> None:
         assert 'id="providerMode"' in body
         assert 'id="conversionState"' in body
         assert 'id="exportState"' in body
+        assert 'aria-label="工作流进度"' in body
+        assert 'data-workflow-step="input"' in body
+        assert 'data-workflow-step="preview"' in body
+        assert 'data-workflow-step="convert"' in body
+        assert 'data-workflow-step="export"' in body
+        assert 'id="inputStepMeta"' in body
+        assert 'id="previewStepMeta"' in body
+        assert 'id="convertStepMeta"' in body
+        assert 'id="exportStepMeta"' in body
         assert 'class="pane input-pane"' in body
         assert 'id="chapterPreviewState"' in body
         assert 'id="chapterPreviewList"' in body
@@ -411,6 +420,13 @@ def test_web_static_assets_include_conversion_status_ui() -> None:
         assert "openAiConfirmedFor" in script
         assert "isPreviewPending" in script
         assert "isPreviewReady" in script
+        assert "workflowSteps" in script
+        assert "function updateWorkflowSteps" in script
+        assert "function setWorkflowStep" in script
+        assert 'document.querySelectorAll("[data-workflow-step]")' in script
+        assert "解析章节中" in script
+        assert "结果已过期" in script
+        assert "selectedOutputLabel()} 可用" in script
         assert "textFingerprint(text)" in script
         assert "function showPreflightBlockedConversion" in script
         assert "function renderChapterPreview" in script
@@ -529,6 +545,10 @@ def test_web_static_assets_include_conversion_status_ui() -> None:
 
         assert response.status == HTTPStatus.OK
         assert ".status-grid" in stylesheet
+        assert ".workflow-steps" in stylesheet
+        assert ".workflow-step" in stylesheet
+        assert ".workflow-step.is-ready .step-index" in stylesheet
+        assert ".workflow-step.is-error .step-index" in stylesheet
         assert ".topbar-status" in stylesheet
         assert ".status-pill.is-ready" in stylesheet
         assert ".status-pill.is-warn" in stylesheet
