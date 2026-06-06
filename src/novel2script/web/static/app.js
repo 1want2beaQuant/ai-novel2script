@@ -28,6 +28,7 @@ const state = {
   previewInput: "",
   isPreviewPending: false,
   isPreviewReady: false,
+  previewWarningCount: 0,
   remoteConfirmationKey: "",
   remoteConfirmationResolve: null,
   remoteConfirmationInvalidated: false,
@@ -503,10 +504,30 @@ function renderChapterPreview(status, chapters, options = {}) {
     const chapterIndex = chapter.index ?? index + 1;
     marker.textContent = `第 ${chapterIndex} 章`;
 
+    item.className = `chapter-preview-item is-${chapter.status || "ready"}`;
+
+    const content = document.createElement("div");
+    content.className = "chapter-preview-content";
+
     const title = document.createElement("strong");
     title.textContent = chapter.title || `章节 ${chapterIndex}`;
 
-    item.append(marker, title);
+    const meta = document.createElement("small");
+    const chapterCharacterCount = Number(chapter.character_count || 0);
+    const countText = chapterCharacterCount
+      ? `${formatNumber(chapterCharacterCount)} 字`
+      : "正文待补充";
+    const statusText = chapter.status === "short" ? "素材偏短" : "素材就绪";
+    meta.textContent = `${countText} · ${statusText}`;
+
+    content.append(title, meta);
+    if (chapter.warning) {
+      const warning = document.createElement("em");
+      warning.textContent = chapter.warning;
+      content.append(warning);
+    }
+
+    item.append(marker, content);
     return item;
   });
 
@@ -529,6 +550,7 @@ function updateInputStatus() {
   clearTimeout(state.previewLabelTimer);
   state.isPreviewPending = false;
   state.isPreviewReady = false;
+  state.previewWarningCount = 0;
   syncConvertAvailability();
   updateExportStatus();
 
@@ -573,6 +595,7 @@ function schedulePreview(text) {
   state.previewInput = text;
   state.isPreviewPending = true;
   state.isPreviewReady = false;
+  state.previewWarningCount = 0;
   syncConvertAvailability();
   clearTimeout(state.previewLabelTimer);
   state.previewLabelTimer = window.setTimeout(() => {
@@ -872,6 +895,7 @@ async function runPreview(text, requestId) {
     const message = error instanceof Error ? error.message : String(error);
     state.isPreviewPending = false;
     state.isPreviewReady = false;
+    state.previewWarningCount = 0;
     const characterCount = countCharacters(text);
     elements.inputSize.textContent = `${formatNumber(characterCount)} 字 / ? 章`;
     elements.inputHint.textContent = `预检失败：${message}`;
@@ -888,17 +912,24 @@ async function runPreview(text, requestId) {
 function renderPreview(preview) {
   const characterCount = Number(preview.character_count || 0);
   const chapterCount = Number(preview.chapter_count || 0);
+  const warningCount = Number(preview.short_chapter_count || 0);
+  const previewTone = preview.ready ? (warningCount ? "warn" : "ready") : "warn";
   state.isPreviewPending = false;
   state.isPreviewReady = Boolean(preview.ready);
+  state.previewWarningCount = warningCount;
   elements.inputSize.textContent = `${formatNumber(characterCount)} 字 / ${chapterCount} 章`;
   elements.inputHint.textContent = preview.message || "转换时会再次校验。";
-  renderChapterPreview(preview.ready ? "已通过" : "未通过", preview.chapters || [], {
+  renderChapterPreview(
+    preview.ready && warningCount ? "可转换 / 需补素材" : preview.ready ? "已通过" : "未通过",
+    preview.chapters || [],
+    {
     emptyMessage: "未检测到章节",
-    tone: preview.ready ? "ready" : "warn"
-  });
+    tone: previewTone
+    }
+  );
 
   if (preview.ready) {
-    setStatusTone(elements.inputSize.parentElement, "ready");
+    setStatusTone(elements.inputSize.parentElement, previewTone);
   } else if (characterCount) {
     setStatusTone(elements.inputSize.parentElement, "warn");
   } else {
@@ -1218,7 +1249,11 @@ function updateWorkflowSteps() {
   } else if (state.isPreviewPending) {
     setWorkflowStep("preview", "active", "解析章节中");
   } else if (state.isPreviewReady) {
-    setWorkflowStep("preview", "ready", "章节已通过");
+    setWorkflowStep(
+      "preview",
+      state.previewWarningCount ? "warn" : "ready",
+      state.previewWarningCount ? `${state.previewWarningCount} 章需补素材` : "章节已通过"
+    );
   } else if (characterCount) {
     setWorkflowStep("preview", "warn", "未通过预检");
   } else {
@@ -1502,6 +1537,7 @@ function clearWorkbench() {
   state.previewInput = "";
   state.isPreviewPending = false;
   state.isPreviewReady = false;
+  state.previewWarningCount = 0;
   dismissRemoteConfirmation({ quiet: true });
   state.openAiConfirmedFor = "";
   state.lastConvertedInput = "";

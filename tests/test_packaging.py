@@ -126,6 +126,9 @@ def test_local_web_workbench_is_documented_for_release() -> None:
     assert "python -m novel2script.web --host 127.0.0.1 --port 8765 --no-open" in readme
     assert "默认本地模式不会把手稿发送到外部服务" in readme
     assert "--allow-remote" in readme
+    assert "预检章节识别和每章素材规模" in readme
+    assert "显示每章字数，并标记正文偏短的章节" in readme
+    assert "短章提示不会阻止满足 3 章要求的手稿继续转换" in readme
     assert "章节到场景映射" in readme
     assert "coverage 分项评分" in readme
     assert "结构节拍" in readme
@@ -152,5 +155,7 @@ def test_local_web_workbench_is_documented_for_release() -> None:
     assert "chapter-to-scene mapping" in changelog
     assert "Story Bible panels" in changelog
     assert "four-step workflow progress strip" in changelog
+    assert "per-chapter manuscript size" in changelog
+    assert "non-blocking short-chapter warnings" in changelog
     assert "inline remote confirmation panel" in changelog
     assert "pending confirmations are invalidated" in changelog
