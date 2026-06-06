@@ -1169,6 +1169,20 @@ function showFileImportSizeError(file) {
   updateExportStatus();
 }
 
+function showFileImportTypeError(file) {
+  state.isPreviewPending = false;
+  state.isPreviewReady = false;
+  elements.inputHint.textContent = "仅支持 .txt 或 text/plain 文本文件，当前手稿已保留。";
+  setStatusTone(elements.inputSize.parentElement, "warn");
+  renderChapterPreview("无法导入", [], {
+    emptyMessage: "请选择 .txt 文本手稿",
+    tone: "warn"
+  });
+  setConversionStatus("导入失败", `${file.name || "所选文件"} 不是可导入的文本手稿。`, "warn");
+  syncConvertAvailability();
+  updateExportStatus();
+}
+
 function showFileImportReadError(file) {
   state.isPreviewPending = false;
   state.isPreviewReady = false;
@@ -1845,6 +1859,13 @@ async function loadFile() {
 }
 
 async function importFile(file, options = {}) {
+  if (!isImportableTextFile(file)) {
+    if (options.resetPicker) {
+      elements.file.value = "";
+    }
+    showFileImportTypeError(file);
+    return;
+  }
   if (importedFileRequestByteLength(file) > maxRequestBytes) {
     if (options.resetPicker) {
       elements.file.value = "";
@@ -1872,6 +1893,12 @@ async function importFile(file, options = {}) {
   saveLocalDraft();
   setConversionStatus("待转换", `已导入 ${file.name}，等待章节预检。`, "active");
   updateInputStatus();
+}
+
+function isImportableTextFile(file) {
+  const name = String(file.name || "").toLocaleLowerCase("zh-CN");
+  const type = String(file.type || "").toLocaleLowerCase("zh-CN");
+  return name.endsWith(".txt") || type === "text/plain";
 }
 
 function handleDropZoneDragEnter(event) {

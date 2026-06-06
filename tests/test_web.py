@@ -714,6 +714,13 @@ def test_web_static_assets_include_conversion_status_ui() -> None:
         assert "function isCurrentRequestTooLarge" in script
         assert "function importedFileRequestByteLength" in script
         assert "function importFile" in script
+        assert "function isImportableTextFile" in script
+        assert "name.endsWith(\".txt\") || type === \"text/plain\"" in script
+        assert "type.startsWith(\"text/\")" not in script
+        assert "function showFileImportTypeError" in script
+        assert "仅支持 .txt 或 text/plain 文本文件，当前手稿已保留。" in script
+        assert "请选择 .txt 文本手稿" in script
+        assert "不是可导入的文本手稿。" in script
         assert "await importFile(file, { resetPicker: true })" in script
         assert "function handleDropZoneDragEnter" in script
         assert "function handleDropZoneDragOver" in script
