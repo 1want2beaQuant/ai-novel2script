@@ -767,6 +767,54 @@ pre {
   line-height: 1.45;
 }
 
+.scene-map-panel {
+  min-width: 0;
+  border-bottom: 1px solid var(--line);
+  background: var(--surface);
+}
+
+.scene-map-list {
+  min-width: 0;
+  margin: 0;
+  padding: 14px;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+  gap: 10px;
+  list-style: none;
+}
+
+.scene-map-list li {
+  min-width: 0;
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: #f8fbfa;
+}
+
+.scene-map-list span {
+  display: block;
+  color: var(--blue);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.scene-map-list strong {
+  display: block;
+  margin-top: 4px;
+  overflow: hidden;
+  color: var(--ink);
+  font-size: 13px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.scene-map-list p {
+  margin-top: 4px;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.35;
+}
+
 .diagnostic-grid {
   display: grid;
   grid-template-columns: minmax(260px, 0.9fr) minmax(260px, 1fr) minmax(280px, 1fr) minmax(280px, 1.1fr);

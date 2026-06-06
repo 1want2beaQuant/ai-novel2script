@@ -126,6 +126,7 @@ def test_local_web_workbench_is_documented_for_release() -> None:
     assert "python -m novel2script.web --host 127.0.0.1 --port 8765 --no-open" in readme
     assert "默认本地模式不会把手稿发送到外部服务" in readme
     assert "--allow-remote" in readme
+    assert "章节到场景映射" in readme
     assert "coverage 分项评分" in readme
     assert "结构节拍" in readme
     assert "优先修订动作" in readme
@@ -148,6 +149,7 @@ def test_local_web_workbench_is_documented_for_release() -> None:
     assert "Local browser workbench" in changelog
     assert "Markdown revision brief" in changelog
     assert "Local Web adaptation inspector" in changelog
+    assert "chapter-to-scene mapping" in changelog
     assert "Story Bible panels" in changelog
     assert "four-step workflow progress strip" in changelog
     assert "inline remote confirmation panel" in changelog

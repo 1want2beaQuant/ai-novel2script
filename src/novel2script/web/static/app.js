@@ -114,6 +114,7 @@ const elements = {
   scoresList: document.querySelector("#scoresList"),
   actionItems: document.querySelector("#actionItems"),
   beatsList: document.querySelector("#beatsList"),
+  sceneMapList: document.querySelector("#sceneMapList"),
   scenesList: document.querySelector("#scenesList"),
   storyCharactersList: document.querySelector("#storyCharactersList"),
   storyLocationsList: document.querySelector("#storyLocationsList"),
@@ -240,6 +241,7 @@ function renderSummary(summary) {
   renderScores(summary?.scores || []);
   renderActionItems(summary?.action_items || summary?.revision_checklist || []);
   renderBeats(summary?.structure_beats || []);
+  renderSceneMap(summary?.scene_map || []);
   renderScenes(summary?.scenes || []);
   renderStoryBible(summary?.story_bible || {});
   renderTextList(elements.strengthsList, summary?.strengths || []);
@@ -323,6 +325,33 @@ function renderBeats(beats) {
       summary.textContent = beat.revision_hint || beat.summary || "";
 
       item.append(title, summary);
+      return item;
+    })
+  );
+}
+
+function renderSceneMap(sceneMap) {
+  elements.sceneMapList.replaceChildren(
+    ...withEmpty(sceneMap, "转换后显示源章节到生成场景的逐章映射。").map((mapping) => {
+      const item = document.createElement("li");
+      if (typeof mapping === "string") {
+        item.className = "empty";
+        item.textContent = mapping;
+        return item;
+      }
+
+      const chapter = document.createElement("span");
+      chapter.textContent = `第 ${mapping.chapter_index || "?"} 章`;
+
+      const title = document.createElement("strong");
+      title.textContent = mapping.chapter_title || "未命名章节";
+
+      const scene = document.createElement("p");
+      scene.textContent = `${mapping.scene_id || "未映射"} · ${
+        mapping.scene_title || "未命名场景"
+      }`;
+
+      item.append(chapter, title, scene);
       return item;
     })
   );

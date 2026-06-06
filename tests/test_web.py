@@ -137,6 +137,12 @@ def test_convert_payload_returns_output_and_summary() -> None:
         "adaptation_fidelity",
     ]
     assert result["summary"]["structure_beats"][0]["id"] == "opening_image"
+    assert result["summary"]["scene_map"][0] == {
+        "chapter_index": 1,
+        "chapter_title": "Chapter 1 The Locked Room",
+        "scene_id": "S001",
+        "scene_title": "Chapter 1 The Locked Room",
+    }
     assert result["summary"]["action_items"][0]["priority"] in {"high", "medium", "low"}
     assert result["summary"]["strengths"]
     assert result["summary"]["weaknesses"]
@@ -340,6 +346,9 @@ def test_web_server_serves_static_assets_and_conversion_api() -> None:
         assert 'data-output-format="summaryJson"' in body
         assert 'id="scoresList"' in body
         assert 'id="actionItems"' in body
+        assert 'class="scene-map-panel"' in body
+        assert 'id="sceneMapList"' in body
+        assert "章节映射" in body
         assert 'class="story-bible-grid"' in body
         assert 'id="storyCharactersList"' in body
         assert 'id="storyLocationsList"' in body
@@ -386,6 +395,7 @@ def test_web_server_serves_static_assets_and_conversion_api() -> None:
         assert data["summary"]["scene_count"] == 3
         assert data["summary"]["chapter_coverage"]["coverage_ratio"] == 1
         assert data["summary"]["structure_beats"]
+        assert data["summary"]["scene_map"][0]["scene_id"] == "S001"
         assert data["summary"]["action_items"]
         assert data["summary"]["story_bible"]["characters"]
         assert data["summary"]["story_bible"]["locations"]
@@ -461,6 +471,9 @@ def test_web_static_assets_include_conversion_status_ui() -> None:
         assert "textFingerprint(text)" in script
         assert "function showPreflightBlockedConversion" in script
         assert "function renderChapterPreview" in script
+        assert "function renderSceneMap" in script
+        assert "sceneMapList" in script
+        assert "转换后显示源章节到生成场景的逐章映射。" in script
         assert "function renderStoryBible" in script
         assert "function renderStoryCharacters" in script
         assert "function renderStoryLocations" in script
@@ -610,6 +623,8 @@ def test_web_static_assets_include_conversion_status_ui() -> None:
         assert ".chapter-preview.is-ready .chapter-preview-head strong" in stylesheet
         assert ".output-tabs" in stylesheet
         assert ".output-tabs button.is-selected" in stylesheet
+        assert ".scene-map-panel" in stylesheet
+        assert ".scene-map-list" in stylesheet
         assert ".story-bible-grid" in stylesheet
         assert ".story-bible-panel" in stylesheet
         assert ".asset-list" in stylesheet

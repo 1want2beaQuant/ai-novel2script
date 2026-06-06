@@ -200,6 +200,15 @@ def summarize_script(data: dict[str, Any]) -> dict[str, Any]:
             for beat in _dict_list(structure.get("beats"))
         ],
         "structure_diagnostics": _string_list(structure.get("diagnostics")),
+        "scene_map": [
+            {
+                "chapter_index": item.get("chapter_index", ""),
+                "chapter_title": item.get("chapter_title", ""),
+                "scene_id": item.get("scene_id", ""),
+                "scene_title": item.get("scene_title", ""),
+            }
+            for item in _dict_list(adaptation.get("scene_map"))
+        ],
         "story_bible": {
             "characters": [
                 {
