@@ -1227,6 +1227,21 @@ function showFileImportReadError(file) {
   updateExportStatus();
 }
 
+function showFileImportEmptyError(file) {
+  state.isPreviewPending = false;
+  state.isPreviewReady = false;
+  const fileName = file?.name || "所选文件";
+  elements.inputHint.textContent = "文件为空，当前手稿已保留。请重新选择或粘贴文本。";
+  setStatusTone(elements.inputSize.parentElement, "warn");
+  renderChapterPreview("导入失败", [], {
+    emptyMessage: "当前章节预检未更新",
+    tone: "warn"
+  });
+  setConversionStatus("导入失败", `${fileName} 没有可导入的手稿内容。`, "warn");
+  syncConvertAvailability();
+  updateExportStatus();
+}
+
 function showPreflightBlockedConversion() {
   const detail = state.isPreviewPending
     ? "等待章节预检完成后再转换。"
@@ -1966,6 +1981,13 @@ async function importFile(file, options = {}) {
       elements.file.value = "";
     }
     showFileImportReadError(file);
+    return;
+  }
+  if (!text.trim()) {
+    if (options.resetPicker) {
+      elements.file.value = "";
+    }
+    showFileImportEmptyError(file);
     return;
   }
   elements.manuscript.value = text;
