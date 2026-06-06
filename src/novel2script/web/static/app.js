@@ -28,6 +28,9 @@ const state = {
   previewInput: "",
   isPreviewPending: false,
   isPreviewReady: false,
+  remoteConfirmationKey: "",
+  remoteConfirmationResolve: null,
+  remoteConfirmationInvalidated: false,
   openAiConfirmedFor: "",
   lastConvertedInput: "",
   lastTitle: "",
@@ -72,6 +75,12 @@ const elements = {
   copy: document.querySelector("#copyButton"),
   download: document.querySelector("#downloadButton"),
   bundle: document.querySelector("#bundleButton"),
+  remoteConfirmPanel: document.querySelector("#remoteConfirmPanel"),
+  remoteConfirmModel: document.querySelector("#remoteConfirmModel"),
+  remoteConfirmTitle: document.querySelector("#remoteConfirmTitle"),
+  remoteConfirmSize: document.querySelector("#remoteConfirmSize"),
+  remoteConfirmCancel: document.querySelector("#remoteConfirmCancel"),
+  remoteConfirmProceed: document.querySelector("#remoteConfirmProceed"),
   outputTabs: Array.from(document.querySelectorAll("[data-output-format]")),
   workflowSteps: Object.fromEntries(
     Array.from(document.querySelectorAll("[data-workflow-step]")).map((step) => [
@@ -142,7 +151,7 @@ async function convertManuscript() {
     return;
   }
 
-  if (!confirmRemoteProvider()) {
+  if (!(await confirmRemoteProvider())) {
     return;
   }
 
@@ -825,7 +834,7 @@ function resetProviderRunStatus() {
   renderProviderSelectionStatus();
 }
 
-function confirmRemoteProvider() {
+async function confirmRemoteProvider() {
   if (elements.provider.value !== "openai") {
     return true;
   }
@@ -835,16 +844,107 @@ function confirmRemoteProvider() {
     return true;
   }
 
-  const confirmed = window.confirm(
-    "OpenAI 模式会把当前手稿生成的截断章节摘要和本地 baseline JSON 发送给配置的远程兼容接口。确认继续？"
-  );
+  const confirmed = await requestRemoteConfirmation(confirmationKey);
   if (!confirmed) {
-    setConversionStatus("已取消", "未确认远程发送，转换没有开始。", "warn");
+    if (!state.remoteConfirmationInvalidated) {
+      setConversionStatus("已取消", "未确认远程发送，转换没有开始。", "warn");
+    }
+    state.remoteConfirmationInvalidated = false;
     return false;
   }
 
   state.openAiConfirmedFor = confirmationKey;
   return true;
+}
+
+function requestRemoteConfirmation(confirmationKey) {
+  dismissRemoteConfirmation({ quiet: true });
+  state.remoteConfirmationKey = confirmationKey;
+  state.remoteConfirmationInvalidated = false;
+  const confirmation = new Promise((resolve) => {
+    state.remoteConfirmationResolve = resolve;
+  });
+  updateRemoteConfirmationPanel();
+  if (elements.remoteConfirmPanel) {
+    elements.remoteConfirmPanel.classList.remove("is-hidden");
+  }
+  setConversionStatus(
+    "等待确认",
+    "请确认 OpenAI 远程发送后再开始转换；修改手稿、片名、模型或模式会使本次确认失效。",
+    "warn"
+  );
+  syncConvertAvailability();
+  elements.remoteConfirmProceed?.focus();
+  return confirmation;
+}
+
+function updateRemoteConfirmationPanel() {
+  if (elements.remoteConfirmModel) {
+    elements.remoteConfirmModel.textContent = normalizedModel();
+  }
+  if (elements.remoteConfirmTitle) {
+    elements.remoteConfirmTitle.textContent = elements.title.value.trim() || "未命名";
+  }
+  if (elements.remoteConfirmSize) {
+    elements.remoteConfirmSize.textContent = `${formatNumber(
+      countCharacters(elements.manuscript.value)
+    )} 字`;
+  }
+}
+
+function resolveRemoteConfirmation(confirmed) {
+  if (!state.remoteConfirmationResolve) {
+    return;
+  }
+
+  const pendingKey = state.remoteConfirmationKey;
+  const resolve = state.remoteConfirmationResolve;
+  state.remoteConfirmationResolve = null;
+  state.remoteConfirmationKey = "";
+  if (elements.remoteConfirmPanel) {
+    elements.remoteConfirmPanel.classList.add("is-hidden");
+  }
+  syncConvertAvailability();
+
+  if (!confirmed) {
+    state.remoteConfirmationInvalidated = false;
+    resolve(false);
+    return;
+  }
+
+  if (elements.provider.value !== "openai" || remoteConfirmationKey() !== pendingKey) {
+    state.remoteConfirmationInvalidated = true;
+    setConversionStatus(
+      "确认已失效",
+      "手稿、片名、模型或模式已变化，请重新检查后再确认远程发送。",
+      "warn"
+    );
+    resolve(false);
+    return;
+  }
+
+  resolve(true);
+}
+
+function dismissRemoteConfirmation(options = {}) {
+  if (!state.remoteConfirmationResolve) {
+    return;
+  }
+  state.remoteConfirmationResolve(false);
+  state.remoteConfirmationResolve = null;
+  state.remoteConfirmationKey = "";
+  state.remoteConfirmationInvalidated = true;
+  if (elements.remoteConfirmPanel) {
+    elements.remoteConfirmPanel.classList.add("is-hidden");
+  }
+  syncConvertAvailability();
+  if (!options.quiet) {
+    setConversionStatus(
+      "确认已失效",
+      "手稿、片名、模型或模式已变化，请重新检查后再确认远程发送。",
+      "warn"
+    );
+  }
 }
 
 function remoteConfirmationKey() {
@@ -1007,6 +1107,8 @@ function updateWorkflowSteps() {
     setWorkflowStep("convert", "error", "无法转换");
   } else if (state.isWorking) {
     setWorkflowStep("convert", "active", "生成剧本中");
+  } else if (state.remoteConfirmationResolve) {
+    setWorkflowStep("convert", "warn", "等待远程确认");
   } else if (state.output && staleReason) {
     setWorkflowStep("convert", "warn", "需重新转换");
   } else if (state.output) {
@@ -1278,6 +1380,7 @@ function clearWorkbench() {
   state.previewInput = "";
   state.isPreviewPending = false;
   state.isPreviewReady = false;
+  dismissRemoteConfirmation({ quiet: true });
   state.openAiConfirmedFor = "";
   state.lastConvertedInput = "";
   state.lastTitle = "";
@@ -1446,7 +1549,11 @@ function setWorking(isWorking) {
 
 function syncConvertAvailability() {
   elements.convert.disabled =
-    state.isWorking || state.isPreviewPending || !state.isPreviewReady || isCurrentRequestTooLarge();
+    state.isWorking ||
+    Boolean(state.remoteConfirmationResolve) ||
+    state.isPreviewPending ||
+    !state.isPreviewReady ||
+    isCurrentRequestTooLarge();
 }
 
 function setOutputActions(isEnabled) {
@@ -1469,6 +1576,7 @@ elements.fileButton.addEventListener("click", () => {
 });
 elements.file.addEventListener("change", loadFile);
 elements.title.addEventListener("input", () => {
+  dismissRemoteConfirmation();
   scheduleLocalDraftSave();
   resetProviderRunStatus();
   syncConvertAvailability();
@@ -1476,16 +1584,19 @@ elements.title.addEventListener("input", () => {
   updateConversionFreshness();
 });
 elements.manuscript.addEventListener("input", () => {
+  dismissRemoteConfirmation();
   scheduleLocalDraftSave();
   updateInputStatus();
 });
 elements.provider.addEventListener("change", () => {
+  dismissRemoteConfirmation();
   scheduleLocalDraftSave();
   syncConvertAvailability();
   updateExportStatus();
   updateProviderStatus();
 });
 elements.model.addEventListener("input", () => {
+  dismissRemoteConfirmation();
   scheduleLocalDraftSave();
   resetProviderRunStatus();
   syncConvertAvailability();
@@ -1514,6 +1625,8 @@ elements.convert.addEventListener("click", convertManuscript);
 elements.copy.addEventListener("click", copyOutput);
 elements.download.addEventListener("click", downloadOutput);
 elements.bundle.addEventListener("click", downloadBundle);
+elements.remoteConfirmCancel?.addEventListener("click", () => resolveRemoteConfirmation(false));
+elements.remoteConfirmProceed?.addEventListener("click", () => resolveRemoteConfirmation(true));
 for (const button of elements.outputTabs) {
   button.addEventListener("click", () => {
     selectOutput(button.dataset.outputFormat || "yaml");
