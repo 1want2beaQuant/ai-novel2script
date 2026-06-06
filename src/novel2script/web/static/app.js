@@ -746,11 +746,13 @@ function renderChapterPreview(status, chapters, options = {}) {
   elements.chapterPreviewList.replaceChildren(...rendered);
 }
 
-function updateInputStatus() {
+function updateInputStatus(options = {}) {
   resetProviderRunStatus();
   clearConversionFailure();
   const text = elements.manuscript.value;
   const characterCount = countCharacters(text);
+  const pendingDetail = options.pendingDetail || "正在解析章节，完成后会启用转换。";
+  const emptyDetail = options.emptyDetail || "等待手稿输入。";
   elements.inputSize.textContent = `${formatNumber(characterCount)} 字 / 预检中`;
 
   clearTimeout(state.previewLabelTimer);
@@ -778,6 +780,9 @@ function updateInputStatus() {
       emptyMessage: "尚无章节",
       tone: "neutral"
     });
+    if (!state.output) {
+      setConversionStatus("待输入", emptyDetail, "neutral");
+    }
     syncConvertAvailability();
     updateExportStatus();
     updateConversionFreshness();
@@ -791,6 +796,9 @@ function updateInputStatus() {
     tone: "active"
   });
   state.isPreviewPending = true;
+  if (!state.output) {
+    setConversionStatus("预检中", pendingDetail, "active");
+  }
   schedulePreview(text);
   syncConvertAvailability();
   updateExportStatus();
@@ -1026,18 +1034,16 @@ function initializeWorkbench() {
   renderSummary(null);
   renderOutputTabs();
   renderExportManifest();
-  updateInputStatus();
+  updateInputStatus(
+    restored
+      ? {
+          pendingDetail: "已恢复浏览器本地草稿，正在等待章节预检。",
+          emptyDetail: "本地草稿为空，等待手稿输入。"
+        }
+      : {}
+  );
   updateProviderStatus();
   updateExportStatus();
-
-  if (restored) {
-    const hasText = Boolean(elements.manuscript.value.trim());
-    setConversionStatus(
-      hasText ? "待转换" : "待输入",
-      hasText ? "已恢复浏览器本地草稿，等待章节预检。" : "本地草稿为空，等待手稿输入。",
-      hasText ? "active" : "neutral"
-    );
-  }
 }
 
 function restoreLocalDraft() {

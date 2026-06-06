@@ -602,7 +602,7 @@ def test_web_static_assets_include_conversion_status_ui() -> None:
         assert "window.localStorage" in script
         assert "function removeLocalDraft" in script
         assert "function setDraftStatus" in script
-        assert "已恢复浏览器本地草稿，等待章节预检。" in script
+        assert "已恢复浏览器本地草稿，正在等待章节预检。" in script
         assert "本地草稿为空，等待手稿输入。" in script
         assert "草稿已保存" in script
         assert "保存不可用" in script
@@ -678,6 +678,9 @@ def test_web_static_assets_include_conversion_status_ui() -> None:
         assert "chapter-preview-content" in script
         assert "还有 ${chapterItems.length - limit} 章未显示" in script
         assert "正在解析章节" in script
+        assert "function updateInputStatus(options = {})" in script
+        assert 'const pendingDetail = options.pendingDetail || "正在解析章节，完成后会启用转换。"' in script
+        assert 'setConversionStatus("预检中", pendingDetail, "active")' in script
         assert "function updatePreviewConversionStatus" in script
         assert "章节预检已通过，可以开始转换。" in script
         assert "章节预检已通过，但有章节素材偏短，转换后请重点复核。" in script

@@ -47,6 +47,7 @@ Initial release candidate.
 - Local Web result tabs stay available for reviewing stale generated output while export actions remain disabled.
 - Local Web export actions are disabled while a new conversion is running so stale prior results cannot be downloaded mid-run.
 - Local Web workflow progress keeps the conversion step in an error state after a failed conversion until the user changes inputs or retries.
+- Local Web conversion status now shows an explicit preflight-in-progress state when manuscript input starts chapter preflight.
 - Local Web conversion status now updates when chapter preflight finishes, showing whether the draft is ready to convert or still blocked.
 - Local Web clear action now returns the conversion status to an empty-input state instead of a pending-conversion state.
 - Local Web conversion and preflight APIs return 413 for oversized requests, and the browser workbench warns before sending manuscripts over the 2 MB request limit.
