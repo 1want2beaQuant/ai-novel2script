@@ -7,7 +7,8 @@ Jon arrived before dawn and saw fresh footprints crossing the hall.
 Chapter 3 The Last Tape
 Mara and Jon played the tape together. The hidden name finally connected every clue.`;
 
-const maxRequestBytes = 2000000;
+const defaultMaxRequestBytes = 2000000;
+let maxRequestBytes = defaultMaxRequestBytes;
 const defaultModel = "gpt-4.1-mini";
 const localDraftStorageKey = "novel2script:web:local-draft:v1";
 const localDraftVersion = 1;
@@ -148,12 +149,28 @@ async function checkServer() {
       throw new Error("Health check failed.");
     }
     const health = await readJsonResponse(response, "服务状态响应无法解析。");
+    updateRuntimeRequestLimit(health);
     elements.serverStatus.textContent = health.version ? `Ready v${health.version}` : "Ready";
     setStatusTone(elements.serverStatus, "ready");
   } catch {
     elements.serverStatus.textContent = "Offline";
     setStatusTone(elements.serverStatus, "error");
   }
+}
+
+function updateRuntimeRequestLimit(health) {
+  const requestLimit = Number(health?.max_request_bytes);
+  if (!Number.isFinite(requestLimit) || requestLimit <= 0) {
+    return;
+  }
+
+  const normalizedLimit = Math.floor(requestLimit);
+  if (normalizedLimit === maxRequestBytes) {
+    return;
+  }
+
+  maxRequestBytes = normalizedLimit;
+  updateInputStatus();
 }
 
 async function readJsonResponse(response, fallbackMessage) {
