@@ -159,6 +159,9 @@ def _missing_static_shell_markers(body: str) -> list[str]:
         'id="bundleButton"',
         'id="remoteConfirmPanel"',
         'id="sceneFilterInput"',
+        'class="quality-overview"',
+        'id="qualityOverviewState"',
+        'id="qualityCoverageMeter"',
     ]
     return [marker for marker in required if marker not in body]
 
@@ -210,6 +213,11 @@ def _missing_static_app_markers(body: str) -> list[str]:
         "downloadBundle",
         "createZipBlob",
         "currentOutputStaleReason",
+        "renderQualityOverview",
+        "qualityHealthLabel",
+        "lowestCoverageScore",
+        "riskMeterPercent",
+        "arrayItems",
         "setConversionInputLock",
     ]
     return [marker for marker in required if marker not in body]
