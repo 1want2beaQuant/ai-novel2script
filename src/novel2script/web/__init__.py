@@ -596,6 +596,8 @@ class Novel2ScriptWebHandler(BaseHTTPRequestHandler):
             raise ValueError("Invalid request length.")
         if content_length > MAX_REQUEST_BYTES:
             raise RequestTooLargeError("Request body is too large.")
+        if content_length == 0:
+            raise ValueError("Request body is required.")
 
         raw = self.rfile.read(content_length)
         try:

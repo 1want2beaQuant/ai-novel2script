@@ -1057,6 +1057,61 @@ def test_web_server_rejects_invalid_content_length() -> None:
         thread.join(timeout=5)
 
 
+def test_web_server_rejects_empty_json_payload() -> None:
+    server = create_server(port=0)
+    thread = Thread(target=server.serve_forever, daemon=True)
+    thread.start()
+    host, port = server.server_address
+
+    try:
+        for path in ("/api/convert", "/api/preview"):
+            connection = HTTPConnection(host, port, timeout=10)
+            connection.request("POST", path, body=b"", headers={"Content-Type": "application/json"})
+            response = connection.getresponse()
+            data = json.loads(response.read().decode("utf-8"))
+
+            assert response.status == HTTPStatus.BAD_REQUEST
+            assert_security_headers(response)
+            assert data == {"error": "Request body is required."}
+            connection.close()
+    finally:
+        server.shutdown()
+        server.server_close()
+        thread.join(timeout=5)
+
+
+def test_web_server_rejects_non_object_json_payload() -> None:
+    server = create_server(port=0)
+    thread = Thread(target=server.serve_forever, daemon=True)
+    thread.start()
+    host, port = server.server_address
+
+    try:
+        for path, payload in (
+            ("/api/convert", b'["text"]'),
+            ("/api/preview", b'"text"'),
+            ("/api/preview", b"null"),
+        ):
+            connection = HTTPConnection(host, port, timeout=10)
+            connection.request(
+                "POST",
+                path,
+                body=payload,
+                headers={"Content-Type": "application/json"},
+            )
+            response = connection.getresponse()
+            data = json.loads(response.read().decode("utf-8"))
+
+            assert response.status == HTTPStatus.BAD_REQUEST
+            assert_security_headers(response)
+            assert data == {"error": "Request body must be a JSON object."}
+            connection.close()
+    finally:
+        server.shutdown()
+        server.server_close()
+        thread.join(timeout=5)
+
+
 def test_web_server_rejects_oversized_json_payload() -> None:
     server = create_server(port=0)
     thread = Thread(target=server.serve_forever, daemon=True)
