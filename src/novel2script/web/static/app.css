@@ -1161,6 +1161,27 @@ pre {
   color: var(--muted);
 }
 
+.scene-dramatic-list {
+  margin: 9px 0 0;
+  display: grid;
+  grid-template-columns: 34px minmax(0, 1fr);
+  gap: 4px 8px;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.35;
+}
+
+.scene-dramatic-list dt {
+  color: var(--blue);
+  font-weight: 700;
+}
+
+.scene-dramatic-list dd {
+  min-width: 0;
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
 .scene-block-meta {
   margin-top: 7px;
   color: var(--blue);

@@ -32,4 +32,7 @@ def test_draft_to_markdown_exports_revision_brief_sections() -> None:
     assert "开场意象" in markdown
     assert "## Scene Index" in markdown
     assert "**S001** chapter 1" in markdown
+    assert "Objective:" in markdown
+    assert "Conflict:" in markdown
+    assert "Turning point:" in markdown
     assert "## Revision Checklist" in markdown

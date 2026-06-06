@@ -5,7 +5,7 @@
 ## 顶层结构
 
 ```yaml
-schema_version: 1.4.0
+schema_version: 1.5.0
 title: 雾城来信
 language: zh-CN
 generated_at: 2026-06-05T00:00:00+00:00
@@ -122,10 +122,11 @@ revision_notes:
 
 ## 场景结构
 
-每个场景包含 `id`、`title`、`location`、`time`、`summary`、`source_chapter`、`characters`、`beats` 和 `blocks`。
+每个场景包含 `id`、`title`、`location`、`time`、`summary`、`objective`、`conflict`、`turning_point`、`source_chapter`、`characters`、`beats` 和 `blocks`。
 
 - `id` 采用 `S001` 格式，稳定、短小，适合人工批注。
 - `source_chapter` 保留小说章节索引，保证改编稿可以追溯到原文。
+- `objective`、`conflict` 和 `turning_point` 标记本场的戏剧目标、阻力和转折，便于逐场改稿。
 - `beats` 是场景节拍，给作者提供继续扩写的情节点。
 - `blocks` 是可拍摄文本单元，支持动作、对白、旁白和转场。
 
@@ -189,7 +190,7 @@ revision_notes:
 
 1. **面向编辑而不是终稿排版**：YAML 比传统剧本排版更容易被作者、编辑器和 AI 工具继续修改，因此 Schema 保留结构化字段，而不是直接生成固定版式。
 2. **保持来源可追溯**：`source.chapter_count`、`source.chapters` 和 `scene.source_chapter` 让作者能快速定位每个场景来自哪一章，降低改编校对成本。
-3. **兼顾编剧工作流**：`acts -> scenes -> blocks` 对应从宏观结构到场景执行的常见剧本工作方式，便于逐层修改。
+3. **兼顾编剧工作流**：`acts -> scenes -> objective/conflict/turning_point -> blocks` 对应从宏观结构到场景功能再到文本执行的常见剧本工作方式，便于逐层修改。
 4. **允许 AI 与人工协作**：`summary`、`beats`、`revision_notes` 明确标记 AI 生成的中间判断，作者可以选择接受、删除或重写。
 5. **补足改编质检**：`adaptation_report` 让作者知道哪些章节已经被改成场景、哪里还缺对白或具体地点，避免只拿到一个不可追溯的 AI 初稿。
 6. **沉淀改编资产**：`story_bible` 把人物、地点、道具和未解决问题独立出来，便于作者后续扩写、统一设定或进入制片拆解。

@@ -559,6 +559,9 @@
         "location",
         "time",
         "summary",
+        "objective",
+        "conflict",
+        "turning_point",
         "source_chapter",
         "characters",
         "beats",
@@ -583,6 +586,18 @@
           "minLength": 1
         },
         "summary": {
+          "type": "string",
+          "minLength": 1
+        },
+        "objective": {
+          "type": "string",
+          "minLength": 1
+        },
+        "conflict": {
+          "type": "string",
+          "minLength": 1
+        },
+        "turning_point": {
           "type": "string",
           "minLength": 1
         },

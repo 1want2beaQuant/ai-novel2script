@@ -22,7 +22,11 @@ def test_generated_script_matches_schema() -> None:
     data = draft.to_dict()
 
     validate_script(data)
-    assert data["schema_version"] == "1.4.0"
+    assert data["schema_version"] == "1.5.0"
+    scene = data["acts"][0]["scenes"][0]
+    assert scene["objective"]
+    assert scene["conflict"]
+    assert scene["turning_point"]
     assert len(data["structure_map"]["beats"]) == 5
     assert data["story_bible"]["locations"]
     assert data["adaptation_report"]["chapter_coverage"]["adapted_chapters"] == 3

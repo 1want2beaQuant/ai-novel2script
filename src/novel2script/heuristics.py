@@ -142,14 +142,23 @@ def _chapter_to_scene(chapter: Chapter) -> Scene:
     if blocks[-1].type != "transition":
         blocks.append(ScriptBlock(type="transition", text="切至下一场。"))
 
+    scene_characters = characters or _guess_names(chapter.body, limit=3)
+    location = _infer_location(chapter.body)
+    summary = _summarize(chapter.body)
+    lead = scene_characters[0] if scene_characters else "主角"
+    turning_point = _scene_turning_point(paragraphs, summary)
+
     return Scene(
         id=f"S{chapter.index:03d}",
         title=chapter.title,
-        location=_infer_location(chapter.body),
+        location=location,
         time=_infer_time(chapter.body),
-        summary=_summarize(chapter.body),
+        summary=summary,
+        objective=_scene_objective(lead, chapter.title, summary),
+        conflict=_scene_conflict(lead, location, chapter.body),
+        turning_point=turning_point,
         source_chapter=chapter.index,
-        characters=characters or _guess_names(chapter.body, limit=3),
+        characters=scene_characters,
         beats=beats,
         blocks=blocks,
     )
@@ -169,6 +178,30 @@ def _paragraph_to_block(paragraph: str) -> ScriptBlock:
         )
 
     return ScriptBlock(type="action", text=_rewrite_action(paragraph))
+
+
+def _scene_objective(lead: str, chapter_title: str, summary: str) -> str:
+    chapter_goal = _shorten(summary or chapter_title, 42).rstrip("。！？!?；;，, ")
+    return f"{lead}试图弄清“{chapter_goal}”背后的选择和后果。"
+
+
+def _scene_conflict(lead: str, location: str, body: str) -> str:
+    obstacle = "信息不完整"
+    if "秘密" in body or "真相" in body or "线索" in body:
+        obstacle = "关键线索仍被隐瞒"
+    elif "雨" in body or "夜" in body or "黑" in body:
+        obstacle = "环境压迫让判断变得困难"
+    elif "问" in body or "说" in body or "：" in body or ":" in body:
+        obstacle = "人物之间的信息和立场并不一致"
+    place = location if location != "待定场景" else "当前场景"
+    return f"{lead}在{place}面对{obstacle}，需要用行动或对白推进局面。"
+
+
+def _scene_turning_point(paragraphs: list[str], summary: str) -> str:
+    candidates = [paragraph for paragraph in paragraphs if paragraph.strip()]
+    source = candidates[-1] if candidates else summary
+    turn = _shorten(source, 52).rstrip("。！？!?；;，, ")
+    return f"场景转向：{turn}。"
 
 
 def _group_scenes_into_acts(scenes: list[Scene]) -> list[Act]:

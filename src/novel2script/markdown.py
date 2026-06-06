@@ -68,6 +68,9 @@ def draft_to_markdown(draft: ScriptDraft) -> str:
             f"- **{scene.get('id', 'S???')}** chapter {scene.get('source_chapter', '?')} - "
             f"{scene.get('title', '')} / {scene.get('location', '待定场景')} / {characters}"
         )
+        lines.append(f"  - Objective: {scene.get('objective', '待补充')}")
+        lines.append(f"  - Conflict: {scene.get('conflict', '待补充')}")
+        lines.append(f"  - Turning point: {scene.get('turning_point', '待补充')}")
 
     _append_section(lines, "Quality Flags", _string_list(adaptation.get("quality_flags")))
     _append_section(lines, "Revision Checklist", _string_list(adaptation.get("revision_checklist")))
