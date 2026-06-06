@@ -794,6 +794,9 @@ def test_web_static_assets_include_conversion_status_ui() -> None:
         assert 'format === "fountain" || format === "markdown"' in script
         assert "state.output = outputForSelection(state.selectedOutput)" in script
         assert "selectOutput(selection)" in script
+        assert "const isStale = Boolean(currentOutputStaleReason())" in script
+        assert 'isStale ? "is-stale" : ""' in script
+        assert "downloadButton.disabled = isStale" in script
         assert "item.dataset.exportKey = file.key" in script
         assert 'item.setAttribute("aria-current", "true")' in script
         assert 'viewButton.dataset.exportAction = "view"' in script
@@ -888,6 +891,7 @@ def test_web_static_assets_include_conversion_status_ui() -> None:
         assert ".export-file-detail" in stylesheet
         assert ".export-file-actions" in stylesheet
         assert ".export-file-actions button" in stylesheet
+        assert ".export-manifest-list li.is-stale" in stylesheet
         assert ".scene-map-panel" in stylesheet
         assert ".scene-map-list" in stylesheet
         assert ".story-bible-grid" in stylesheet

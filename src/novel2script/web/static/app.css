@@ -688,6 +688,12 @@ pre {
   box-shadow: inset 0 3px 0 var(--teal);
 }
 
+.export-manifest-list li.is-stale {
+  background:
+    linear-gradient(90deg, rgba(184, 117, 20, 0.08), rgba(184, 117, 20, 0.02)),
+    var(--surface);
+}
+
 .export-file-detail {
   min-width: 0;
 }

@@ -934,13 +934,19 @@ function renderExportManifest() {
 
   const files = state.exportManifest.files || [];
   const bundle = state.exportManifest.bundle || {};
+  const isStale = Boolean(currentOutputStaleReason());
   elements.exportBundleMeta.textContent = `${bundle.file_count ?? files.length} 个文件 · ${formatFileSize(
     Number(bundle.content_bytes || 0)
   )}`;
   elements.exportManifestList.replaceChildren(
     ...files.map((file) => {
       const item = document.createElement("li");
-      item.className = file.key === state.selectedOutput ? "is-selected" : "";
+      item.className = [
+        file.key === state.selectedOutput ? "is-selected" : "",
+        isStale ? "is-stale" : ""
+      ]
+        .filter(Boolean)
+        .join(" ");
       item.dataset.exportKey = file.key;
       if (file.key === state.selectedOutput) {
         item.setAttribute("aria-current", "true");
@@ -972,6 +978,7 @@ function renderExportManifest() {
       downloadButton.type = "button";
       downloadButton.textContent = "下载";
       downloadButton.dataset.exportAction = "download";
+      downloadButton.disabled = isStale;
       downloadButton.setAttribute("aria-label", `下载 ${file.label || exportLabelForKey(file.key)}`);
       downloadButton.addEventListener("click", () => downloadExportFile(file.key));
 
