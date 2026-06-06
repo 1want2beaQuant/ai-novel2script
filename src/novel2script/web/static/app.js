@@ -1181,7 +1181,27 @@ function showRequestSizeError() {
   updateExportStatus();
 }
 
+function preserveCurrentInputAfterImportError(label, detail, tone) {
+  if (!countCharacters(elements.manuscript.value)) {
+    return false;
+  }
+  setConversionStatus(label, `${detail} 当前手稿和章节预检已保留。`, tone);
+  syncConvertAvailability();
+  updateExportStatus();
+  return true;
+}
+
 function showFileImportSizeError(file) {
+  if (
+    preserveCurrentInputAfterImportError(
+      "无法导入",
+      "所选文件会超过 Web 请求上限。",
+      "error"
+    )
+  ) {
+    return;
+  }
+
   state.isPreviewPending = false;
   state.isPreviewReady = false;
   const requestSize = importedFileRequestByteLength(file);
@@ -1200,6 +1220,16 @@ function showFileImportSizeError(file) {
 }
 
 function showFileImportTypeError(file) {
+  if (
+    preserveCurrentInputAfterImportError(
+      "导入失败",
+      `${file.name || "所选文件"} 不是可导入的文本手稿。`,
+      "warn"
+    )
+  ) {
+    return;
+  }
+
   state.isPreviewPending = false;
   state.isPreviewReady = false;
   elements.inputHint.textContent = "仅支持 .txt 或 text/plain 文本文件，当前手稿已保留。";
@@ -1214,6 +1244,17 @@ function showFileImportTypeError(file) {
 }
 
 function showFileImportReadError(file) {
+  const fileName = file?.name || "所选文件";
+  if (
+    preserveCurrentInputAfterImportError(
+      "导入失败",
+      `${fileName} 无法读取。`,
+      "warn"
+    )
+  ) {
+    return;
+  }
+
   state.isPreviewPending = false;
   state.isPreviewReady = false;
   elements.inputHint.textContent = "文件读取失败，当前手稿已保留。请重新选择或粘贴文本。";
@@ -1222,15 +1263,25 @@ function showFileImportReadError(file) {
     emptyMessage: "当前章节预检未更新",
     tone: "warn"
   });
-  setConversionStatus("导入失败", `${file.name} 无法读取。`, "warn");
+  setConversionStatus("导入失败", `${fileName} 无法读取。`, "warn");
   syncConvertAvailability();
   updateExportStatus();
 }
 
 function showFileImportEmptyError(file) {
+  const fileName = file?.name || "所选文件";
+  if (
+    preserveCurrentInputAfterImportError(
+      "导入失败",
+      `${fileName} 没有可导入的手稿内容。`,
+      "warn"
+    )
+  ) {
+    return;
+  }
+
   state.isPreviewPending = false;
   state.isPreviewReady = false;
-  const fileName = file?.name || "所选文件";
   elements.inputHint.textContent = "文件为空，当前手稿已保留。请重新选择或粘贴文本。";
   setStatusTone(elements.inputSize.parentElement, "warn");
   renderChapterPreview("导入失败", [], {
