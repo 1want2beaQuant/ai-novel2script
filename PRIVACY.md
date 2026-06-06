@@ -46,7 +46,7 @@ The browser workbench is served by a local Python HTTP server. By default it bin
 
 When using the Web UI:
 
-- the selected `.txt` manuscript is read by your browser and sent to local endpoints:
+- the selected `.txt`, `.md`, `.markdown`, text/plain, or text/markdown manuscript is read by your browser and sent to local endpoints:
   `/api/preview` for chapter preflight and `/api/convert` for conversion;
 - local mode keeps conversion on the same machine and does not call external AI services;
 - OpenAI mode follows the remote payload behavior described above, and the Web UI asks for

@@ -144,7 +144,7 @@ def _missing_static_shell_markers(body: str) -> list[str]:
     required = [
         "<h1>小说改编工作台</h1>",
         'id="fileInput"',
-        'accept=".txt,text/plain"',
+        'accept=".txt,.md,.markdown,text/plain,text/markdown"',
         'id="inputDropZone"',
         'id="dropOverlay"',
         'role="status" aria-live="polite" aria-atomic="true"',
@@ -189,6 +189,7 @@ def _missing_static_app_markers(body: str) -> list[str]:
         "showFileImportReadError",
         "showFileImportEmptyError",
         "if (!text.trim())",
+        "stripLeadingByteOrderMark",
         "已导入 ${file.name}，正在等待章节预检。",
         "replaceManuscriptText",
         "handleDropZoneDrop",

@@ -440,6 +440,7 @@ def test_web_server_serves_static_assets_and_conversion_api() -> None:
         assert 'id="convertStepMeta"' in body
         assert 'id="exportStepMeta"' in body
         assert 'class="pane input-pane"' in body
+        assert 'accept=".txt,.md,.markdown,text/plain,text/markdown"' in body
         assert 'id="inputDropZone"' in body
         assert 'class="manuscript-drop-area"' in body
         assert 'id="dropOverlay"' in body
@@ -761,14 +762,21 @@ def test_web_static_assets_include_conversion_status_ui() -> None:
         assert "function isCurrentRequestTooLarge" in script
         assert "function importedFileRequestByteLength" in script
         assert "function importFile" in script
+        assert "function stripLeadingByteOrderMark" in script
+        assert "text = stripLeadingByteOrderMark(text)" in script
+        assert "text.charCodeAt(0) === 0xfeff" in script
         assert "function isImportableTextFile" in script
-        assert "name.endsWith(\".txt\") || type === \"text/plain\"" in script
+        assert 'name.endsWith(".txt")' in script
+        assert 'name.endsWith(".md")' in script
+        assert 'name.endsWith(".markdown")' in script
+        assert 'type === "text/plain"' in script
+        assert 'type === "text/markdown"' in script
         assert "type.startsWith(\"text/\")" not in script
         assert "function preserveCurrentInputAfterImportError" in script
         assert "当前手稿和章节预检已保留。" in script
         assert "function showFileImportTypeError" in script
-        assert "仅支持 .txt 或 text/plain 文本文件，当前手稿已保留。" in script
-        assert "请选择 .txt 文本手稿" in script
+        assert "仅支持 .txt、.md 或 text/plain/markdown 文本文件，当前手稿已保留。" in script
+        assert "请选择 .txt 或 .md 文本手稿" in script
         assert "不是可导入的文本手稿。" in script
         assert "await importFile(file, { resetPicker: true })" in script
         assert "function handleDropZoneDragEnter" in script
