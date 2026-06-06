@@ -1291,6 +1291,31 @@ function renderPreview(preview) {
     setStatusTone(elements.inputSize.parentElement, "neutral");
   }
   syncConvertAvailability();
+  updatePreviewConversionStatus(preview);
+}
+
+function updatePreviewConversionStatus(preview) {
+  if (state.output) {
+    updateConversionFreshness();
+    return;
+  }
+
+  if (preview.ready) {
+    setConversionStatus(
+      "待转换",
+      preview.short_chapter_count
+        ? "章节预检已通过，但有章节素材偏短，转换后请重点复核。"
+        : "章节预检已通过，可以开始转换。",
+      preview.short_chapter_count ? "warn" : "active"
+    );
+    return;
+  }
+
+  setConversionStatus(
+    "无法转换",
+    preview.message || "至少需要 3 章通过预检后才能转换。",
+    "warn"
+  );
 }
 
 function updateProviderStatus() {

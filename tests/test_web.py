@@ -678,6 +678,9 @@ def test_web_static_assets_include_conversion_status_ui() -> None:
         assert "chapter-preview-content" in script
         assert "还有 ${chapterItems.length - limit} 章未显示" in script
         assert "正在解析章节" in script
+        assert "function updatePreviewConversionStatus" in script
+        assert "章节预检已通过，可以开始转换。" in script
+        assert "章节预检已通过，但有章节素材偏短，转换后请重点复核。" in script
         assert "const payload = conversionPayload()" in script
         assert "state.lastConvertedInput = payload.text" in script
         assert "lastConversionFailed" in script
