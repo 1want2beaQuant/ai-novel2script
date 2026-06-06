@@ -230,5 +230,8 @@ def test_local_web_workbench_is_documented_for_release() -> None:
     assert "preview parsing, conversion, export manifests, and JSON exports" in changelog
     assert "per-chapter manuscript size" in changelog
     assert "non-blocking short-chapter warnings" in changelog
+    assert "accepts `.md`, `.markdown`, and `text/markdown` files" in changelog
+    assert "strips a leading UTF-8 BOM" in changelog
+    assert "initial sample manuscript as a seed example" in changelog
     assert "inline remote confirmation panel" in changelog
     assert "pending confirmations are invalidated" in changelog

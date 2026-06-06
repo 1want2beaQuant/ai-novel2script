@@ -55,6 +55,8 @@ Initial release candidate.
 - Local Web file import reports local read failures without replacing the current manuscript.
 - Local Web file import rejects empty text files without replacing the current manuscript.
 - Local Web file import resets the picker after a successful import so the same file can be selected again.
+- Local Web manuscript import accepts `.md`, `.markdown`, and `text/markdown` files in addition to `.txt` and `text/plain`.
+- Local Web manuscript import strips a leading UTF-8 BOM before populating the manuscript editor.
 - Local Web manuscript input supports drag-and-drop text import with the same size and read-error safeguards as the file picker.
 - Local Web manuscript import rejects non-text files before reading them, preserving the current workbench draft.
 - Local Web manuscript import keeps the imported filename visible while chapter preflight is pending.
@@ -68,6 +70,7 @@ Initial release candidate.
 - Local Web OpenAI confirmation can be cancelled with Escape and restores focus after cancellation.
 - Local Web workbench can clear the current manuscript, generated outputs, diagnostics, selected file, remote confirmation state, and saved browser draft.
 - Local Web workbench automatically saves manuscript draft input and conversion settings in browser local storage and restores them after a refresh.
+- Local Web workbench treats the initial sample manuscript as a seed example instead of saving it as a user browser draft.
 - Local Web workbench shows a four-step workflow progress strip for input, chapter preflight, conversion, and export readiness.
 - Local Web download action reports browser download failures and recovers its button label.
 - Local Web health metadata reports the runtime version, default model, and request limit, and the browser status pill shows the backend version.
