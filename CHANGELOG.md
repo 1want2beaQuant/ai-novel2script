@@ -50,6 +50,7 @@ Initial release candidate.
 - Local Web workbench can package YAML, Fountain, Markdown revision brief, draft JSON, and summary JSON exports into one browser-generated zip.
 - Local Web result pane can switch between YAML, Fountain, Markdown revision brief, draft JSON, and summary JSON views without rerunning conversion.
 - Local Web result tabs support keyboard navigation with arrow keys, Home, and End.
+- Local Web OpenAI confirmation can be cancelled with Escape and restores focus after cancellation.
 - Local Web workbench can clear the current manuscript, generated outputs, diagnostics, selected file, remote confirmation state, and saved browser draft.
 - Local Web workbench automatically saves manuscript draft input and conversion settings in browser local storage and restores them after a refresh.
 - Local Web workbench shows a four-step workflow progress strip for input, chapter preflight, conversion, and export readiness.
