@@ -120,6 +120,16 @@ def test_web_smoke_script_covers_conversion_exports_for_release() -> None:
     assert "Conversion failed with status" in smoke_script
 
 
+def test_web_smoke_static_app_diagnostics_report_missing_markers() -> None:
+    from scripts import smoke_web_server
+
+    missing = smoke_web_server._missing_static_app_markers("fetch(\"/api/preview\"")
+
+    assert "providerStatusSummary" in missing
+    assert "showFileImportSizeError" in missing
+    assert "fetch(\"/api/preview\"" not in missing
+
+
 def test_openai_validation_behavior_is_documented_for_release() -> None:
     readme = (ROOT / "README.md").read_text(encoding="utf-8")
     changelog = (ROOT / "CHANGELOG.md").read_text(encoding="utf-8")
