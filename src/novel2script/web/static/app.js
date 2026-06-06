@@ -754,7 +754,7 @@ function updateInputStatus() {
   state.isPreviewReady = false;
   state.previewWarningCount = 0;
   syncConvertAvailability();
-  updateExportStatus();
+  refreshExportReadiness();
 
   if (isCurrentRequestTooLarge()) {
     state.previewInput = "";
@@ -1537,6 +1537,11 @@ function updateExportStatus() {
   updateWorkflowSteps();
 }
 
+function refreshExportReadiness() {
+  updateExportStatus();
+  renderExportManifest();
+}
+
 function currentOutputStaleReason() {
   if (elements.manuscript.value !== state.lastConvertedInput) {
     return {
@@ -1984,7 +1989,7 @@ async function copyOutput() {
   }
   const staleReason = currentOutputStaleReason();
   if (staleReason) {
-    updateExportStatus();
+    refreshExportReadiness();
     setConversionStatus("需重新转换", staleReason.conversionDetail, "warn");
     return;
   }
@@ -2015,7 +2020,7 @@ function downloadExportFile(selection, options = {}) {
   }
   const staleReason = currentOutputStaleReason();
   if (staleReason) {
-    updateExportStatus();
+    refreshExportReadiness();
     setConversionStatus("需重新转换", staleReason.conversionDetail, "warn");
     return;
   }
@@ -2136,7 +2141,7 @@ function downloadBundle() {
   }
   const staleReason = currentOutputStaleReason();
   if (staleReason) {
-    updateExportStatus();
+    refreshExportReadiness();
     setConversionStatus("需重新转换", staleReason.conversionDetail, "warn");
     return;
   }
@@ -2310,7 +2315,7 @@ elements.title.addEventListener("input", () => {
   scheduleLocalDraftSave();
   resetProviderRunStatus();
   syncConvertAvailability();
-  updateExportStatus();
+  refreshExportReadiness();
   updateConversionFreshness();
 });
 elements.manuscript.addEventListener("input", () => {
@@ -2322,7 +2327,7 @@ elements.provider.addEventListener("change", () => {
   dismissRemoteConfirmation();
   scheduleLocalDraftSave();
   syncConvertAvailability();
-  updateExportStatus();
+  refreshExportReadiness();
   updateProviderStatus();
 });
 elements.model.addEventListener("input", () => {
@@ -2330,7 +2335,7 @@ elements.model.addEventListener("input", () => {
   scheduleLocalDraftSave();
   resetProviderRunStatus();
   syncConvertAvailability();
-  updateExportStatus();
+  refreshExportReadiness();
   updateConversionFreshness();
 });
 elements.format.addEventListener("change", () => {
@@ -2343,12 +2348,12 @@ elements.format.addEventListener("change", () => {
   }
   state.selectedOutput = selection;
   renderOutputTabs();
-  updateExportStatus();
+  refreshExportReadiness();
 });
 elements.validate.addEventListener("change", () => {
   scheduleLocalDraftSave();
   syncConvertAvailability();
-  updateExportStatus();
+  refreshExportReadiness();
   updateConversionFreshness();
 });
 elements.convert.addEventListener("click", convertManuscript);

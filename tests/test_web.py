@@ -687,6 +687,12 @@ def test_web_static_assets_include_conversion_status_ui() -> None:
         assert "未确认远程发送" in script
         assert "需重新转换" in script
         assert "function currentOutputStaleReason" in script
+        assert (
+            "function refreshExportReadiness() {\n"
+            "  updateExportStatus();\n"
+            "  renderExportManifest();\n"
+            "}" in normalized_script
+        )
         assert "setOutputActions(false)" in script
         assert "setOutputActions(true)" in script
         assert "elements.bundle.disabled = !isEnabled" in script
@@ -797,6 +803,7 @@ def test_web_static_assets_include_conversion_status_ui() -> None:
         assert "const isStale = Boolean(currentOutputStaleReason())" in script
         assert 'isStale ? "is-stale" : ""' in script
         assert "downloadButton.disabled = isStale" in script
+        assert "refreshExportReadiness()" in script
         assert "item.dataset.exportKey = file.key" in script
         assert 'item.setAttribute("aria-current", "true")' in script
         assert 'viewButton.dataset.exportAction = "view"' in script
