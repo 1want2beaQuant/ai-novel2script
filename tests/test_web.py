@@ -418,6 +418,11 @@ def test_web_server_serves_static_assets_and_conversion_api() -> None:
         assert 'class="scene-map-panel"' in body
         assert 'id="sceneMapList"' in body
         assert "章节映射" in body
+        assert 'class="scene-filter"' in body
+        assert 'id="sceneFilterInput"' in body
+        assert 'id="sceneFilterClear"' in body
+        assert 'id="sceneFilterMeta"' in body
+        assert "筛选场景索引" in body
         assert 'class="story-bible-grid"' in body
         assert 'id="storyCharactersList"' in body
         assert 'id="storyLocationsList"' in body
@@ -563,6 +568,20 @@ def test_web_static_assets_include_conversion_status_ui() -> None:
         assert "blocks_preview" in script
         assert "scene-block-preview" in script
         assert "block-type-dialogue" in script
+        assert "sceneFilterInput" in script
+        assert "sceneFilterClear" in script
+        assert "sceneFilterMeta" in script
+        assert "visibleScenes" in script
+        assert "sceneFilter" in script
+        assert "function sceneMatchesFilter" in script
+        assert "function sceneSearchText" in script
+        assert "function renderSceneFilterMeta" in script
+        assert "function updateSceneFilter" in script
+        assert "function clearSceneFilter" in script
+        assert "没有匹配" in script
+        assert "匹配 ${filteredCount} / ${totalCount} 场" in script
+        assert 'elements.sceneFilterInput.addEventListener("input", updateSceneFilter)' in script
+        assert 'elements.sceneFilterClear.addEventListener("click", clearSceneFilter)' in script
         assert "function renderStoryBible" in script
         assert "function renderStoryCharacters" in script
         assert "function renderStoryLocations" in script
@@ -724,6 +743,10 @@ def test_web_static_assets_include_conversion_status_ui() -> None:
         assert ".scene-dramatic-list dd" in stylesheet
         assert ".scene-block-preview" in stylesheet
         assert ".block-type-dialogue" in stylesheet
+        assert ".scene-filter" in stylesheet
+        assert ".scene-filter input" in stylesheet
+        assert ".scene-filter button" in stylesheet
+        assert ".scene-filter-meta" in stylesheet
         assert ".output-tabs" in stylesheet
         assert ".output-tabs button.is-selected" in stylesheet
         assert ".scene-map-panel" in stylesheet

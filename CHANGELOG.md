@@ -25,6 +25,7 @@ Initial release candidate.
 - Local Web adaptation inspector shows chapter-to-scene mapping so source coverage can be audited directly in the browser.
 - Local Web scene index shows scene block counts and action/dialogue/voice-over/transition previews.
 - Local Web scene index shows each scene's objective, conflict, and turning point.
+- Local Web scene index can be filtered by character, location, scene function, or block preview text.
 - Local Web adaptation inspector shows Story Bible panels for character continuity, locations, props/clues, and open questions.
 - Local Web UI refuses non-loopback hosts unless `--allow-remote` is provided and sends basic browser security headers.
 - Local Web conversion API rejects non-JSON and cross-origin browser requests.
